@@ -8,7 +8,16 @@
 # You can split this configuration into multiple files
 # Create your files separately and then link them to this file like this:
 # source = ~/.config/hypr/myColors.conf
+##########################
+### Chezmoi Templating ###
+##########################
+{{- $machine := .chezmoi.hostname -}}
 
+{{- if eq $machine "laptop" }}
+# Example laptop
+{{- else if eq $machine "desktop" }}
+# example desktop
+{{- end }}
 
 ################
 ### MONITORS ###
