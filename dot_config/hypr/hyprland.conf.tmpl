@@ -190,12 +190,16 @@ device {
 # See https://wiki.hyprland.org/Configuring/Keywords/
 $mainMod = SUPER # Sets "Windows" key as main modifier
 
+# Custom binds
+bind = $mainMod, V, exec,  kitty --class clipse -e 'clipse'
+bind = $mainMod, l, exec, hyprlock
+
 # Example binds, see https://wiki.hyprland.org/Configuring/Binds/ for more
 bind = $mainMod, Q, exec, $terminal
 bind = $mainMod, C, killactive,
 bind = $mainMod, M, exit,
 bind = $mainMod, E, exec, $fileManager
-bind = $mainMod, V, togglefloating,
+# bind = $mainMod, V, togglefloating, # SUPER + V used for paste
 bind = $mainMod, R, exec, $menu
 bind = $mainMod, P, pseudo, # dwindle
 bind = $mainMod, J, togglesplit, # dwindle
@@ -262,12 +266,22 @@ bindl = , XF86AudioPrev, exec, playerctl previous
 
 # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
 # See https://wiki.hyprland.org/Configuring/Workspace-Rules/ for workspace rules
+{{- if eq $machine "golgor-laptop" }}
+workspace = 1, monitor:desc:Dell Inc. DELL P3424WE 6Z926T3
+workspace = 2, monitor:desc:Dell Inc. DELL P3424WE 6Z926T3
+workspace = 3, monitor:desc:Dell Inc. DELL P3424WE 6Z926T3
+workspace = 4, monitor:desc:Dell Inc. DELL P3424WE 6Z926T3
+workspace = 5, monitor:desc:Dell Inc. DELL P3424WE 6Z926T3
+workspace = 7, monitor:desc:Chimei Innolux Corporation 0x151B
 
-# Example windowrule v1
-# windowrule = float, ^(kitty)$
+# Slack always in Scratchpad
+windowrulev2 = workspace special:magic, class:^(Slack)$
+{{- end }}
 
-# Example windowrule v2
-# windowrulev2 = float,class:^(kitty)$,title:^(kitty)$
+# Window rules v2
+# Set clipse window to floating
+windowrulev2 = float,class:(clipse)
+windowrulev2 = size 622 652,class:(clipse)
 
 # Ignore maximize requests from apps. You'll probably like this.
 windowrulev2 = suppressevent maximize, class:.*
