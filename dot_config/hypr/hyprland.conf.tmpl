@@ -13,9 +13,9 @@
 ##########################
 {{- $machine := .chezmoi.hostname -}}
 
-{{- if eq $machine "laptop" }}
+{{- if eq $machine "golgor-laptop" }}
 # Example laptop
-{{- else if eq $machine "desktop" }}
+{{- else if eq $machine "golgor-pc" }}
 # example desktop
 {{- end }}
 
