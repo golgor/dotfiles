@@ -1,3 +1,4 @@
+{{- $machine := .chezmoi.hostname -}}
 # This is an example Hyprland config file.
 # Refer to the wiki for more information.
 # https://wiki.hyprland.org/Configuring/Configuring-Hyprland/
@@ -8,24 +9,18 @@
 # You can split this configuration into multiple files
 # Create your files separately and then link them to this file like this:
 # source = ~/.config/hypr/myColors.conf
-##########################
-### Chezmoi Templating ###
-##########################
-{{- $machine := .chezmoi.hostname -}}
-
-{{- if eq $machine "golgor-laptop" }}
-# Example laptop
-{{- else if eq $machine "golgor-pc" }}
-# example desktop
-{{- end }}
 
 ################
 ### MONITORS ###
 ################
 
 # See https://wiki.hyprland.org/Configuring/Monitors/
+{{- if eq $machine "golgor-laptop" }}
+monitor=desc:Dell Inc. DELL P3424WE 6Z926T3, 3440x1440, -3440x0, 1
+monitor=desc:Chimei Innolux Corporation 0x151B, 1920x1080, 0x0, 1.2
+{{- else if eq $machine "golgor-pc" }}
 monitor=,preferred,auto,auto
-
+{{- end }}
 
 ###################
 ### MY PROGRAMS ###
@@ -49,7 +44,13 @@ $menu = wofi --show drun
 # exec-once = $terminal
 # exec-once = nm-applet &
 # exec-once = waybar & hyprpaper & firefox
-exec-once = swaync & waybar
+exec-once = waybar & swaync & hypridle
+exec-once = clipse -listen
+exec-once = [workspace 1] firefox
+exec-once = [workspace 2 silent] kitty
+{{- if eq $machine "golgor-laptop" }}
+exec-once = flatpak run com.slack.Slack
+{{- end }}
 
 ############################
 ### ENVIRONMENT VARIABLES ###
@@ -150,10 +151,14 @@ misc {
 
 # https://wiki.hyprland.org/Configuring/Variables/#input
 input {
-    kb_layout = se
+{{- if eq $machine "golgor-laptop" }}
+    kb_layout = de, se
+{{- else if eq $machine "golgor-pc" }}
+    kb_layout = se, de
+{{- end }}
     kb_variant =
     kb_model =
-    kb_options =
+    kb_options = grp:win_space_toggle
     kb_rules =
 
     follow_mouse = 1
