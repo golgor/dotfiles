@@ -193,6 +193,8 @@ $mainMod = SUPER # Sets "Windows" key as main modifier
 # Custom binds
 bind = $mainMod, V, exec,  kitty --class clipse -e 'clipse'
 bind = $mainMod, l, exec, hyprlock
+bind = , PRINT, exec, /home/golgor/.local/bin/hyprshot -m window
+bind = SHIFT, PRINT, exec, /home/golgor/.local/bin/hyprshot -m region
 
 # Example binds, see https://wiki.hyprland.org/Configuring/Binds/ for more
 bind = $mainMod, Q, exec, $terminal
