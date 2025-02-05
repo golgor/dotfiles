@@ -17,7 +17,7 @@
 # See https://wiki.hyprland.org/Configuring/Monitors/
 {{- if eq $machine "golgor-laptop" }}
 monitor=desc:Dell Inc. DELL P3424WE 6Z926T3, 3440x1440, -3440x0, 1
-monitor=desc:Chimei Innolux Corporation 0x151B, 1920x1080, 0x0, 1.2
+monitor=desc:Chimei Innolux Corporation 0x151B, 1920x1080, 0x0, 1
 {{- else if eq $machine "golgor-pc" }}
 monitor=,preferred,auto,auto
 {{- end }}
@@ -43,11 +43,10 @@ $menu = wofi --show drun
 
 # exec-once = $terminal
 # exec-once = nm-applet &
-# exec-once = waybar & hyprpaper & firefox
-exec-once = waybar & swaync & hypridle
+exec-once = waybar & swaync & hypridle & hyprpaper
 exec-once = clipse -listen
 exec-once = [workspace 1] firefox
-exec-once = [workspace 2 silent] kitty
+exec-once = [workspace 2 silent] $terminal
 {{- if eq $machine "golgor-laptop" }}
 exec-once = flatpak run com.slack.Slack
 {{- end }}
