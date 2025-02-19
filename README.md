@@ -11,4 +11,3 @@ These dotfiles depend on the following packages:
 - tesseract
 - imagemagick (mogrify)
 - wl-clipboard
-- 
