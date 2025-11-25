@@ -1,0 +1,5 @@
+README.md
+.config/hypr/hyprlock.conf.bak
+.config/hypr/hyprland.conf.tmpl.bak
+.config/waybar/config.jsonc.tmpl.bak
+.local/bin/ocr.sh
