@@ -8,14 +8,16 @@ source ~/.local/share/omarchy/default/bash/rc
 alias c="clear"
 alias src="source ~/.bashrc"
 alias br="nvim ~/.bashrc"
-alias kc="kubectx"
 alias bhr="bamboohr"
 alias ch="chezmoi"
 
-# UV-init I think?
-. "$HOME/.local/share/../bin/env"
+export TRY_PATH=~/Code/Sketches
 
+# Set up for Gnome Keyring to handle SSH-keys (enable ssh-add -l to use gnome keyring)
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
+
+# Set Google Cloud Project for Gemini CLI
+export GOOGLE_CLOUD_PROJECT="toolsense"
 
 # Enable the use of the keyring for UV
 export UV_KEYRING_PROVIDER=subprocess
@@ -23,22 +25,23 @@ export UV_INDEX_TOOLSENSE_USERNAME=oauth2accesstoken
 export UV_DEFAULT_INDEX=https://pypi.org/simple
 export UV_INDEX=toolsense=https://europe-west1-python.pkg.dev/toolsense/toolsense-py-utils/simple/
 
-export GOOGLE_CLOUD_PROJECT="toolsense"
-
-# BambooHR API-key
 export BAMBOO_HR_API_TOKEN="{{ (bitwardenFields "item" "bamboohr.com").API.value }}"
 
-export GOPRIVATE="go.iot.toolsense.dev/*,go.iot.toolsense.io/*"
+export GOPRIVATE="go.iot.toolsense.dev/*","go.iot.toolsense.io/*"
 
-# Zoxide
-eval "$(zoxide init bash --cmd cd)"
+# Initialize yazi. Enable cd from yazi, and use y.
+function y() {
+  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+  yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd <"$tmp"
+  [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+  rm -f -- "$tmp"
+}
 
 # Bash completions
-if [ -d ~/.bash_completion.d ]; then
-  for file in ~/.bash_completion.d/*; do
+if [ -d ~/.bash_completions.d ]; then
+  for file in ~/.bash_completions.d/*; do
     [ -f "$file" ] && source "$file"
   done
 fi
 
-# opencode
-export PATH=/home/golgor/.opencode/bin:$PATH
