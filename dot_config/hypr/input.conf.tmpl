@@ -1,9 +1,15 @@
+{{- $machine := .chezmoi.hostname -}}
 # Control your input devices
 # See https://wiki.hypr.land/Configuring/Variables/#input
 input {
   # Use multiple keyboard layouts and switch between them with Left Alt + Right Alt
-  kb_layout = se
-  #kb_options = compose:caps # ,grp:alts_toggle
+  {{- if eq $machine "golgor-pc" }}
+  kb_layout = se,de
+  {{- else if eq $machine "golgor-laptop" }}
+  kb_layout = de,se
+  {{- end }}
+  # Caps is escape, Alt + AltGr toggles the layouts above, changing layouts also toggles the Capslock LED, left shift + right shift toggles "CAPS"
+  kb_options = caps:escape, grp:alt_altgr_toggle, grp_led:caps, shift:both_capslock
 
   # Change speed of keyboard repeat
   repeat_rate = 40
@@ -11,7 +17,6 @@ input {
 
   # Increase sensitity for mouse/trackpack (default: 0)
   # sensitivity = 0.35
-
   numlock_by_default = true
 
   touchpad {
@@ -22,10 +27,10 @@ input {
     # clickfinger_behavior = true
 
     # Control the speed of your scrolling
-    scroll_factor = 0.4 
+    scroll_factor = 0.4
   }
 }
 
-
 # Scroll faster in the terminal
 windowrule = scrolltouchpad 1.5, tag:terminal
+
