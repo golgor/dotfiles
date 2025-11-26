@@ -5,7 +5,7 @@ input {
   # Use multiple keyboard layouts and switch between them with Left Alt + Right Alt
   {{- if eq $machine "golgor-pc" }}
   kb_layout = se,de
-  {{- else if eq $machine "golgor-laptop" }}
+  {{- else }}
   kb_layout = de,se
   {{- end }}
   # Caps is escape, Alt + AltGr toggles the layouts above, changing layouts also toggles the Capslock LED, left shift + right shift toggles "CAPS"
@@ -15,9 +15,11 @@ input {
   repeat_rate = 40
   repeat_delay = 600
 
-  # Increase sensitity for mouse/trackpack (default: 0)
-  # sensitivity = 0.35
+  # Start with numlock on by default
   numlock_by_default = true
+
+  # Increase sensitivity for mouse/trackpad (default: 0)
+  # sensitivity = 0.35
 
   touchpad {
     # Use natural (inverse) scrolling
@@ -31,6 +33,10 @@ input {
   }
 }
 
-# Scroll faster in the terminal
-windowrule = scrolltouchpad 1.5, tag:terminal
+# Scroll nicely in the terminal
+windowrule = scrolltouchpad 1.5, class:(Alacritty|kitty)
+windowrule = scrolltouchpad 0.2, class:com.mitchellh.ghostty
 
+# Enable touchpad gestures for changing workspaces
+# See https://wiki.hyprland.org/Configuring/Gestures/
+# gesture = 3, horizontal, workspace
