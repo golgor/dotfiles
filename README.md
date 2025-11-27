@@ -99,7 +99,14 @@ toolsense-iot-dev  False      robert.nystrom@toolsense.io  toolsense-iot-dev  eu
 
 #### Add Cluster Credentials
 
-Switch to each configuration and fetch credentials:
+Run the automated script:
+
+```bash
+./scripts/add-cluster-credentials.sh
+```
+
+<details>
+<summary>Manual setup (if needed)</summary>
 
 ```bash
 # toolsense
@@ -119,7 +126,18 @@ gcloud config configurations activate toolsense-iot-dev
 gcloud container clusters get-credentials gke-cluster-toolsense-iot-1 --location=europe-west1
 ```
 
+</details>
+
 #### Configure kubectx Aliases
+
+Run the automated script:
+
+```bash
+./scripts/setup-kubectx-aliases.sh
+```
+
+<details>
+<summary>Manual setup (if needed)</summary>
 
 ```bash
 kubectx toolsense=gke_toolsense_europe-west1-d_toolsense-1
@@ -127,3 +145,5 @@ kubectx toolsense-dev=gke_toolsense-dev_europe-west1-d_toolsense-1
 kubectx toolsense-iot=gke_toolsense-iot_europe-west1_gke-cluster-toolsense-iot-1
 kubectx toolsense-iot-dev=gke_toolsense-iot-dev_europe-west1_gke-cluster-toolsense-iot-1
 ```
+
+</details>
