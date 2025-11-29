@@ -3,3 +3,4 @@ README.md
 .config/hypr/hyprland.conf.tmpl.bak
 .config/waybar/config.jsonc.tmpl.bak
 .local/bin/ocr.sh
+scripts/
