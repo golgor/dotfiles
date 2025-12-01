@@ -36,6 +36,8 @@ Install with:
 sudo pacman -Syu kubectl kubectx
 ```
 
+Note that the command `kubens` is installed with the package `kubectx`.
+
 ## Setup
 
 ### Windsurf / VS Code Keyring
