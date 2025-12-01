@@ -29,6 +29,9 @@ export BAMBOO_HR_API_TOKEN="{{ (bitwardenFields "item" "bamboohr.com").API.value
 
 export GOPRIVATE="go.iot.toolsense.dev/*","go.iot.toolsense.io/*"
 
+if command -v zoxide &> /dev/null; then
+  eval "$(zoxide init bash --cmd cd)"
+
 # Initialize yazi. Enable cd from yazi, and use y.
 function y() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
