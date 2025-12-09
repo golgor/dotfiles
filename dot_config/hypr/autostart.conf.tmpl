@@ -1,6 +1,6 @@
 {{- $machine := .chezmoi.hostname -}}
 # Extra autostart processes
-{{- if eq $machine "golgor-laptop" }}
+{{- if eq $machine "golgor-framework" }}
 exec-once = slack
 {{- end }}
 exec-once = dbus-update-activation-environment --systemd --all
