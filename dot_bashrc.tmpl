@@ -11,7 +11,10 @@ alias br="nvim ~/.bashrc"
 alias bhr="bamboohr"
 alias ch="chezmoi"
 
-export TRY_PATH=~/Code/Sketches
+# Set up try to use Code/Sketches
+if command -v try &> /dev/null; then
+  eval "$(/usr/bin/try init /home/golgor/Code/Sketches)"
+fi
 
 # Set up for Gnome Keyring to handle SSH-keys (enable ssh-add -l to use gnome keyring)
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
