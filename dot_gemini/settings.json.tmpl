@@ -1,0 +1,23 @@
+{
+  "general": {
+    "previewFeatures": true,
+    "enableAutoUpdate": false
+  },
+  "experimental": {
+    "skills": true,
+    "enableAgents": true
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "mcpServers": {
+    "github": {
+      "httpUrl": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "{{ (bitwardenFields "item" "github.com").MCP_PAT.value }}"
+      }
+    }
+  }
+}
