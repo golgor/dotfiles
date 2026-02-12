@@ -10,6 +10,7 @@ alias src="source ~/.bashrc"
 alias br="nvim ~/.bashrc"
 alias bhr="bamboohr"
 alias ch="chezmoi"
+alias task="go-task"
 
 # Set up try to use Code/Sketches
 if command -v try &> /dev/null; then
@@ -23,10 +24,10 @@ export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
 export GOOGLE_CLOUD_PROJECT="toolsense"
 
 # Enable the use of the keyring for UV
-export UV_KEYRING_PROVIDER=subprocess
-export UV_INDEX_TOOLSENSE_USERNAME=oauth2accesstoken
-export UV_DEFAULT_INDEX=https://pypi.org/simple
-export UV_INDEX=toolsense=https://europe-west1-python.pkg.dev/toolsense/toolsense-py-utils/simple/
+# export UV_KEYRING_PROVIDER=subprocess
+# export UV_INDEX_TOOLSENSE_USERNAME=oauth2accesstoken
+# export UV_DEFAULT_INDEX=https://pypi.org/simple
+# export UV_INDEX=toolsense=https://europe-west1-python.pkg.dev/toolsense/toolsense-py-utils/simple/
 
 export BAMBOO_HR_API_TOKEN="{{ (bitwardenFields "item" "bamboohr.com").API.value }}"
 
