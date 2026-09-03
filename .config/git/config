@@ -1,0 +1,32 @@
+# See https://git-scm.com/docs/git-config
+
+[alias]
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+	gone = "!f() { \n  # Switch to main or master (whichever exists)\n  if git show-ref --verify --quiet refs/heads/main; then\n    git checkout main\n  elif git show-ref --verify --quiet refs/heads/master; then\n    git checkout master\n  else\n    echo \"Neither main nor master branch found\"\n    return 1\n  fi\n  \n  # Pull latest changes\n  git pull\n  \n  # Fetch and prune remote tracking branches\n  git fetch --prune\n  \n  # Remove local branches that no longer have a remote\n  git branch -vv | grep \": gone]\" | awk \"{print \\$1}\" | xargs -r git branch -D\n}; f"
+[init]
+	defaultBranch = master
+[pull]
+	rebase = true 			 # Rebase (instead of merge) on pull
+[push]
+	autoSetupRemote = true   # Automatically set upstream branch on push
+[diff]
+	algorithm = histogram    # Clearer diffs on moved/edited lines
+	colorMoved = plain       # Highlight moved blocks in diffs
+	mnemonicPrefix = true    # More intuitive refs in diff output
+[commit]
+	verbose = true           # Include diff comment in commit message template
+[column]
+	ui = auto 			     # Output in columns when possible
+[branch]
+	sort = -committerdate    # Sort branches by most recent commit first
+[tag]
+	sort = -version:refname  # Sort version numbers as you would expect
+[rerere]
+	enabled = true           # Record and reuse conflict resolutions
+	autoupdate = true        # Apply stored conflict resolutions automatically
+[user]
+	name = Robert Nyström
+	email = golgafrincham@gmail.com
