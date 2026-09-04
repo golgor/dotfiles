@@ -22,6 +22,7 @@ Shared: `process.py` (`run`, `stream`, `git_root`) is the **only** module that c
 
 ## Conventions
 
+- **Implementation must follow TDD, preferably using the `/tdd` skill.** Write failing unit or integration tests first before writing production code. Keep tests completely offline by using local git fixtures (`tests/helpers.py::Upstream` / `Dotfiles`) rather than network calls. Follow red → green → refactor, and run `mise run check` to verify formatting, strict typing (`ty`), and test suite health.
 - **Library code returns findings or raises `AutomationError`; only `cli.py` prints.** Tests then assert on values, not captured stdout.
 - **A seam exists where two adapters exist.** `ReleaseSource` has GitHub in production and `tests/helpers.py::Upstream` (a local tagged git repo) in tests. Filesystem and git are exercised for real via `tmp_path`; `mise apply` is injected as a callable and not run in tests.
 - **Subprocess safety lives in `process.py`.** Argv sequences, never `shell=True`. Program names and flags are literals at every call site; the data-derived values (`repo`, `commit`, release tag) are validated in `manifest.py` or passed in option-proof form (`refs/tags/<tag>`, after `--`). The `# nosemgrep` markers record that the audit rule was checked — keep them accurate if you add a subprocess call, and add it in `process.py`.
@@ -31,7 +32,7 @@ Shared: `process.py` (`run`, `stream`, `git_root`) is the **only** module that c
 
 ## Adding an automation
 
-1. Write the failing test first (`/tdd`): fixtures in `tests/conftest.py`, helpers in `tests/helpers.py`.
+1. Write the failing test first (follow TDD, preferably using the `/tdd` skill): fixtures in `tests/conftest.py`, helpers in `tests/helpers.py`.
 2. Create `src/automation/<name>/` with `cli.py` exposing `main(argv) -> int` that catches `AutomationError`.
 3. Add `<name> = "automation.<name>.cli:main"` under `[project.scripts]` in `pyproject.toml`.
 4. Add `[tasks.<name>]` in `../mise.toml` running `uv run --project automation --no-dev <name> …`, and describe it in the table above.
