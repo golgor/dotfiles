@@ -238,10 +238,59 @@ def test_harnesses_table_shape() -> None:
     assert by_name["Claude Code"].scopes == ("common", "claude")
 
 
-# -- _is_managed_link: classify by normalised target, not raw is_relative_to --
+# -- _classify: what is at a path, and whether it is ours to touch --
 
 
-def test_is_managed_link_rejects_target_that_escapes_skills_root_via_dotdot(
+def test_classify_free_when_nothing_at_path(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    (root / "skills").mkdir(parents=True)
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._classify(link_dir / "absent", skills_root) is deploy._Occupancy.FREE
+
+
+def test_classify_managed_for_ordinary_absolute_link_into_skills_root(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/alpha", "alpha")
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+    link = link_dir / "alpha"
+    link.symlink_to(root / "skills/common/alpha", target_is_directory=True)
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._classify(link, skills_root) is deploy._Occupancy.MANAGED
+
+
+def test_classify_managed_for_relative_target_into_skills_root(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/tdd", "tdd")
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+    link = link_dir / "tdd"
+    relative_target = Path(os.path.relpath(root / "skills/common/tdd", link_dir))
+    link.symlink_to(relative_target, target_is_directory=True)
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._classify(link, skills_root) is deploy._Occupancy.MANAGED
+
+
+def test_classify_managed_for_dangling_link_into_skills_root(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    (root / "skills").mkdir(parents=True)
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+    link = link_dir / "gone"
+    # Target never existed (or was since removed); pruning depends on this still
+    # classifying as ours.
+    link.symlink_to(root / "skills/common/gone", target_is_directory=True)
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._classify(link, skills_root) is deploy._Occupancy.MANAGED
+
+
+def test_classify_rejects_target_that_escapes_skills_root_via_dotdot(
     tmp_path: Path,
 ) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
@@ -256,23 +305,10 @@ def test_is_managed_link_rejects_target_that_escapes_skills_root_via_dotdot(
     link.symlink_to(escaping_target, target_is_directory=True)
 
     skills_root = (root / "skills").resolve()
-    assert deploy._is_managed_link(link, skills_root) is False
+    assert deploy._classify(link, skills_root) is deploy._Occupancy.FOREIGN
 
 
-def test_is_managed_link_recognises_relative_target_into_skills_root(tmp_path: Path) -> None:
-    root, home = make_root(tmp_path), tmp_path / "home"
-    write_skill(root / "skills/common/tdd", "tdd")
-    link_dir = home / ".agents/skills"
-    link_dir.mkdir(parents=True)
-    link = link_dir / "tdd"
-    relative_target = Path(os.path.relpath(root / "skills/common/tdd", link_dir))
-    link.symlink_to(relative_target, target_is_directory=True)
-
-    skills_root = (root / "skills").resolve()
-    assert deploy._is_managed_link(link, skills_root) is True
-
-
-def test_is_managed_link_rejects_sibling_skills_backup_directory(tmp_path: Path) -> None:
+def test_classify_rejects_sibling_skills_backup_directory(tmp_path: Path) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
     (root / "skills-backup").mkdir(parents=True)
     link_dir = home / ".agents/skills"
@@ -281,7 +317,64 @@ def test_is_managed_link_rejects_sibling_skills_backup_directory(tmp_path: Path)
     link.symlink_to(root / "skills-backup" / "x", target_is_directory=True)
 
     skills_root = (root / "skills").resolve()
-    assert deploy._is_managed_link(link, skills_root) is False
+    assert deploy._classify(link, skills_root) is deploy._Occupancy.FOREIGN
+
+
+def test_classify_foreign_for_link_to_somewhere_unrelated(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    (root / "skills").mkdir(parents=True)
+    outside_target = tmp_path / "elsewhere"
+    outside_target.mkdir()
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+    link = link_dir / "omarchy"
+    link.symlink_to(outside_target, target_is_directory=True)
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._classify(link, skills_root) is deploy._Occupancy.FOREIGN
+
+
+def test_classify_foreign_for_real_file(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    (root / "skills").mkdir(parents=True)
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+    path = link_dir / "blocker"
+    path.write_text("not a skill directory")
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._classify(path, skills_root) is deploy._Occupancy.FOREIGN
+
+
+def test_classify_foreign_for_real_directory(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    (root / "skills").mkdir(parents=True)
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+    path = link_dir / "hey"
+    path.mkdir()
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._classify(path, skills_root) is deploy._Occupancy.FOREIGN
+
+
+def test_classify_foreign_for_dangling_link_with_target_outside_skills_root(
+    tmp_path: Path,
+) -> None:
+    """The regression case: a dangling symlink's occupancy depends on its target, not
+    on exists(). A naive exists()-based check treats every dangling symlink the same
+    as an absent path (FREE); classifying by target instead means a dangling discovery
+    path pointed outside skills_root is correctly FOREIGN, not FREE.
+    """
+    root, home = make_root(tmp_path), tmp_path / "home"
+    (root / "skills").mkdir(parents=True)
+    link_dir = home / ".agents"
+    link_dir.mkdir(parents=True)
+    discovery = link_dir / "skills"
+    discovery.symlink_to(tmp_path / "does-not-exist")
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._classify(discovery, skills_root) is deploy._Occupancy.FOREIGN
 
 
 # -- atomicity: plan across every harness before writing anything --

@@ -13,6 +13,7 @@ only entries recognised as our own managed links are ever re-pointed or removed.
 
 import os
 from dataclasses import dataclass, field
+from enum import Enum, auto
 from pathlib import Path
 
 from automation import AutomationError
@@ -58,23 +59,34 @@ def _skill_dirs(root: Path, scope: Scope) -> dict[str, Path]:
     return {p.name: p for p in scope_dir.iterdir() if p.is_dir()}
 
 
-def _is_managed_link(link: Path, skills_root: Path) -> bool:
-    """A symlink whose (possibly dangling) target sits inside skills_root.
+class _Occupancy(Enum):
+    """What is at a path, and whether it is ours to touch."""
 
-    Deliberately reads the raw link target with readlink() instead of resolving it:
-    we classify a link by where it *points*, not by what it resolves to, so a dangling
-    link into a since-deleted skill is still recognisably ours to prune. The target is
-    then normalised lexically (os.path.normpath) so a `..`-escaping target is not
-    mistaken for one inside skills_root, and a relative target that legitimately points
-    inside skills_root is recognised as managed.
+    FREE = auto()  # nothing at this path
+    MANAGED = auto()  # a symlink of ours: target normalises to inside skills_root
+    FOREIGN = auto()  # a real file, a real directory, or a symlink pointing elsewhere
+
+
+def _classify(path: Path, skills_root: Path) -> _Occupancy:
+    """Classify what is at path with respect to skills_root.
+
+    FOREIGN is never touched: a real file, a real directory, or a symlink whose target
+    lies outside skills_root. MANAGED is ours to re-point or prune, even when its target
+    no longer exists — a dangling link into a since-deleted skill is still ours.
+
+    That is why the raw link target is read with readlink() rather than resolved: a link
+    is classified by where it *points*, not by what it resolves to. The target is then
+    normalised lexically (os.path.normpath) so a `..`-escaping target is not mistaken
+    for one inside skills_root, and a relative target that legitimately points inside
+    skills_root is recognised as managed.
     """
-    if not link.is_symlink():
-        return False
-    target = link.readlink()
+    if not path.is_symlink():
+        return _Occupancy.FREE if not path.exists() else _Occupancy.FOREIGN
+    target = path.readlink()
     if not target.is_absolute():
-        target = link.parent / target
+        target = path.parent / target
     target = Path(os.path.normpath(target.absolute()))
-    return target.is_relative_to(skills_root)
+    return _Occupancy.MANAGED if target.is_relative_to(skills_root) else _Occupancy.FOREIGN
 
 
 def _desired_links(root: Path, home: Path, harness: Harness) -> dict[Path, Path]:
@@ -98,15 +110,15 @@ def _desired_links(root: Path, home: Path, harness: Harness) -> dict[Path, Path]
     return desired
 
 
-def _check_discovery(discovery: Path) -> None:
+def _check_discovery(discovery: Path, skills_root: Path) -> None:
     """A discovery path that exists as anything but a directory can never be deployed into.
 
     Checked during planning so the run fails before `_execute` creates any directory.
-    `exists()` alone misses a dangling symlink (it follows the link and reports False,
-    same as a path that is simply absent), so a symlink is also checked directly; a
-    symlink to a real directory still passes, since that is a legitimate discovery dir.
+    A discovery path classifies as FREE (nothing there) or a symlink to a real
+    directory, both fine; anything else — including a dangling symlink, which
+    `exists()` alone would miss — is refused.
     """
-    if (discovery.exists() or discovery.is_symlink()) and not discovery.is_dir():
+    if _classify(discovery, skills_root) is not _Occupancy.FREE and not discovery.is_dir():
         raise AutomationError(
             f"cannot create skills discovery directory: {discovery} exists and is not a directory"
         )
@@ -119,20 +131,17 @@ def _plan(root: Path, home: Path) -> _Plan:
 
     for harness in HARNESSES:
         discovery = home / harness.directory
-        _check_discovery(discovery)
+        _check_discovery(discovery, skills_root)
         desired = _desired_links(root, home, harness)
 
         for link, target in desired.items():
-            if link.is_symlink():
-                if not _is_managed_link(link, skills_root):
-                    plan.conflicts.append(link)
-                    continue
-                if link.readlink() == target:
-                    plan.unchanged.append(link)
-                    continue
-                plan.creates.append((link, target))
-            elif link.exists():
+            occupancy = _classify(link, skills_root)
+            if occupancy is _Occupancy.FOREIGN:
                 plan.conflicts.append(link)
+            elif occupancy is _Occupancy.FREE:
+                plan.creates.append((link, target))
+            elif link.readlink() == target:
+                plan.unchanged.append(link)
             else:
                 plan.creates.append((link, target))
 
@@ -141,7 +150,7 @@ def _plan(root: Path, home: Path) -> _Plan:
         for entry in discovery.iterdir():
             if entry in desired:
                 continue
-            if _is_managed_link(entry, skills_root):
+            if _classify(entry, skills_root) is _Occupancy.MANAGED:
                 plan.prunes.append(entry)
 
     return plan
