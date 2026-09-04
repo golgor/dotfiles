@@ -43,3 +43,7 @@ Shared: `process.py` (`run`, `git_root`) is the **only** module that calls `subp
 ## Verifying `skills update` for real
 
 `mise run update-skills` from the repo root must print `Already at <tag/sha>; nothing to do.` when all manifests are current. To exercise the refusal path, append a line to a vendored `SKILL.md`, commit it, run the task (expect `differs from locked`), then `git reset --hard HEAD~1`. Commit only that scratch change — `git commit -a` will sweep in unrelated work.
+
+## Verifying `deploy-skills` for real
+
+Run `mise run deploy-skills` twice; the second run must report every link already up to date. Confirm the deployed entries are symlinks, not directories: `ls -la ~/.codex/skills`. A real directory there is the old `symlink-each` shape, which Codex silently ignores — that shape is the entire reason this module exists. Confirm discovery for real: `codex exec "list every skill you have available whose name contains tdd"` must name `tdd`.

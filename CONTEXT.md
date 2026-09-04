@@ -11,8 +11,9 @@ this file carries the *why* and the *words*.
 - **capture / add** — `mise bootstrap dotfiles add <path>`: moves the live file
   into this repo, writes the entry, and symlinks it back. The opposite of
   hand-placing files; always prefer capturing the real file.
-- **apply** — `mise bootstrap dotfiles apply`: converges symlinks to match the
-  entry set. Needed only when the *set* changes, never for content edits.
+- **apply** — `mise bootstrap dotfiles apply`: creates symlinks for entries
+  missing from `~`. Needed only when the *set* changes, never for content
+  edits — it never removes what a deleted entry deployed.
 - **symlink model** — every deployed file in `~` points into this checkout, so
   editing a file here is live immediately and syncing machines is a plain
   `git pull`. Contrast: copy-based dotfile managers need an apply step per edit.
