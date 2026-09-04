@@ -4,6 +4,10 @@ Personal dotfiles for golgor's Omarchy/Arch machines (work laptop + stationary),
 
 Entries live in `mise.toml` under `[dotfiles]`; this file carries the conventions that config cannot show you. `CONTEXT.md` carries the glossary, decision record, and non-goals — read it before questioning terminology or re-litigating a scope decision.
 
+## Workflow: PRs to main
+
+`main` is protected: no direct pushes, no force pushes. Make changes on a branch and open a PR, even for small edits. Remember the symlink model when reviewing: a checked-out branch is already live on this machine.
+
 ## Model: symlink
 
 Every entry is `symlink` or `symlink-each`, so each deployed file in `~` points into this checkout. **Editing a file here is live immediately** — no apply step. Run `mise bootstrap dotfiles apply` only when the *set* of entries changes (a new file, a removed file, a mode change). Pulling changes from the other machine is a plain `git pull`; a merge conflict is resolved in git and the live file is fixed in the same move.
