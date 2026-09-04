@@ -1,0 +1,76 @@
+add_newline = true
+command_timeout = 200
+#format = "[$directory$git_branch$git_status$kubernetes$python]($style)$character"
+
+
+[character]
+error_symbol = "[✗](bold cyan)"
+success_symbol = "[❯](bold cyan)"
+
+[directory]
+truncation_length = 2
+truncation_symbol = "…/"
+repo_root_style = "bold cyan"
+repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
+
+[git_branch]
+format = "[$branch]($style) "
+style = "italic cyan"
+
+[git_status]
+format     = '[$all_status]($style)'
+style      = "cyan"
+ahead      = "⇡${count} "
+diverged   = "⇕⇡${ahead_count}⇣${behind_count} "
+behind     = "⇣${count} "
+conflicted = " "
+up_to_date = " "
+untracked  = "? "
+modified   = " "
+stashed    = ""
+staged     = ""
+renamed    = ""
+deleted    = ""
+
+# Add at end of file:
+[python]
+symbol = "🐍 "
+pyenv_version_name = false
+format = 'via [${symbol}(${version} )]($style)'
+style = "bold yellow"
+python_binary = ["python3", "python"]
+detect_extensions = ["py"]
+detect_files = [".python-version", "Pipfile", "pyproject.toml", "requirements.txt", "setup.py", "tox.ini"]
+detect_folders = []
+disabled = false
+
+[gcloud]
+disabled = true
+
+[kubernetes]
+format = 'on [$symbol$context \($namespace\)]($style) '
+disabled = false
+
+# Matches "toolsense-iot-dev"
+[[kubernetes.contexts]]
+context_pattern = ".*-iot-dev"
+symbol = "💥 "
+context_alias = "IoT"
+
+# Matches "toolsense-iot"
+[[kubernetes.contexts]]
+context_pattern = ".*-iot"
+symbol = "⚙️ "
+context_alias = "IoT"
+
+# Matches "toolsense-dev"
+[[kubernetes.contexts]]
+context_pattern = ".*-dev"
+symbol = "💥 "
+context_alias = "FE"
+
+# Matches "toolsense"
+[[kubernetes.contexts]]
+context_pattern = "toolsense"
+symbol = "⚙️ "
+context_alias = "FE"
