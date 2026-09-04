@@ -1,10 +1,12 @@
 # AGENTS.md
 
-A [mise](https://mise.jdx.dev/dotfiles.html) dotfiles repo. Entries live in `mise.toml` under `[dotfiles]`; this file carries the conventions that config cannot show you.
+Personal dotfiles for golgor's Omarchy/Arch machines (work laptop + stationary), managed by [mise](https://mise.jdx.dev/dotfiles.html). Primary job: keep the two machines in sync day-to-day via `git pull` over live symlinks. Secondary: bootstrap a fresh machine flawlessly, and serve as the authoritative record of how the environment is constructed. Single-user by design — never generalize for other users or other OSes. Work (Toolsense) and personal config deliberately coexist on every machine: one flat repo, no mise `-E` profiles.
+
+Entries live in `mise.toml` under `[dotfiles]`; this file carries the conventions that config cannot show you. `CONTEXT.md` carries the glossary, decision record, and non-goals — read it before questioning terminology or re-litigating a scope decision.
 
 ## Model: symlink
 
-Every entry is `symlink` or `symlink-each`, so each deployed file in `~` points into this checkout. **Editing a file here is live immediately** — no apply step. Run `mise bootstrap dotfiles apply` only when the *set* of entries changes (a new file, a removed file, a mode change). Pulling teammate changes is a plain `git pull`; a merge conflict is resolved in git and the live file is fixed in the same move.
+Every entry is `symlink` or `symlink-each`, so each deployed file in `~` points into this checkout. **Editing a file here is live immediately** — no apply step. Run `mise bootstrap dotfiles apply` only when the *set* of entries changes (a new file, a removed file, a mode change). Pulling changes from the other machine is a plain `git pull`; a merge conflict is resolved in git and the live file is fixed in the same move.
 
 ## Adding a file
 

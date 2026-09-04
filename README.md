@@ -1,6 +1,8 @@
 # dotfiles
 
-Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html) using plain symlinks. Migrated off chezmoi — keep config here, keep runtime state and secrets out.
+Personal dotfiles for my Omarchy/Arch machines, managed with [mise](https://mise.jdx.dev/dotfiles.html) using plain symlinks. The point: my laptop and stationary machine stay in sync with a plain `git pull`, and a fresh machine gets my whole working environment — tools, host packages, config, and secret wiring — from a handful of commands. Config lives here; runtime state and secret values stay out. Migrated off chezmoi.
+
+This repo is tuned to my machines and preferences, not built for reuse — but feel free to borrow ideas. Terminology and design decisions are documented in [CONTEXT.md](CONTEXT.md).
 
 ## What's here
 
