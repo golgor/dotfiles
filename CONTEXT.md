@@ -102,7 +102,7 @@ this file carries the *why* and the *words*.
   switching.
 - **Manual tasks stay out of bootstrap.** `setup-fnox` and
   `setup-kube-contexts` need Bitwarden/gcloud interaction and create
-  machine-local secret material; `update-matt-skills` needs GitHub and
+  machine-local secret material; `update-skills` needs GitHub and
   rewrites tracked files. They must be run knowingly, not as a bootstrap
   side effect.
 - **fnox manifest is tracked, everything else fnox is local.** The manifest

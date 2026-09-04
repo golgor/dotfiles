@@ -6,7 +6,7 @@ Python-implemented mise tasks for this repo: one uv project, one package (`autom
 
 | subpackage | console script | mise task | does |
 | --- | --- | --- | --- |
-| `skills` | `skills update [manifest]` | `update-skills` (or `update-matt-skills`) | vendors selected skills from upstream manifests in `../.mise/skills/*.toml` into `../skills/{common,claude}/`, records tag/commit, deploys skill symlinks |
+| `skills` | `skills update [manifest]` | `update-skills` (append a manifest name to update just one) | vendors selected skills from upstream manifests in `../.mise/skills/*.toml` into `../skills/{common,claude}/`, records tag/commit, deploys skill symlinks |
 | `skills` | `skills deploy` | `deploy-skills` | projects one directory symlink per skill from `../skills/{common,claude}/` into `~/.agents/skills`, `~/.claude/skills`, `~/.codex/skills` |
 
 ### `skills` module map
