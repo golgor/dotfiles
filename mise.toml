@@ -26,5 +26,20 @@ dotfiles.default_mode = "symlink"
 "~/.config/atuin/config.toml" = { mode = "symlink" }
 "~/.config/herdr/config.toml" = { mode = "symlink" }
 
+# Neovim config. Do not track lua/plugins/theme.lua; Omarchy owns the current-theme symlink.
+"~/.config/nvim/.gitignore" = { mode = "symlink" }
+"~/.config/nvim/.neoconf.json" = { mode = "symlink" }
+"~/.config/nvim/init.lua" = { mode = "symlink" }
+"~/.config/nvim/lazy-lock.json" = { mode = "symlink" }
+"~/.config/nvim/lazyvim.json" = { mode = "symlink" }
+"~/.config/nvim/stylua.toml" = { mode = "symlink" }
+"~/.config/nvim/lua/config" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/all-themes.lua" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/disable-news-alert.lua" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/omarchy-theme-hotreload.lua" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/snacks-animated-scrolling-off.lua" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/terraform.lua" = { mode = "symlink" }
+"~/.config/nvim/plugin/after" = { mode = "symlink" }
+
 # Directories mise does not fully own: link each file, leave neighbours untouched.
 "~/.bash_completions.d" = { source = ".bash_completions.d", mode = "symlink-each" }

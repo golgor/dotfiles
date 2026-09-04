@@ -12,6 +12,7 @@ Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html) using 
 | `.config/atuin/config.toml` | `~/.config/atuin/config.toml` | symlink |
 | `.config/herdr/config.toml` | `~/.config/herdr/config.toml` | symlink |
 | `.config/starship.toml` | `~/.config/starship.toml` | symlink |
+| `.config/nvim/` selected files | `~/.config/nvim/` | symlink |
 | `.bash_completions.d/` | `~/.bash_completions.d/` | symlink-each |
 
 ### Mise tools
@@ -150,5 +151,7 @@ mise run setup-kube-contexts -- --aliases-only
 - `git/config` contains name/email. No secrets belong in this repo.
 - `~/.local/share/atuin/` contains Atuin key/session/database state and is intentionally not tracked.
 - `~/.config/herdr/` contains Herdr runtime state; only `config.toml` is tracked.
+- `~/.config/nvim/lua/plugins/theme.lua` is Omarchy-managed current-theme state and is intentionally not tracked.
+- Neovim runtime/plugin state lives under `~/.local/share/nvim/`, `~/.local/state/nvim/`, and `~/.cache/nvim/`; do not track it.
 - If VS Code or Windsurf fails to save credentials with Gnome Keyring, add `{ "password-store": "gnome-libsecret" }` to `~/.vscode/argv.json` or `~/.windsurf/argv.json`.
 - Agent working notes: see `AGENTS.md`.
