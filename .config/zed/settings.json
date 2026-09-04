@@ -57,7 +57,7 @@
         }
       }
     },
-    "dock": "left",
+    "dock": "right",
     "default_model": {
       "enable_thinking": true,
       "provider": "openrouter",
