@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-# Project-specific bootstrap steps that do not fit mise's declarative sections.
-
-set -euo pipefail
-
-task_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-"$task_dir/install-gcloud-cli"
