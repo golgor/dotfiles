@@ -102,8 +102,11 @@ def _check_discovery(discovery: Path) -> None:
     """A discovery path that exists as anything but a directory can never be deployed into.
 
     Checked during planning so the run fails before `_execute` creates any directory.
+    `exists()` alone misses a dangling symlink (it follows the link and reports False,
+    same as a path that is simply absent), so a symlink is also checked directly; a
+    symlink to a real directory still passes, since that is a legitimate discovery dir.
     """
-    if discovery.exists() and not discovery.is_dir():
+    if (discovery.exists() or discovery.is_symlink()) and not discovery.is_dir():
         raise AutomationError(
             f"cannot create skills discovery directory: {discovery} exists and is not a directory"
         )

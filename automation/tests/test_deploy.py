@@ -349,3 +349,45 @@ def test_discovery_path_that_is_a_file_raises_automation_error(tmp_path: Path) -
 
     with pytest.raises(AutomationError, match=str(blocker)):
         deploy.deploy_skills(root, home)
+
+
+def test_discovery_path_that_is_a_dangling_symlink_raises_and_does_not_clobber(
+    tmp_path: Path,
+) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/alpha", "alpha")
+
+    blocker = home / ".agents/skills"
+    blocker.parent.mkdir(parents=True)
+    blocker.symlink_to(tmp_path / "does-not-exist")
+
+    with pytest.raises(AutomationError, match=str(blocker)):
+        deploy.deploy_skills(root, home)
+
+    assert blocker.is_symlink()
+    assert not blocker.exists()
+    # Atomic across harnesses: nothing was deployed anywhere else either.
+    assert not (home / ".claude/skills").exists()
+    assert not (home / ".codex/skills").exists()
+
+
+def test_discovery_path_that_is_a_symlink_to_a_real_directory_is_accepted(
+    tmp_path: Path,
+) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/alpha", "alpha")
+
+    real_dir = tmp_path / "real-agents-skills"
+    real_dir.mkdir()
+    discovery = home / ".agents/skills"
+    discovery.parent.mkdir(parents=True)
+    discovery.symlink_to(real_dir, target_is_directory=True)
+
+    result = deploy.deploy_skills(root, home)
+
+    link = discovery / "alpha"
+    assert link.is_symlink()
+    assert link.resolve() == (root / "skills/common/alpha").resolve()
+    assert link in result.linked
+    # The link was actually created inside the symlink's target directory.
+    assert (real_dir / "alpha").is_symlink()
