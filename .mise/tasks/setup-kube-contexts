@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Configure GKE credentials and kubectx aliases for the Toolsense clusters.
+# Configure GKE credentials and short context names for the Toolsense clusters.
 #
 # This task is intentionally manual, not part of automatic bootstrap: it requires
 # gcloud authentication/network access and mutates ~/.kube/config.
@@ -10,12 +10,12 @@ usage() {
   cat <<'USAGE'
 Usage: mise run setup-kube-contexts [-- --credentials-only|--aliases-only]
 
-Fetch GKE credentials for the configured gcloud configurations, then create
-short kubectx aliases for those contexts.
+Fetch GKE credentials for the configured gcloud configurations, then rename the
+long GKE context names to short local names.
 
 Options:
   --credentials-only  Only run gcloud container clusters get-credentials
-  --aliases-only      Only create/update kubectx aliases
+  --aliases-only      Only create/update short kubectl context names
   -h, --help          Show this help
 USAGE
 }
@@ -36,7 +36,11 @@ require_command() {
   fi
 }
 
-# Format: gcloud-config:cluster:location:alias:context-name
+context_exists() {
+  kubectl config get-contexts -o name | grep -Fxq "$1"
+}
+
+# Format: gcloud-config:cluster:location:short-name:gke-context-name
 clusters=(
   "toolsense:toolsense-1:europe-west1-d:toolsense:gke_toolsense_europe-west1-d_toolsense-1"
   "toolsense-dev:toolsense-1:europe-west1-d:toolsense-dev:gke_toolsense-dev_europe-west1-d_toolsense-1"
@@ -52,7 +56,7 @@ fetch_credentials() {
 
   echo "Adding GKE cluster credentials..."
   for entry in "${clusters[@]}"; do
-    IFS=':' read -r config cluster location alias context <<<"$entry"
+    IFS=':' read -r config cluster location short_name gke_context <<<"$entry"
 
     if ! gcloud config configurations describe "$config" >/dev/null 2>&1; then
       echo "Missing gcloud configuration: $config" >&2
@@ -74,22 +78,29 @@ fetch_credentials() {
   fi
 }
 
-setup_aliases() {
+setup_short_context_names() {
   require_command kubectl
   require_command kubectx
 
-  echo "Setting up kubectx aliases..."
+  echo "Setting up short kubectl context names..."
   for entry in "${clusters[@]}"; do
-    IFS=':' read -r config cluster location alias context <<<"$entry"
+    IFS=':' read -r config cluster location short_name gke_context <<<"$entry"
 
-    if ! kubectl config get-contexts -o name | grep -Fxq "$context"; then
-      echo "Missing kubectl context: $context" >&2
+    if context_exists "$gke_context"; then
+      if context_exists "$short_name"; then
+        echo "  Refreshing $short_name from $gke_context"
+        kubectl config delete-context "$short_name" >/dev/null
+      else
+        echo "  Creating $short_name from $gke_context"
+      fi
+      kubectl config rename-context "$gke_context" "$short_name" >/dev/null
+    elif context_exists "$short_name"; then
+      echo "  Already configured: $short_name"
+    else
+      echo "Missing kubectl context: $gke_context" >&2
       echo "Run: mise run setup-kube-contexts -- --credentials-only" >&2
       exit 1
     fi
-
-    echo "  $alias -> $context"
-    kubectx "$alias=$context"
   done
 
   echo ""
@@ -101,8 +112,8 @@ case "$mode" in
   all)
     fetch_credentials
     echo ""
-    setup_aliases
+    setup_short_context_names
     ;;
   credentials) fetch_credentials ;;
-  aliases) setup_aliases ;;
+  aliases) setup_short_context_names ;;
 esac
