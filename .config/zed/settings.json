@@ -40,8 +40,8 @@
     "git_status": false
   },
   "title_bar": {
-    "show_menus": false,
-    "show_branch_icon": true
+    "show_branch_status_icon": true,
+    "show_menus": false
   },
   "debugger": {
     "button": true
