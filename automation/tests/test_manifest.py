@@ -8,11 +8,12 @@ from tests.helpers import Dotfiles
 
 
 def test_load_maps_names_to_scopes(dotfiles: Dotfiles) -> None:
-    dotfiles.write_manifest(common=["alpha"], claude=["beta"], tag="v1", commit="abc")
+    sha = "a" * 40
+    dotfiles.write_manifest(common=["alpha"], claude=["beta"], tag="v1", commit=sha)
     manifest = load_manifest(dotfiles.manifest)
 
     assert manifest.repo == "example/skills"
-    assert manifest.release == Release("v1", "abc")
+    assert manifest.release == Release("v1", sha)
     assert manifest.selection == {"alpha": "common", "beta": "claude"}
     assert manifest.dest(Path("/r"), "beta") == Path("/r/skills/claude/beta")
 
@@ -71,4 +72,11 @@ def test_repo_must_be_owner_slash_name(dotfiles: Dotfiles, repo: str) -> None:
         f'repo = "{repo}"\n[release]\ntag = ""\ncommit = ""\n[scopes]\ncommon = []\n'
     )
     with pytest.raises(AutomationError, match="owner/name"):
+        load_manifest(dotfiles.manifest)
+
+
+@pytest.mark.parametrize("commit", ["abc", "--detach", "g" * 40, "A" * 40])
+def test_commit_must_be_full_lowercase_sha_or_empty(dotfiles: Dotfiles, commit: str) -> None:
+    dotfiles.write_manifest(common=["alpha"], tag="v1", commit=commit)
+    with pytest.raises(AutomationError, match="40-hex SHA"):
         load_manifest(dotfiles.manifest)

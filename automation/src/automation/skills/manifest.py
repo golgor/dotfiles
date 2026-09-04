@@ -62,7 +62,10 @@ def _table(value: object, where: str) -> dict[str, object]:
     return {_string(k, where): v for k, v in value.items()}
 
 
-_REPO = re.compile(r"^[\w.-]+/[\w.-]+$")  # "owner/name": the only manifest value handed to gh/git
+# repo and release.commit are the two manifest values that reach git/gh argv; both are
+# constrained to shapes that cannot be mistaken for options.
+_REPO = re.compile(r"^[\w.-]+/[\w.-]+$")
+_COMMIT = re.compile(r"^([0-9a-f]{40})?$")  # empty until the first update records one
 
 
 def _repo(value: object) -> str:
@@ -70,6 +73,13 @@ def _repo(value: object) -> str:
     if not _REPO.match(repo):
         raise AutomationError(f"manifest: repo must look like owner/name, got {repo!r}")
     return repo
+
+
+def _commit(value: object) -> str:
+    commit = _string(value, "release.commit")
+    if not _COMMIT.match(commit):
+        raise AutomationError(f"manifest: release.commit must be a full 40-hex SHA, got {commit!r}")
+    return commit
 
 
 def load_manifest(path: Path) -> Manifest:
@@ -93,7 +103,7 @@ def load_manifest(path: Path) -> Manifest:
         repo=_repo(data.get("repo")),
         release=Release(
             tag=_string(release.get("tag"), "release.tag"),
-            commit=_string(release.get("commit"), "release.commit"),
+            commit=_commit(release.get("commit")),
         ),
         selection=selection,
     )

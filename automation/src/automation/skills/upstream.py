@@ -31,13 +31,14 @@ class GitHubReleases:
         run("git", "clone", "-q", "--no-checkout", f"https://github.com/{self.repo}.git", str(dest))
 
 
-def commit_for(clone: Path, ref: str) -> str:
-    """Full commit SHA for a ref, dereferencing annotated tags."""
-    return run("git", "rev-parse", f"{ref}^{{commit}}", cwd=clone)
+def commit_for(clone: Path, tag: str) -> str:
+    """Full commit SHA for a tag, dereferencing annotated tags. The refs/tags/ form keeps
+    a tag name from ever being read as an option."""
+    return run("git", "rev-parse", f"refs/tags/{tag}^{{commit}}", cwd=clone)
 
 
-def checkout(clone: Path, ref: str) -> None:
-    run("git", "checkout", "-q", ref, cwd=clone)
+def checkout(clone: Path, commit: str) -> None:
+    run("git", "checkout", "-q", commit, cwd=clone)
 
 
 # --- skill discovery and integrity -----------------------------------------------
