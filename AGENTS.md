@@ -75,6 +75,14 @@ Most skills are vendored from `mattpocock/skills` and are **immutable snapshots*
 
 Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli`), `omarchy` and `diagnose-crash` (symlinks into `/usr/share/omarchy`), `~/.codex/skills/.system` (Codex), Claude's `synced/`, and the external research links left in `~/.pi/agent/skills`. Leave them uncaptured; `symlink-each` coexists with them.
 
+## Tasks: bash for glue, Python for logic
+
+A task that mostly chains host CLIs stays a bash file under `.mise/tasks/` (`setup-fnox`, `setup-kube-contexts`). A task with real logic — parsing, comparing trees, validating, anything you would want a test for — lives in the `automation/` uv project and is wired up as a one-line `[tasks]` entry in `mise.toml` calling `uv run --project automation --no-dev <command>`. Do not write a bash file whose only job is to call `uv run`.
+
+`automation/` is one package with one subpackage per automation. Adding one is three edits: a new `src/automation/<name>/` subpackage with a `cli.py`, a `[project.scripts]` line in `automation/pyproject.toml`, and a `[tasks.<name>]` line in `mise.toml`. Shared helpers go in `src/automation/process.py`; `AutomationError` is the one exception CLIs catch and print. Library code returns findings and raises; only `cli.py` prints.
+
+Runtime dependencies stay stdlib so `--no-dev` needs no network on a fresh machine; pytest, ruff, and ty are the dev group. Run `mise run check` before opening a PR — ty is configured with every rule as an error, and tests replace GitHub with a local tagged git repo (`tests/conftest.py`), so nothing in `check` touches the network. `uv.lock` is tracked; `automation/.venv/` is not.
+
 ## Mise docs vs installed mise
 
 Refresh and test local behavior before changing bootstrap/package semantics. Mise docs may track unreleased `main` features; if the desired config depends on an unreleased mise PR, keep the declarative target only when the user explicitly accepts that delay and document the release dependency in the PR/HANDOFF.
@@ -83,3 +91,4 @@ Refresh and test local behavior before changing bootstrap/package semantics. Mis
 
 - `writing-for-agents` — editing this file or `README.md`, never the vendored skills under `skills/common/`.
 - `research` — verifying mise behaviour against the docs before changing the model.
+- `tdd` — adding or changing anything under `automation/`.

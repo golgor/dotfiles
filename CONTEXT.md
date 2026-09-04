@@ -46,10 +46,18 @@ this file carries the *why* and the *words*.
 - **shim** — mise's PATH stub for a tool. A shim without an active version for
   the current directory fails with "No version is set for shim" — the symptom
   of a tool declared locally but not globally.
-- **manual task** — a task under `.mise/tasks/` that is deliberately *not* part
-  of `mise bootstrap` because it needs interactive auth, network access to a
+- **manual task** — a mise task that is deliberately *not* part of
+  `mise bootstrap` because it needs interactive auth, network access to a
   third party, or mutates machine-local state: `setup-fnox`,
   `setup-kube-contexts`, `update-matt-skills`.
+- **automation** — a Python-implemented task: a subpackage of the `automation/`
+  uv project with a `cli.py`, exposed as a console script and called from a
+  `[tasks]` entry in `mise.toml`. Contrast: bash file tasks under
+  `.mise/tasks/`, which glue host CLIs together without logic worth testing.
+- **release source** — the seam in the skills automation between "where
+  releases come from" and everything else. GitHub (`gh api` + `git clone`) in
+  production; a local tagged git repo in tests. The only network-touching
+  part, so tests never need it.
 - **skill** — a directory containing `SKILL.md` with `name`/`description`
   frontmatter, the cross-harness Agent Skills format. Pi, Claude Code, and
   Codex all discover them from per-harness directories.
@@ -113,6 +121,13 @@ this file carries the *why* and the *words*.
   create duplicate-name warnings. `~/.codex/skills/.system` is harness-owned.
 - **`setup-matt-pocock-skills` is not selected.** It exists to run the
   upstream installer, which this repo replaces.
+- **Logic-bearing tasks are Python in one uv project; glue stays bash.** A
+  340-line untyped, untested shell-launched script was the tipping point.
+  One package with subpackages rather than a uv workspace: uv scopes
+  workspaces to interconnected packages with separate dependency needs, and
+  one stdlib-only tool does not have them. Converting later is a directory
+  move. Interpreter is uv-managed (`automation/.python-version`) so Arch's
+  rolling Python is not a dependency; ty runs with every rule as an error.
 
 If this section outgrows a screenful, move entries to `docs/adr/`.
 
