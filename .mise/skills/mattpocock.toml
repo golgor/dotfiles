@@ -1,0 +1,52 @@
+# Skills vendored from https://github.com/mattpocock/skills into skills/.
+#
+# Edit the selection lists by hand, then run `mise run update-matt-skills`.
+# The task rewrites only the tag/commit lines under [release]; everything
+# else in this file is yours. Vendored skill directories are immutable
+# snapshots of the recorded release: to customise one, copy it to a new name
+# outside these lists and let the updater keep the original.
+#
+# Scope decides the destination and which harnesses see the skill:
+#   common -> skills/common/<name>   Pi + Codex (~/.agents/skills), Claude (~/.claude/skills)
+#   claude -> skills/claude/<name>   Claude only; needs its own entry in mise.toml
+
+repo = "mattpocock/skills"
+
+[release]
+tag = ""
+commit = ""
+
+[scopes]
+common = [
+  "ask-matt",
+  "codebase-design",
+  "code-review",
+  "diagnosing-bugs",
+  "domain-modeling",
+  "grilling",
+  "grill-me",
+  "grill-with-docs",
+  "handoff",
+  "implement",
+  "improve-codebase-architecture",
+  "loop-me",
+  "prototype",
+  "research",
+  "resolving-merge-conflicts",
+  "tdd",
+  "teach",
+  "to-questionnaire",
+  "to-spec",
+  "to-tickets",
+  "triage",
+  "wait-what",
+  "wayfinder",
+  "wizard",
+  "writing-beats",
+  "writing-for-agents",
+  "writing-fragments",
+  "writing-shape",
+]
+claude = [
+  "claude-handoff",
+]

@@ -61,3 +61,4 @@ dotfiles.default_mode = "symlink"
 # (hey, omarchy, Claude's synced/) alone. Harness-only skills get one explicit entry each.
 "~/.agents/skills" = { source = "skills/common", mode = "symlink-each" }
 "~/.claude/skills" = { source = "skills/common", mode = "symlink-each" }
+"~/.claude/skills/claude-handoff" = { source = "skills/claude/claude-handoff", mode = "symlink" }
