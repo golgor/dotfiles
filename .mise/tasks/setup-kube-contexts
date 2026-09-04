@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# Configure GKE credentials and kubectx aliases for the Toolsense clusters.
+#
+# This task is intentionally manual, not part of automatic bootstrap: it requires
+# gcloud authentication/network access and mutates ~/.kube/config.
+
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage: mise run setup-kube-contexts [-- --credentials-only|--aliases-only]
+
+Fetch GKE credentials for the configured gcloud configurations, then create
+short kubectx aliases for those contexts.
+
+Options:
+  --credentials-only  Only run gcloud container clusters get-credentials
+  --aliases-only      Only create/update kubectx aliases
+  -h, --help          Show this help
+USAGE
+}
+
+mode="all"
+case "${1:-}" in
+  "") ;;
+  --credentials-only) mode="credentials" ;;
+  --aliases-only) mode="aliases" ;;
+  -h|--help) usage; exit 0 ;;
+  *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+esac
+
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Missing required command: $1" >&2
+    exit 1
+  fi
+}
+
+# Format: gcloud-config:cluster:location:alias:context-name
+clusters=(
+  "toolsense:toolsense-1:europe-west1-d:toolsense:gke_toolsense_europe-west1-d_toolsense-1"
+  "toolsense-dev:toolsense-1:europe-west1-d:toolsense-dev:gke_toolsense-dev_europe-west1-d_toolsense-1"
+  "toolsense-iot:gke-cluster-toolsense-iot-1:europe-west1:toolsense-iot:gke_toolsense-iot_europe-west1_gke-cluster-toolsense-iot-1"
+  "toolsense-iot-dev:gke-cluster-toolsense-iot-1:europe-west1:toolsense-iot-dev:gke_toolsense-iot-dev_europe-west1_gke-cluster-toolsense-iot-1"
+)
+
+fetch_credentials() {
+  require_command gcloud
+
+  local original_config=""
+  original_config="$(gcloud config configurations list --filter='is_active=true' --format='value(name)' 2>/dev/null || true)"
+
+  echo "Adding GKE cluster credentials..."
+  for entry in "${clusters[@]}"; do
+    IFS=':' read -r config cluster location alias context <<<"$entry"
+
+    if ! gcloud config configurations describe "$config" >/dev/null 2>&1; then
+      echo "Missing gcloud configuration: $config" >&2
+      exit 1
+    fi
+
+    echo ""
+    echo "Processing: $config"
+    echo "  Cluster: $cluster"
+    echo "  Location: $location"
+    gcloud config configurations activate "$config"
+    gcloud container clusters get-credentials "$cluster" --location="$location"
+  done
+
+  if [[ -n "$original_config" ]]; then
+    echo ""
+    echo "Restoring active gcloud configuration: $original_config"
+    gcloud config configurations activate "$original_config" >/dev/null
+  fi
+}
+
+setup_aliases() {
+  require_command kubectl
+  require_command kubectx
+
+  echo "Setting up kubectx aliases..."
+  for entry in "${clusters[@]}"; do
+    IFS=':' read -r config cluster location alias context <<<"$entry"
+
+    if ! kubectl config get-contexts -o name | grep -Fxq "$context"; then
+      echo "Missing kubectl context: $context" >&2
+      echo "Run: mise run setup-kube-contexts -- --credentials-only" >&2
+      exit 1
+    fi
+
+    echo "  $alias -> $context"
+    kubectx "$alias=$context"
+  done
+
+  echo ""
+  echo "Available contexts:"
+  kubectx
+}
+
+case "$mode" in
+  all)
+    fetch_credentials
+    echo ""
+    setup_aliases
+    ;;
+  credentials) fetch_credentials ;;
+  aliases) setup_aliases ;;
+esac
