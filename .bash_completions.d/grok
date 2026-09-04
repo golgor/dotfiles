@@ -1,0 +1,3 @@
+# Grok CLI completions. The completion script is generated per-machine by the
+# grok installer under ~/.grok; this shim only sources it when present.
+[[ -r "$HOME/.grok/completions/bash/grok.bash" ]] && source "$HOME/.grok/completions/bash/grok.bash"
