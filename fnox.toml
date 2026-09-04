@@ -1,0 +1,9 @@
+[providers]
+bitwarden = { type = "bitwarden", backend = "rbw", auth_command = "rbw unlock" }
+
+[secrets]
+GITHUB_PAT = { provider = "bitwarden", value = "github.com/MCP PAT" }
+BACKSTAGE_MCP_TOKEN = { provider = "bitwarden", value = "backstage.iot.toolsense.io/MCP Token" }
+FLESPI_TOKEN = { provider = "bitwarden", value = "flespi.io/My Token" }
+BAMBOO_HR_API_TOKEN = { provider = "bitwarden", value = "bamboohr.com/API" }
+GOOGLE_GEMINI_API_KEY = { provider = "bitwarden", value = "Google (Toolsense)/Gemini API Key" }

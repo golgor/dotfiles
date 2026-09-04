@@ -14,6 +14,7 @@ Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html) using 
 | `.config/hypr/` | `~/.config/hypr/` | symlink |
 | `.config/starship.toml` | `~/.config/starship.toml` | symlink |
 | `.config/nvim/` selected files | `~/.config/nvim/` | symlink |
+| `fnox.toml` | `~/fnox.toml` | symlink |
 | `.bash_completions.d/` | `~/.bash_completions.d/` | symlink-each |
 
 ### Mise tools
@@ -24,6 +25,7 @@ Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html) using 
 - kubectl `1.36.2`
 - kubectx `0.11.0`
 - kubens `0.11.0`
+- fnox `latest`
 
 ### Bootstrap packages
 
@@ -32,6 +34,8 @@ Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html) using 
 - `google-cloud-cli`
 - `google-cloud-cli-component-gke-gcloud-auth-plugin`
 - `cloud-sql-proxy-bin`
+- `age`
+- `rbw`
 
 AUR support requires a mise release that includes [jdx/mise#12718](https://github.com/jdx/mise/pull/12718). AUR packages require `yay` or `paru`; Omarchy includes `yay`.
 
@@ -68,6 +72,41 @@ mise bootstrap dotfiles apply
 ```
 
 Use `mise bootstrap dotfiles apply --force` only when replacing the existing files is intended.
+
+## Secrets / fnox setup
+
+The repo tracks `~/fnox.toml` as a shared fnox manifest. It lists Bitwarden references only; secret values and local encrypted sync cache stay out of git.
+
+First-time setup on a machine:
+
+```sh
+mise bootstrap packages apply
+mise install fnox
+mise bootstrap dotfiles apply
+mise run setup-fnox
+```
+
+If `rbw unlock` fails because Bitwarden is not configured yet, run:
+
+```sh
+rbw config set email <your-bitwarden-email>
+rbw login
+mise run setup-fnox
+```
+
+The setup task creates machine-local files:
+
+- `~/.config/fnox/age.txt` — private age key
+- `~/.config/fnox/config.toml` — local `sync-age` provider
+- `~/fnox.local.toml` — encrypted local sync cache
+
+Normal resync after pulling a changed `fnox.toml`:
+
+```sh
+fs
+```
+
+`fs` is installed by `mise run setup-fnox` and runs `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force`.
 
 ## Kubernetes / GKE setup
 
@@ -152,6 +191,7 @@ mise run setup-kube-contexts -- --aliases-only
 - `git/config` contains name/email. No secrets belong in this repo.
 - `~/.local/share/atuin/` contains Atuin key/session/database state and is intentionally not tracked.
 - `~/.config/herdr/` contains Herdr runtime state; only `config.toml` is tracked.
+- `~/fnox.local.toml`, `~/.config/fnox/age.txt`, and `~/.config/fnox/config.toml` are machine-local fnox state and are intentionally not tracked.
 - `~/.config/hypr/` is tracked as a whole directory; validate Hyprland changes with `hyprctl reload` and `hyprctl configerrors`.
 - `~/.config/nvim/lua/plugins/theme.lua` is Omarchy-managed current-theme state and is intentionally not tracked.
 - Neovim runtime/plugin state lives under `~/.local/share/nvim/`, `~/.local/state/nvim/`, and `~/.cache/nvim/`; do not track it.
