@@ -12,6 +12,7 @@ Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html) using 
 | `.config/atuin/config.toml` | `~/.config/atuin/config.toml` | symlink |
 | `.config/herdr/config.toml` | `~/.config/herdr/config.toml` | symlink |
 | `.config/hypr/` | `~/.config/hypr/` | symlink |
+| `.config/mise/conf.d/dotfiles-tools.toml` | `~/.config/mise/conf.d/dotfiles-tools.toml` | symlink |
 | `.config/starship.toml` | `~/.config/starship.toml` | symlink |
 | `.config/nvim/` selected files | `~/.config/nvim/` | symlink |
 | `fnox.toml` | `~/fnox.toml` | symlink |
@@ -19,7 +20,7 @@ Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html) using 
 
 ### Mise tools
 
-`mise install` installs these versioned tools:
+`mise install` installs these versioned tools. They are also declared in `~/.config/mise/conf.d/dotfiles-tools.toml` so mise shims resolve them outside this repo.
 
 - Atuin `18.19.0`
 - kubectl `1.36.2`
@@ -92,7 +93,7 @@ rbw login
 mise run setup-fnox
 ```
 
-`mise bootstrap` also sets global mise versions for the user-level CLI tools in this repo, so shims such as `atuin`, `kubectl`, `kubectx`, `kubens`, and `fnox` work from new terminals outside `~/.dotfiles`.
+The tracked `~/.config/mise/conf.d/dotfiles-tools.toml` fragment makes shims such as `atuin`, `kubectl`, `kubectx`, `kubens`, and `fnox` work from new terminals outside `~/.dotfiles`.
 
 The setup task creates machine-local files:
 

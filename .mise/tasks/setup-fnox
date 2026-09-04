@@ -14,7 +14,6 @@ Prepare fnox for this machine using the shared ~/fnox.toml manifest.
 
 What this does:
   - verifies age, rbw, and fnox are installed
-  - sets global mise versions for dotfiles-managed CLI tools
   - creates ~/.config/fnox/age.txt if missing
   - adds a machine-local sync-age provider to ~/.config/fnox/config.toml
   - installs an idempotent fnox block in ~/.bashrc
@@ -56,12 +55,6 @@ require_command() {
     echo "Install bootstrap dependencies first: mise bootstrap packages apply && mise install" >&2
     exit 1
   fi
-}
-
-ensure_global_tools() {
-  local script_dir=""
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  "$script_dir/setup-global-tools"
 }
 
 ensure_age_key() {
@@ -190,11 +183,9 @@ sync_local_cache() {
 
 require_command age-keygen
 require_command rbw
-require_command mise
 require_command fnox
 require_command python
 
-ensure_global_tools
 ensure_age_key
 ensure_sync_age_provider "$AGE_RECIPIENT"
 
