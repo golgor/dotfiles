@@ -8,12 +8,19 @@ from typing import Protocol
 
 from automation import AutomationError
 from automation.process import run
+from automation.skills.manifest import Release
 
 
 class ReleaseSource(Protocol):
-    """Where releases come from. GitHub in production; a local tagged repo in tests."""
+    """Where releases come from. GitHub / git remote in production; a local repo in tests."""
 
-    def latest_tag(self) -> str: ...
+    def label(self) -> str:
+        """Human-readable description of what is tracked (e.g. 'release v1' or 'branch main')."""
+        ...
+
+    def resolve_latest(self, clone: Path) -> Release:
+        """Resolve the latest Release using the clone."""
+        ...
 
     def clone(self, dest: Path) -> None:
         """Clone without checking out; callers use `checkout` to pick a ref."""
@@ -21,11 +28,23 @@ class ReleaseSource(Protocol):
 
 
 @dataclass(frozen=True)
-class GitHubReleases:
+class GitHubUpstream:
     repo: str  # "owner/name"
+    branch: str | None = None  # None -> tracks latest GitHub release tag
 
-    def latest_tag(self) -> str:
-        return run("gh", "api", f"repos/{self.repo}/releases/latest", "--jq", ".tag_name")
+    def label(self) -> str:
+        if self.branch:
+            return f"branch {self.branch}"
+        tag = run("gh", "api", f"repos/{self.repo}/releases/latest", "--jq", ".tag_name")
+        return f"release {tag}"
+
+    def resolve_latest(self, clone: Path) -> Release:
+        if self.branch:
+            commit = run("git", "rev-parse", f"origin/{self.branch}^{{commit}}", cwd=clone)
+            return Release(commit=commit, tag="")
+        tag = run("gh", "api", f"repos/{self.repo}/releases/latest", "--jq", ".tag_name")
+        commit = commit_for(clone, tag)
+        return Release(commit=commit, tag=tag)
 
     def clone(self, dest: Path) -> None:
         run("git", "clone", "-q", "--no-checkout", f"https://github.com/{self.repo}.git", str(dest))

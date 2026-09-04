@@ -3,7 +3,13 @@ from pathlib import Path
 import pytest
 
 from automation import AutomationError
-from automation.skills.manifest import Release, load_manifest, record_release
+from automation.skills.manifest import (
+    Release,
+    check_collisions,
+    discover_manifests,
+    load_manifest,
+    record_release,
+)
 from tests.helpers import Dotfiles
 
 
@@ -12,19 +18,42 @@ def test_load_maps_names_to_scopes(dotfiles: Dotfiles) -> None:
     dotfiles.write_manifest(common=["alpha"], claude=["beta"], tag="v1", commit=sha)
     manifest = load_manifest(dotfiles.manifest)
 
+    assert manifest.name == "example"
     assert manifest.repo == "example/skills"
-    assert manifest.release == Release("v1", sha)
+    assert manifest.branch is None
+    assert manifest.release == Release(commit=sha, tag="v1")
+    assert manifest.release.label() == f"v1 ({sha[:12]})"
     assert manifest.selection == {"alpha": "common", "beta": "claude"}
     assert manifest.dest(Path("/r"), "beta") == Path("/r/skills/claude/beta")
 
 
+def test_load_branch_manifest(dotfiles: Dotfiles) -> None:
+    sha = "b" * 40
+    dotfiles.write_manifest(
+        "toolsense",
+        repo="ToolSense/iot-claude-plugins",
+        branch="main",
+        common=["create-project"],
+        commit=sha,
+    )
+    manifest = load_manifest(dotfiles.manifest_path("toolsense"))
+
+    assert manifest.name == "toolsense"
+    assert manifest.repo == "ToolSense/iot-claude-plugins"
+    assert manifest.branch == "main"
+    assert manifest.release == Release(commit=sha, tag="")
+    assert manifest.release.label() == sha[:12]
+    assert manifest.selection == {"create-project": "common"}
+
+
 def test_unrecorded_release_is_empty_strings(dotfiles: Dotfiles) -> None:
-    assert load_manifest(dotfiles.manifest).release == Release("", "")
+    dotfiles.write_manifest(common=["alpha"])
+    assert load_manifest(dotfiles.manifest).release == Release(commit="", tag="")
 
 
 def test_duplicate_across_scopes_rejected(dotfiles: Dotfiles) -> None:
     dotfiles.write_manifest(common=["alpha"], claude=["alpha"])
-    with pytest.raises(AutomationError, match="two scopes: alpha"):
+    with pytest.raises(AutomationError, match=r"two scopes in example\.toml: alpha"):
         load_manifest(dotfiles.manifest)
 
 
@@ -42,8 +71,9 @@ def test_missing_manifest(tmp_path: Path) -> None:
 
 
 def test_record_release_rewrites_only_release_lines(dotfiles: Dotfiles) -> None:
+    dotfiles.write_manifest(common=["alpha"])
     before = dotfiles.manifest.read_text()
-    record_release(dotfiles.manifest, Release("v2.0.0", "f" * 40))
+    record_release(dotfiles.manifest, Release(commit="f" * 40, tag="v2.0.0"))
     after = dotfiles.manifest.read_text()
 
     assert 'tag = "v2.0.0"' in after
@@ -54,13 +84,24 @@ def test_record_release_rewrites_only_release_lines(dotfiles: Dotfiles) -> None:
     )
 
 
+def test_record_release_for_branch_mode(dotfiles: Dotfiles) -> None:
+    dotfiles.write_manifest("branch_repo", branch="main", common=["alpha"])
+    record_release(dotfiles.manifest_path("branch_repo"), Release(commit="e" * 40, tag=""))
+    after = dotfiles.manifest_path("branch_repo").read_text()
+
+    assert f'commit = "{"e" * 40}"' in after
+    assert 'tag = "' not in after
+
+
 def test_record_release_refuses_ambiguous_file(dotfiles: Dotfiles) -> None:
-    dotfiles.manifest.write_text(dotfiles.manifest.read_text() + 'tag = "again"\n')
-    with pytest.raises(AutomationError, match="exactly one `tag"):
-        record_release(dotfiles.manifest, Release("v2", "abc"))
+    dotfiles.write_manifest(common=["alpha"])
+    dotfiles.manifest.write_text(dotfiles.manifest.read_text() + 'commit = "again"\n')
+    with pytest.raises(AutomationError, match="exactly one `commit"):
+        record_release(dotfiles.manifest, Release(commit="abc", tag="v2"))
 
 
 def test_malformed_toml_is_an_automation_error(dotfiles: Dotfiles) -> None:
+    dotfiles.manifest.parent.mkdir(parents=True, exist_ok=True)
     dotfiles.manifest.write_text("repo = \n")
     with pytest.raises(AutomationError, match="invalid manifest"):
         load_manifest(dotfiles.manifest)
@@ -68,6 +109,7 @@ def test_malformed_toml_is_an_automation_error(dotfiles: Dotfiles) -> None:
 
 @pytest.mark.parametrize("repo", ["", "just-a-name", "owner/name/extra", "owner/na me", "-o/../x"])
 def test_repo_must_be_owner_slash_name(dotfiles: Dotfiles, repo: str) -> None:
+    dotfiles.manifest.parent.mkdir(parents=True, exist_ok=True)
     dotfiles.manifest.write_text(
         f'repo = "{repo}"\n[release]\ntag = ""\ncommit = ""\n[scopes]\ncommon = []\n'
     )
@@ -80,3 +122,26 @@ def test_commit_must_be_full_lowercase_sha_or_empty(dotfiles: Dotfiles, commit: 
     dotfiles.write_manifest(common=["alpha"], tag="v1", commit=commit)
     with pytest.raises(AutomationError, match="40-hex SHA"):
         load_manifest(dotfiles.manifest)
+
+
+def test_discover_manifests_finds_and_loads_all(dotfiles: Dotfiles) -> None:
+    dotfiles.manifest.unlink()
+    dotfiles.write_manifest("first", common=["alpha"])
+    dotfiles.write_manifest("second", common=["beta"])
+    manifests = discover_manifests(dotfiles.root)
+
+    assert [m.name for m in manifests] == ["first", "second"]
+
+
+def test_check_collisions_flags_duplicate_skill_in_same_scope(
+    dotfiles: Dotfiles,
+) -> None:
+    dotfiles.manifest.unlink()
+    m1 = load_manifest(dotfiles.write_manifest("first", common=["alpha", "beta"]))
+    m2 = load_manifest(dotfiles.write_manifest("second", common=["beta", "gamma"]))
+
+    with pytest.raises(AutomationError) as exc:
+        check_collisions([m1, m2])
+    assert "skill 'beta' in scope 'common' is claimed by both 'first' and 'second'" in str(
+        exc.value
+    )

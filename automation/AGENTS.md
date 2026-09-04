@@ -6,17 +6,17 @@ Python-implemented mise tasks for this repo: one uv project, one package (`autom
 
 | subpackage | console script | mise task | does |
 | --- | --- | --- | --- |
-| `skills` | `skills update` | `update-matt-skills` | vendors selected skills from the latest `mattpocock/skills` GitHub release into `../skills/{common,claude}/`, records tag + commit in `../.mise/skills/mattpocock.toml`, re-applies dotfile symlinks |
+| `skills` | `skills update [manifest]` | `update-skills` (or `update-matt-skills`) | vendors selected skills from upstream manifests in `../.mise/skills/*.toml` into `../skills/{common,claude}/`, records tag/commit, re-applies dotfile symlinks |
 
 ### `skills` module map
 
 | module | role | prints? |
 | --- | --- | --- |
-| `manifest.py` | parse the tracked manifest into `Manifest`/`Release` (shape-validated; `repo` must be `owner/name`, `commit` a 40-hex SHA or empty); `record_release` rewrites only the two release lines so comments survive | no |
-| `upstream.py` | `ReleaseSource` protocol (`GitHubReleases` adapter); `discover_skills` (recursive by `SKILL.md`), `resolve_selected`, frontmatter integrity checks | no |
-| `sync.py` | dirty-tree check, `trees_differ`, divergence check against the locked release, verbatim copy, orphan detection, missing Claude `mise.toml` entries | no |
+| `manifest.py` | discover and parse manifests in `.mise/skills/*.toml` into `Manifest`/`Release` (shape-validated; `repo` must be `owner/name`, `branch` a valid ref, `commit` a 40-hex SHA or empty); collision check across manifests; `record_release` rewrites only release lines so comments survive | no |
+| `upstream.py` | `ReleaseSource` protocol (`GitHubUpstream` adapter supports both release tags and branch tracking); `discover_skills` (recursive by `SKILL.md`), `resolve_selected`, frontmatter integrity checks | no |
+| `sync.py` | dirty-tree check, `trees_differ`, divergence check against locked release, verbatim copy, orphan detection, missing Claude `mise.toml` entries | no |
 | `update.py` | `plan()` decides and returns a `Plan`; `execute()` writes it | no |
-| `cli.py` | argparse, sequencing, and every `print` | yes |
+| `cli.py` | argparse (`skills update [name]`), multi-manifest sequencing, and every `print` | yes |
 
 Shared: `process.py` (`run`, `stream`, `git_root`) is the **only** module that calls `subprocess`; `AutomationError` in `__init__.py` is the one exception CLIs catch and print.
 
@@ -39,4 +39,4 @@ Shared: `process.py` (`run`, `stream`, `git_root`) is the **only** module that c
 
 ## Verifying `skills update` for real
 
-`mise run update-matt-skills` from the repo root must print `Already at <tag> (<sha>); nothing to do.` when the manifest is current. To exercise the refusal path, append a line to a vendored `SKILL.md`, commit it, run the task (expect `differs from locked release`), then `git reset --hard HEAD~1`. Commit only that scratch change — `git commit -a` will sweep in unrelated work.
+`mise run update-skills` from the repo root must print `Already at <tag/sha>; nothing to do.` when all manifests are current. To exercise the refusal path, append a line to a vendored `SKILL.md`, commit it, run the task (expect `differs from locked`), then `git reset --hard HEAD~1`. Commit only that scratch change — `git commit -a` will sweep in unrelated work.

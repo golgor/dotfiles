@@ -11,19 +11,29 @@ from automation import AutomationError
 Scope = Literal["common", "claude"]
 SCOPES: tuple[Scope, ...] = ("common", "claude")
 
-MANIFEST = Path(".mise/skills/mattpocock.toml")
+MANIFESTS_DIR = Path(".mise/skills")
 SCOPE_DIRS: dict[Scope, Path] = {scope: Path("skills") / scope for scope in SCOPES}
 
 
 @dataclass(frozen=True)
 class Release:
-    tag: str
-    commit: str  # empty until the first update run records one
+    commit: str  # 40-hex SHA; empty until the first update run records one
+    tag: str = ""  # release/tag name if tracking tags/releases; empty if tracking branches
+
+    def label(self) -> str:
+        if self.tag:
+            return f"{self.tag} ({self.commit[:12]})"
+        return self.commit[:12] if self.commit else "unrecorded"
 
 
 @dataclass(frozen=True)
 class Manifest:
-    repo: str
+    name: str  # stem of filename, e.g. "mattpocock" or "toolsense"
+    path: Path  # path to the manifest toml file
+    repo: str  # "owner/name"
+    branch: (
+        str | None
+    )  # branch name if tracking a branch (e.g. "main"), None if tracking releases/tags
     release: Release
     selection: dict[str, Scope]
 
@@ -65,6 +75,7 @@ def _table(value: object, where: str) -> dict[str, object]:
 # repo and release.commit are the two manifest values that reach git/gh argv; both are
 # constrained to shapes that cannot be mistaken for options.
 _REPO = re.compile(r"^[\w.-]+/[\w.-]+$")
+_BRANCH = re.compile(r"^[\w.-]+$")
 _COMMIT = re.compile(r"^([0-9a-f]{40})?$")  # empty until the first update records one
 
 
@@ -73,6 +84,15 @@ def _repo(value: object) -> str:
     if not _REPO.match(repo):
         raise AutomationError(f"manifest: repo must look like owner/name, got {repo!r}")
     return repo
+
+
+def _branch(value: object) -> str | None:
+    if value is None:
+        return None
+    branch = _string(value, "branch")
+    if not _BRANCH.match(branch):
+        raise AutomationError(f"manifest: branch must be a valid ref name, got {branch!r}")
+    return branch
 
 
 def _commit(value: object) -> str:
@@ -95,27 +115,63 @@ def load_manifest(path: Path) -> Manifest:
         scope = as_scope(key)
         for name in _strings(names, f"scopes.{key}"):
             if name in selection:
-                raise AutomationError(f"skill selected in two scopes: {name}")
+                raise AutomationError(f"skill selected in two scopes in {path.name}: {name}")
             selection[name] = scope
 
     release = _table(data.get("release"), "release")
+    tag_val = release.get("tag", "")
+    tag = _string(tag_val, "release.tag") if tag_val else ""
     return Manifest(
+        name=path.stem,
+        path=path,
         repo=_repo(data.get("repo")),
+        branch=_branch(data.get("branch")),
         release=Release(
-            tag=_string(release.get("tag"), "release.tag"),
             commit=_commit(release.get("commit")),
+            tag=tag,
         ),
         selection=selection,
     )
 
 
+def discover_manifests(root: Path) -> list[Manifest]:
+    manifests_dir = root / MANIFESTS_DIR
+    if not manifests_dir.is_dir():
+        raise AutomationError(f"missing manifests directory: {manifests_dir}")
+    paths = sorted(manifests_dir.glob("*.toml"))
+    if not paths:
+        raise AutomationError(f"no manifests found in {manifests_dir}")
+    manifests = [load_manifest(p) for p in paths]
+    check_collisions(manifests)
+    return manifests
+
+
+def check_collisions(manifests: list[Manifest]) -> None:
+    seen: dict[tuple[Scope, str], str] = {}
+    collisions: list[str] = []
+    for m in manifests:
+        for name, scope in m.selection.items():
+            key = (scope, name)
+            if key in seen:
+                prev = seen[key]
+                msg = (
+                    f"skill {name!r} in scope {scope!r} is claimed by both {prev!r} and {m.name!r}"
+                )
+                collisions.append(msg)
+            else:
+                seen[key] = m.name
+    if collisions:
+        raise AutomationError("manifest collision detected:\n  " + "\n  ".join(collisions))
+
+
 def record_release(path: Path, release: Release) -> None:
     """Rewrite only the tag/commit lines so hand-written comments and selection survive."""
     text = path.read_text()
-    for key, value in (("tag", release.tag), ("commit", release.commit)):
-        text, count = re.subn(rf'^{key} = ".*"$', f'{key} = "{value}"', text, flags=re.M)
+    if release.tag:
+        text, count = re.subn(r'^tag = ".*"$', f'tag = "{release.tag}"', text, flags=re.M)
         if count != 1:
-            raise AutomationError(
-                f"expected exactly one `{key} = ...` line in {path}, found {count}"
-            )
+            raise AutomationError(f"expected exactly one `tag = ...` line in {path}, found {count}")
+    text, count = re.subn(r'^commit = ".*"$', f'commit = "{release.commit}"', text, flags=re.M)
+    if count != 1:
+        raise AutomationError(f"expected exactly one `commit = ...` line in {path}, found {count}")
     path.write_text(text)

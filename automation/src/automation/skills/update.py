@@ -4,11 +4,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from automation.skills import sync, upstream
-from automation.skills.manifest import MANIFEST, Manifest, Release, record_release
+from automation.skills.manifest import Manifest, Release, record_release
 
 
 @dataclass(frozen=True)
 class Plan:
+    manifest: Manifest
     latest: Release
     up_to_date: bool
     to_sync: dict[str, Path] = field(default_factory=dict)  # selected name -> dir in the clone
@@ -17,7 +18,7 @@ class Plan:
     missing_claude_entries: list[str] = field(default_factory=list)
 
 
-def plan(root: Path, manifest: Manifest, clone: Path, latest_tag: str) -> Plan:
+def plan(root: Path, manifest: Manifest, clone: Path, latest: Release) -> Plan:
     """Inspect the locked and latest releases; raise AutomationError rather than plan
     anything that would overwrite a local fork or lose a skill.
 
@@ -25,7 +26,6 @@ def plan(root: Path, manifest: Manifest, clone: Path, latest_tag: str) -> Plan:
     so the returned `to_sync` paths stay valid while the clone exists.
     """
     locked = manifest.release
-    latest = Release(tag=latest_tag, commit=upstream.commit_for(clone, latest_tag))
 
     if locked.commit:
         upstream.checkout(clone, locked.commit)
@@ -44,6 +44,7 @@ def plan(root: Path, manifest: Manifest, clone: Path, latest_tag: str) -> Plan:
         upstream.validate_all(to_sync)
 
     return Plan(
+        manifest=manifest,
         latest=latest,
         up_to_date=up_to_date,
         to_sync=to_sync,
@@ -62,5 +63,5 @@ def execute(root: Path, manifest: Manifest, planned: Plan) -> list[Path]:
         dest = manifest.dest(root, name)
         sync.sync_skill(src, dest)
         written.append(dest.relative_to(root))
-    record_release(root / MANIFEST, planned.latest)
+    record_release(manifest.path, planned.latest)
     return written

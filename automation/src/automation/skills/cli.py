@@ -1,4 +1,4 @@
-"""`skills update`: refresh the vendored mattpocock/skills snapshot from the latest release.
+"""`skills update`: refresh vendored skills from upstream releases or branches.
 
 Manual task: needs network access (gh + git) and rewrites tracked skill
 directories. It never commits or pushes; review the diff and open a PR.
@@ -15,11 +15,20 @@ from typing import TextIO
 from automation import AutomationError
 from automation.process import git_root, run, stream
 from automation.skills import sync, update
-from automation.skills.manifest import MANIFEST, SCOPE_DIRS, load_manifest
-from automation.skills.upstream import GitHubReleases, ReleaseSource
+from automation.skills.manifest import (
+    MANIFESTS_DIR,
+    SCOPE_DIRS,
+    Manifest,
+    discover_manifests,
+)
+from automation.skills.upstream import GitHubUpstream, ReleaseSource
 
 Apply = Callable[[Path], None]
-SourceFor = Callable[[str], ReleaseSource]  # "owner/name" -> where its releases come from
+SourceFor = Callable[[Manifest], ReleaseSource]
+
+
+def default_source(manifest: Manifest) -> ReleaseSource:
+    return GitHubUpstream(repo=manifest.repo, branch=manifest.branch)
 
 
 def apply_dotfiles(root: Path) -> None:
@@ -40,68 +49,94 @@ def apply_dotfiles(root: Path) -> None:
 
 def run_update(
     root: Path,
-    source_for: SourceFor = GitHubReleases,
+    target_name: str | None = None,
+    source_for: SourceFor = default_source,
     apply: Apply = apply_dotfiles,
     out: TextIO = sys.stdout,
     err: TextIO = sys.stderr,
-) -> None:
-    manifest = load_manifest(root / MANIFEST)
+) -> bool:
     sync.require_clean(root)
+    all_manifests = discover_manifests(root)
 
-    source = source_for(manifest.repo)
-    latest_tag = source.latest_tag()
-    print(f"Latest release of {manifest.repo}: {latest_tag}", file=out)
-    if manifest.release.commit:
-        print(
-            f"Checking vendored skills against locked release {manifest.release.tag}...", file=out
-        )
+    if target_name:
+        clean_name = target_name.removesuffix(".toml")
+        targets = [m for m in all_manifests if m.name == clean_name]
+        if not targets:
+            avail = ", ".join(m.name for m in all_manifests)
+            raise AutomationError(f"manifest {target_name!r} not found. Available: {avail}")
     else:
-        print("No locked release yet; skipping divergence check for this first import.", file=out)
+        targets = all_manifests
 
-    with tempfile.TemporaryDirectory(prefix="matt-skills.") as tmp:
-        clone = Path(tmp) / "repo"
-        source.clone(clone)
-        planned = update.plan(root, manifest, clone, latest_tag)
-        print_warnings(planned, err)
+    any_changed = False
+    for manifest in targets:
+        source = source_for(manifest)
+        label_target = source.label()
+        prefix = f"[{manifest.name}] " if len(targets) > 1 else ""
 
-        if planned.up_to_date:
+        print(f"{prefix}Latest target of {manifest.repo}: {label_target}", file=out)
+        if manifest.release.commit:
             print(
-                f"Already at {latest_tag} ({planned.latest.commit[:12]}); nothing to do.", file=out
+                f"{prefix}Checking vendored skills against locked {manifest.release.label()}...",
+                file=out,
             )
-            return
+        else:
+            print(
+                f"{prefix}No locked release yet; skipping divergence check for this first import.",
+                file=out,
+            )
 
-        release = f"{latest_tag} ({planned.latest.commit[:12]})"
-        print(f"Syncing {len(planned.to_sync)} skills from {release}...", file=out)
-        for path in update.execute(root, manifest, planned):
-            print(f"  {path}", file=out)
+        with tempfile.TemporaryDirectory(prefix=f"{manifest.name}-skills.") as tmp:
+            clone = Path(tmp) / "repo"
+            source.clone(clone)
+            latest = source.resolve_latest(clone)
+            planned = update.plan(root, manifest, clone, latest)
+            print_warnings(planned, err, prefix)
 
-    if planned.unselected:
-        print(f"Available upstream but not selected ({len(planned.unselected)}):", file=out)
-        for name in planned.unselected:
-            print(f"  {name}", file=out)
+            if planned.up_to_date:
+                print(f"{prefix}Already at {latest.label()}; nothing to do.", file=out)
+                continue
 
-    print("Re-applying dotfile symlinks...", file=out)
-    apply(root)
-    print_git_summary(root, out)
+            any_changed = True
+            release_label = latest.label()
+            print(
+                f"{prefix}Syncing {len(planned.to_sync)} skills from {release_label}...", file=out
+            )
+            for path in update.execute(root, manifest, planned):
+                print(f"  {path}", file=out)
+
+            if planned.unselected:
+                print(
+                    f"{prefix}Available upstream but not selected ({len(planned.unselected)}):",
+                    file=out,
+                )
+                for name in planned.unselected:
+                    print(f"  {name}", file=out)
+
+    if any_changed:
+        print("Re-applying dotfile symlinks...", file=out)
+        apply(root)
+        print_git_summary(root, out)
+    return any_changed
 
 
-def print_warnings(planned: update.Plan, err: TextIO) -> None:
+def print_warnings(planned: update.Plan, err: TextIO, prefix: str = "") -> None:
     for path in planned.orphans:
         print(
-            f"warning: {path} matches an upstream skill but is not selected; "
+            f"{prefix}warning: {path} matches an upstream skill but is not selected; "
             "delete it or add it back to the manifest",
             file=err,
         )
     for name in planned.missing_claude_entries:
-        print(
-            f"warning: {name} is Claude-only but mise.toml has no entry for skills/claude/{name}; "
-            "it will not be deployed until one is added",
-            file=err,
+        warning = (
+            f"{prefix}warning: {name} is Claude-only but mise.toml has no entry for "
+            f"skills/claude/{name}; it will not be deployed until one is added"
         )
+        print(warning, file=err)
 
 
 def print_git_summary(root: Path, out: TextIO) -> None:
-    changed = [str(MANIFEST), *(str(p) for p in SCOPE_DIRS.values())]
+    manifest_paths = [str(p) for p in (root / MANIFESTS_DIR).glob("*.toml")]
+    changed = [*manifest_paths, *(str(p) for p in SCOPE_DIRS.values())]
     print(file=out)
     print(run("git", "status", "--short", "--", *changed, cwd=root), file=out)
     print(file=out)
@@ -112,18 +147,24 @@ def print_git_summary(root: Path, out: TextIO) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="skills", description="Manage skills vendored from mattpocock/skills."
+        prog="skills", description="Manage skills vendored from upstream git repositories."
     )
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser(
+    update_cmd = sub.add_parser(
         "update",
-        help="sync selected skills from the latest upstream release",
+        help="sync selected skills from upstream manifests in .mise/skills/*.toml",
         description=(
-            "Sync the skills selected in .mise/skills/mattpocock.toml from the latest GitHub "
-            "release of mattpocock/skills into skills/common/ and skills/claude/, record the "
-            "release, and re-apply dotfile symlinks. Refuses to run over uncommitted vendored "
-            "directories or vendored skills that no longer match the locked release. Never commits."
+            "Sync skills selected in manifests under .mise/skills/*.toml into skills/common/ "
+            "and skills/claude/, record the updated release/branch commit, and re-apply dotfile "
+            "symlinks. Refuses to run over uncommitted vendored directories or vendored skills "
+            "that no longer match the locked release. Never commits."
         ),
+    )
+    update_cmd.add_argument(
+        "manifest",
+        nargs="?",
+        default=None,
+        help="Optional manifest name to update (default: all manifests in .mise/skills/*.toml)",
     )
     return parser
 
@@ -137,7 +178,7 @@ def main(argv: list[str] | None = None) -> int:
             root = git_root()
             if not (root / "mise.toml").is_file():
                 raise AutomationError(f"{root} does not look like the dotfiles repository")
-            run_update(root)
+            run_update(root, target_name=args.manifest)
     except AutomationError as e:
         print(f"skills {args.command}: {e}", file=sys.stderr)
         return 1
