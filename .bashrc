@@ -43,13 +43,21 @@ if command -v atuin &>/dev/null; then
 	eval "$(atuin init bash)"
 fi
 
-# Initalize yazi. Enable cd from yazi, and use y.
+# Initialize yazi. Enable cd from yazi, and use y.
 function y() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	local tmp cwd="" status
+	tmp="$(mktemp -t "yazi-cwd.XXXXXX")" || return
+
 	yazi "$@" --cwd-file="$tmp"
-	IFS= read -r -d '' cwd <"$tmp"
-	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
-	rm -f -- "$tmp"
+	status=$?
+	IFS= read -r -d '' cwd <"$tmp" || true
+
+	if [[ -n $cwd && $cwd != "$PWD" ]]; then
+		builtin cd -- "$cwd" || status=$?
+	fi
+
+	rm -f -- "$tmp" || status=$?
+	return "$status"
 }
 
 # Bash completions
@@ -65,7 +73,13 @@ if command -v fnox &>/dev/null; then
 	export FNOX_AGE_KEY_FILE=~/.config/fnox/age.txt
 	# fnox activate bakes its resolved versioned path, which mise deletes on
 	# upgrade, breaking every open shell. Rewrite to the stable 'latest' symlink.
-	eval "$(fnox activate bash | sed 's|/mise/installs/fnox/[^/]*/fnox|/mise/installs/fnox/latest/fnox|g')"
+	if fnox_activation="$(fnox activate bash)" &&
+		fnox_activation="$(sed 's|/mise/installs/fnox/[^/]*/fnox|/mise/installs/fnox/latest/fnox|g' <<<"$fnox_activation")"; then
+		eval "$fnox_activation"
+	else
+		printf 'warning: fnox shell activation failed\n' >&2
+	fi
+	unset fnox_activation
 fi
 
 alias fs='cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force'
