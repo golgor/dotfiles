@@ -40,7 +40,7 @@ This machine runs Zed 1.16.2 and currently uses the `mcp-server-github` extensio
 
 ## Recommended tracked configuration (local GitHub MCP server)
 
-Replace the extension entry with the official custom stdio shape below. The outer login shell changes to `$HOME` so fnox finds `~/fnox.toml`; `fnox exec` loads `GITHUB_MCP_PAT` from the encrypted machine-local cache even when Zed did not inherit a prompt-loaded environment. The inner shell maps it to the name required by GitHub MCP. Docker is already installed on this machine.
+If the GitHub MCP server is actually needed, replace the extension entry with the official custom stdio shape below. The outer login shell supplies the machine-local age-key path, changes to `$HOME` so fnox discovers `fnox.local.toml`, and calls fnox through mise's stable `latest` install path. `fnox exec` then loads `GITHUB_MCP_PAT` from the encrypted cache even when Zed inherited no secrets. The inner shell maps it to the name required by GitHub MCP. Docker is already installed on this machine.
 
 ```jsonc
 {
@@ -49,7 +49,7 @@ Replace the extension entry with the official custom stdio shape below. The oute
       "command": "/bin/bash",
       "args": [
         "-lc",
-        "cd \"$HOME\" && exec fnox --non-interactive exec --replace -- /bin/sh -c 'test -n \"${GITHUB_MCP_PAT:-}\" || { echo \"GITHUB_MCP_PAT is unavailable from fnox\" >&2; exit 1; }; export GITHUB_PERSONAL_ACCESS_TOKEN=\"$GITHUB_MCP_PAT\"; exec docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN ghcr.io/github/github-mcp-server'"
+        "export FNOX_AGE_KEY_FILE=\"$HOME/.config/fnox/age.txt\"; cd \"$HOME\" && exec \"$HOME/.local/share/mise/installs/fnox/latest/fnox\" --non-interactive exec --replace -- /bin/sh -c 'test -n \"${GITHUB_MCP_PAT:-}\" || { echo \"GITHUB_MCP_PAT is unavailable from fnox\" >&2; exit 1; }; export GITHUB_PERSONAL_ACCESS_TOKEN=\"$GITHUB_MCP_PAT\"; exec docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN ghcr.io/github/github-mcp-server'"
       ]
     }
   }
@@ -58,7 +58,7 @@ Replace the extension entry with the official custom stdio shape below. The oute
 
 The tracked text contains only variable names. The token flows as: encrypted fnox local cache -> `fnox exec` environment -> `/bin/sh` mapping -> Docker client -> container. The `-e GITHUB_PERSONAL_ACCESS_TOKEN` flag passes the mapped variable into the container without putting its value in argv or settings. The GitHub MCP server documents `GITHUB_PERSONAL_ACCESS_TOKEN` for PAT authentication, and its current `main.go` obtains `personal_access_token` through Viper with the `GITHUB_` environment prefix; it does not name `GITHUB_MCP_PAT`. [GitHub README](https://github.com/github/github-mcp-server); [current server source](https://github.com/github/github-mcp-server/blob/main/cmd/github-mcp-server/main.go)
 
-The on-demand fnox load and variable mapping were verified locally without printing either value. If using a separately managed `github-mcp-server` binary instead of Docker, keep the same fnox wrapper and replace the `exec docker ...` portion with `exec github-mcp-server stdio`.
+The on-demand fnox load and variable mapping were verified from a clean environment without printing either value. Both the age-key path and the `cd "$HOME"` are required: the former decrypts the cache, while the latter makes fnox merge `~/fnox.local.toml`. If using a separately managed `github-mcp-server` binary instead of Docker, keep the same fnox wrapper and replace the `exec docker ...` portion with `exec github-mcp-server stdio`.
 
 ### Safer operational pattern
 
