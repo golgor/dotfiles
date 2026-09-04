@@ -29,6 +29,7 @@ Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html) using 
 
 - `google-cloud-cli`
 - `google-cloud-cli-component-gke-gcloud-auth-plugin`
+- `cloud-sql-proxy-bin`
 
 AUR support requires a mise release that includes [jdx/mise#12718](https://github.com/jdx/mise/pull/12718). AUR packages require `yay` or `paru`; Omarchy includes `yay`.
 
@@ -98,10 +99,28 @@ Requirements:
 
 4. These gcloud configurations already exist and have the right `account` and `project` values:
 
-   - `toolsense`
-   - `toolsense-dev`
-   - `toolsense-iot`
-   - `toolsense-iot-dev`
+   | Configuration | Project | Default zone | Default region |
+   | --- | --- | --- | --- |
+   | `toolsense` | `toolsense` | `europe-west1-b` | `europe-west1` |
+   | `toolsense-dev` | `toolsense-dev` | `europe-west1-b` | `europe-west1` |
+   | `toolsense-iot` | `toolsense-iot` | `europe-west1-b` | `europe-west1` |
+   | `toolsense-iot-dev` | `toolsense-iot-dev` | `europe-west1-b` | `europe-west1` |
+
+   For first-time setup, start with:
+
+   ```sh
+   gcloud init
+   gcloud config configurations rename default --new-name=toolsense
+   ```
+
+   Then create the remaining configurations and set each one's project/zone/region. Repeat this with the project name matching each configuration name:
+
+   ```sh
+   gcloud config configurations create toolsense-dev
+   gcloud config set project toolsense-dev
+   gcloud config set compute/zone europe-west1-b
+   gcloud config set compute/region europe-west1
+   ```
 
    Check them with:
 
@@ -131,4 +150,5 @@ mise run setup-kube-contexts -- --aliases-only
 - `git/config` contains name/email. No secrets belong in this repo.
 - `~/.local/share/atuin/` contains Atuin key/session/database state and is intentionally not tracked.
 - `~/.config/herdr/` contains Herdr runtime state; only `config.toml` is tracked.
+- If VS Code or Windsurf fails to save credentials with Gnome Keyring, add `{ "password-store": "gnome-libsecret" }` to `~/.vscode/argv.json` or `~/.windsurf/argv.json`.
 - Agent working notes: see `AGENTS.md`.

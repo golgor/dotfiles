@@ -14,6 +14,7 @@ kubens = "0.11.0"
 # AUR packages should use "latest" because AUR helpers build the current PKGBUILD.
 "aur:google-cloud-cli" = "latest"
 "aur:google-cloud-cli-component-gke-gcloud-auth-plugin" = "latest"
+"aur:cloud-sql-proxy-bin" = "latest"
 
 [settings]
 dotfiles.root = "~/.dotfiles"
