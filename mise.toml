@@ -25,6 +25,7 @@ dotfiles.default_mode = "symlink"
 "~/.config/git/config" = { mode = "symlink" }
 "~/.config/atuin/config.toml" = { mode = "symlink" }
 "~/.config/herdr/config.toml" = { mode = "symlink" }
+"~/.config/hypr" = { mode = "symlink" }
 
 # Neovim config. Do not track lua/plugins/theme.lua; Omarchy owns the current-theme symlink.
 "~/.config/nvim/.gitignore" = { mode = "symlink" }
