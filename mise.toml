@@ -32,6 +32,10 @@ run = "uv run --project automation --no-dev skills update"
 description = "Sync vendored mattpocock/skills from .mise/skills/mattpocock.toml"
 run = "uv run --project automation --no-dev skills update mattpocock"
 
+[tasks.deploy-skills]
+description = "Project skill directory symlinks into Pi, Claude Code, and Codex"
+run = "uv run --project automation --no-dev skills deploy"
+
 [tasks.check]
 description = "Lint, format-check, type-check, and test automation/"
 dir = "automation"
@@ -72,9 +76,5 @@ dotfiles.default_mode = "symlink"
 "~/.config/zed/settings.json" = { mode = "symlink" }
 "~/fnox.toml" = { mode = "symlink" }
 
-# Agent skills. skills/common is the one tracked copy; Pi and Codex scan ~/.agents/skills,
-# Claude Code scans ~/.claude/skills. symlink-each leaves harness-owned neighbours
-# (hey, omarchy, Claude's synced/) alone. Harness-only skills get one explicit entry each.
-"~/.agents/skills" = { source = "skills/common", mode = "symlink-each" }
-"~/.claude/skills" = { source = "skills/common", mode = "symlink-each" }
-"~/.claude/skills/claude-handoff" = { source = "skills/claude/claude-handoff", mode = "symlink" }
+# Agent skills are not projected by mise: `mise run deploy-skills` (the Python automation)
+# owns those symlinks so it can give Codex the directory symlinks its loader requires.

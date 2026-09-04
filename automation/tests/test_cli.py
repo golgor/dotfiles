@@ -1,15 +1,14 @@
 """End-to-end through `run_update()` with local repos as release sources."""
 
 import io
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
 from automation import AutomationError
-from automation.process import run
-from automation.skills.cli import apply_dotfiles, build_parser, run_update
+from automation.skills.cli import build_parser, run_update
+from automation.skills.deploy import deploy_skills
 from automation.skills.manifest import Manifest, load_manifest
 from tests.helpers import Dotfiles, Upstream, git, write_skill
 
@@ -18,7 +17,7 @@ from tests.helpers import Dotfiles, Upstream, git, write_skill
 class Result:
     out: str
     err: str
-    applied: bool
+    deployed: bool
     changed: bool
 
 
@@ -27,7 +26,7 @@ def do_update(
     upstream: Upstream | dict[str, Upstream],
     target: str | None = None,
 ) -> Result:
-    out, err, applied = io.StringIO(), io.StringIO(), []
+    out, err, deployed = io.StringIO(), io.StringIO(), []
 
     def source_for(manifest: Manifest) -> Upstream:
         if isinstance(upstream, dict):
@@ -40,11 +39,11 @@ def do_update(
         dotfiles.root,
         target_name=target,
         source_for=source_for,
-        apply=applied.append,
+        deploy=deployed.append,
         out=out,
         err=err,
     )
-    return Result(out.getvalue(), err.getvalue(), applied == [dotfiles.root], changed)
+    return Result(out.getvalue(), err.getvalue(), deployed == [dotfiles.root], changed)
 
 
 def test_first_import_syncs_and_records(dotfiles: Dotfiles, upstream: Upstream) -> None:
@@ -63,7 +62,7 @@ def test_first_import_syncs_and_records(dotfiles: Dotfiles, upstream: Upstream) 
     assert "No locked release yet" in r.out
     assert "Syncing 2 skills from release v1.0.0" in r.out
     assert "not selected (1):\n  extra" in r.out
-    assert r.applied
+    assert r.deployed
     assert r.changed
     assert r.err == ""
 
@@ -75,7 +74,7 @@ def test_second_run_is_a_noop(dotfiles: Dotfiles, upstream: Upstream) -> None:
 
     r = do_update(dotfiles, upstream)
     assert "nothing to do" in r.out
-    assert not r.applied
+    assert not r.deployed
     assert not r.changed
 
 
@@ -94,7 +93,6 @@ def test_newly_selected_skill_syncs_at_current_release(
 
     assert "Syncing 3 skills" in r.out
     assert (dotfiles.root / "skills/claude/extra/SKILL.md").exists()
-    assert "extra is Claude-only but mise.toml has no entry" in r.err
 
 
 def test_deselected_skill_is_reported_as_orphan(dotfiles: Dotfiles, upstream: Upstream) -> None:
@@ -183,7 +181,7 @@ def test_multi_manifest_updates_all_and_applies_once(
 
     assert (dotfiles.root / "skills/common/alpha/SKILL.md").exists()
     assert (dotfiles.root / "skills/common/gamma/SKILL.md").exists()
-    assert r.applied
+    assert r.deployed
     assert "[first]" in r.out
     assert "[second]" in r.out
 
@@ -230,7 +228,37 @@ def test_single_manifest_targeted_update(
 
     assert (dotfiles.root / "skills/common/alpha/SKILL.md").exists()
     assert not (dotfiles.root / "skills/common/gamma/SKILL.md").exists()
-    assert r.applied
+    assert r.deployed
+
+
+def test_update_deploys_skill_symlinks_at_the_end(
+    dotfiles: Dotfiles, upstream: Upstream, tmp_path: Path
+) -> None:
+    """The real `deploy` seam, not the recording stub `do_update` injects elsewhere."""
+    dotfiles.write_manifest(common=["alpha", "beta"])
+    home = tmp_path / "home"
+    out = io.StringIO()
+
+    def deploy(root: Path) -> None:
+        deploy_skills(root, home)
+
+    run_update(
+        dotfiles.root,
+        source_for=lambda _: upstream,
+        deploy=deploy,
+        out=out,
+    )
+
+    assert (home / ".agents/skills/alpha").resolve() == (
+        dotfiles.root / "skills/common/alpha"
+    ).resolve()
+    assert (home / ".claude/skills/beta").resolve() == (
+        dotfiles.root / "skills/common/beta"
+    ).resolve()
+    assert (home / ".codex/skills/alpha").resolve() == (
+        dotfiles.root / "skills/common/alpha"
+    ).resolve()
+    assert "Deploying skill symlinks..." in out.getvalue()
 
 
 def test_missing_target_manifest_reports_available(dotfiles: Dotfiles, upstream: Upstream) -> None:
@@ -240,31 +268,6 @@ def test_missing_target_manifest_reports_available(dotfiles: Dotfiles, upstream:
         AutomationError, match=r"manifest 'nonexistent' not found\. Available: first"
     ):
         do_update(dotfiles, upstream, target="nonexistent")
-
-
-def test_apply_failing_twice_is_an_automation_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    calls: list[list[str]] = []
-
-    def fake_run(cmd: list[str], **_: object) -> subprocess.CompletedProcess[bytes]:
-        calls.append(cmd)
-        return subprocess.CompletedProcess(cmd, returncode=1)
-
-    monkeypatch.setattr(subprocess, "run", fake_run)
-    with pytest.raises(AutomationError, match="failed twice"):
-        apply_dotfiles(tmp_path)
-    assert len(calls) == 2
-
-
-def test_missing_executable_is_an_automation_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("PATH", str(tmp_path))  # nothing on PATH
-    with pytest.raises(AutomationError, match="cannot run `mise`"):
-        apply_dotfiles(tmp_path)
-    with pytest.raises(AutomationError, match="cannot run `definitely-not-a-command`"):
-        run("definitely-not-a-command")
 
 
 def test_parser_accepts_optional_manifest_argument() -> None:

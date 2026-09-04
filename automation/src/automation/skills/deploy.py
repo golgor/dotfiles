@@ -78,7 +78,9 @@ def deploy_skills(root: Path, home: Path, harnesses: tuple[Harness, ...] = HARNE
     Creates missing links, re-points managed links whose target moved, prunes managed
     links whose skill no longer exists, and leaves everything else untouched. Raises
     AutomationError, listing every conflict, if a desired link path is occupied by
-    something that is not a managed symlink.
+    something that is not a managed symlink. Conflicts are collected across every
+    harness and raised together at the end, so a run that hits one may already have
+    created or pruned links elsewhere.
     """
     linked: list[Path] = []
     unchanged: list[Path] = []
@@ -95,7 +97,7 @@ def deploy_skills(root: Path, home: Path, harnesses: tuple[Harness, ...] = HARNE
                 if not _is_managed_link(link, root):
                     conflicts.append(link)
                     continue
-                if link.resolve() == target.resolve():
+                if link.readlink() == target:
                     unchanged.append(link)
                     continue
                 link.unlink()

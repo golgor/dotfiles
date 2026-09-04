@@ -111,10 +111,3 @@ def test_orphans_ignores_skill_owned_by_another_manifest(dotfiles: Dotfiles) -> 
     assert sync.orphans(dotfiles.root, [m1, m2], {"shared_name", "other", "stale_orphan"}) == [
         Path("skills/common/stale_orphan")
     ]
-
-
-def test_missing_claude_entries(dotfiles: Dotfiles) -> None:
-    dotfiles.write_manifest(common=["alpha"], claude=["beta", "gamma"])
-    manifest = load_manifest(dotfiles.manifest)
-    mise_toml = '"~/.claude/skills/beta" = { source = "skills/claude/beta", mode = "symlink" }\n'
-    assert sync.missing_claude_entries(mise_toml, manifest) == ["gamma"]

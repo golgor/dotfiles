@@ -80,12 +80,3 @@ def orphans(root: Path, manifests: list[Manifest], upstream_names: set[str]) -> 
             if path.is_dir() and path not in all_wanted:
                 found.append(scope_dir / name)
     return sorted(found)
-
-
-def missing_claude_entries(mise_toml: str, manifest: Manifest) -> list[str]:
-    """Claude-only skills need their own whole-directory entry in mise.toml to deploy."""
-    return sorted(
-        n
-        for n, scope in manifest.selection.items()
-        if scope == "claude" and f"skills/claude/{n}" not in mise_toml
-    )

@@ -15,7 +15,6 @@ class Plan:
     to_sync: dict[str, Path] = field(default_factory=dict)  # selected name -> dir in the clone
     unselected: list[str] = field(default_factory=list)  # upstream skills not in the manifest
     orphans: list[Path] = field(default_factory=list)  # vendored dirs the manifest does not want
-    missing_claude_entries: list[str] = field(default_factory=list)
 
 
 def plan(
@@ -56,9 +55,6 @@ def plan(
         to_sync=to_sync,
         unselected=sorted(set(found) - set(manifest.selection)),
         orphans=sync.orphans(root, all_manifests, set(found)),
-        missing_claude_entries=sync.missing_claude_entries(
-            (root / "mise.toml").read_text(), manifest
-        ),
     )
 
 

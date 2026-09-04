@@ -1,5 +1,6 @@
 """`deploy_skills`: project directory symlinks into every harness discovery directory."""
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -116,8 +117,6 @@ def test_removing_a_skill_prunes_its_links_including_dangling(tmp_path: Path) ->
 
     deploy.deploy_skills(root, home)
 
-    import shutil
-
     shutil.rmtree(root / "skills/common/alpha")
 
     result = deploy.deploy_skills(root, home)
@@ -138,8 +137,6 @@ def test_repoints_managed_link_when_skill_moves_scope(tmp_path: Path) -> None:
     write_skill(root / "skills/common/beta", "beta")
 
     deploy.deploy_skills(root, home)
-
-    import shutil
 
     shutil.move(str(root / "skills/common/beta"), str(root / "skills/claude/beta"))
 
