@@ -80,9 +80,7 @@ The repo tracks `~/fnox.toml` as a shared fnox manifest. It lists Bitwarden refe
 First-time setup on a machine:
 
 ```sh
-mise bootstrap packages apply
-mise install fnox
-mise bootstrap dotfiles apply
+mise bootstrap
 mise run setup-fnox
 ```
 
@@ -94,7 +92,9 @@ rbw login
 mise run setup-fnox
 ```
 
-The setup task sets a global mise version for `fnox` if needed, so the `fnox` shim works from new terminals outside this repo. It also creates machine-local files:
+`mise bootstrap` also sets global mise versions for the user-level CLI tools in this repo, so shims such as `atuin`, `kubectl`, `kubectx`, `kubens`, and `fnox` work from new terminals outside `~/.dotfiles`.
+
+The setup task creates machine-local files:
 
 - `~/.config/fnox/age.txt` — private age key
 - `~/.config/fnox/config.toml` — local `sync-age` provider

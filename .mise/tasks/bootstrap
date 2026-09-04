@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Idempotent post-bootstrap setup for user-level CLI tools.
+
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$script_dir/setup-global-tools"

@@ -14,7 +14,7 @@ Prepare fnox for this machine using the shared ~/fnox.toml manifest.
 
 What this does:
   - verifies age, rbw, and fnox are installed
-  - sets a global mise fnox version if the shim does not resolve from ~
+  - sets global mise versions for dotfiles-managed CLI tools
   - creates ~/.config/fnox/age.txt if missing
   - adds a machine-local sync-age provider to ~/.config/fnox/config.toml
   - installs an idempotent fnox block in ~/.bashrc
@@ -58,22 +58,10 @@ require_command() {
   fi
 }
 
-ensure_global_fnox() {
-  # The shell hook runs in arbitrary directories, not just ~/.dotfiles. If fnox
-  # is only declared in this repo's mise.toml, the shim fails from a new shell in
-  # ~ with: "No version is set for shim: fnox".
-  if (cd "$HOME" && fnox --version >/dev/null 2>&1); then
-    echo "fnox already resolves from $HOME"
-    return
-  fi
-
-  echo "Configuring global mise version for fnox..."
-  mise use -g fnox@latest
-
-  if ! (cd "$HOME" && fnox --version >/dev/null 2>&1); then
-    echo "fnox still does not resolve from $HOME after mise use -g fnox@latest" >&2
-    exit 1
-  fi
+ensure_global_tools() {
+  local script_dir=""
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  "$script_dir/setup-global-tools"
 }
 
 ensure_age_key() {
@@ -206,7 +194,7 @@ require_command mise
 require_command fnox
 require_command python
 
-ensure_global_fnox
+ensure_global_tools
 ensure_age_key
 ensure_sync_age_provider "$AGE_RECIPIENT"
 
