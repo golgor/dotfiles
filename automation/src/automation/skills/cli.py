@@ -74,10 +74,16 @@ def run_update(
     with contextlib.ExitStack() as stack:
         for manifest in targets:
             source = source_for(manifest)
-            label_target = source.label()
             prefix = f"[{manifest.name}] " if len(targets) > 1 else ""
 
-            print(f"{prefix}Latest target of {manifest.repo}: {label_target}", file=out)
+            tmp_dir = stack.enter_context(
+                tempfile.TemporaryDirectory(prefix=f"{manifest.name}-skills.")
+            )
+            clone = Path(tmp_dir) / "repo"
+            source.clone(clone)
+            latest = source.resolve_latest(clone)
+
+            print(f"{prefix}Latest target of {manifest.repo}: {latest.label()}", file=out)
             if manifest.release.commit:
                 lbl = manifest.release.label()
                 print(f"{prefix}Checking vendored skills against locked {lbl}...", file=out)
@@ -88,12 +94,6 @@ def run_update(
                 )
                 print(msg, file=out)
 
-            tmp_dir = stack.enter_context(
-                tempfile.TemporaryDirectory(prefix=f"{manifest.name}-skills.")
-            )
-            clone = Path(tmp_dir) / "repo"
-            source.clone(clone)
-            latest = source.resolve_latest(clone)
             planned = update.plan(root, manifest, all_manifests, clone, latest)
             print_warnings(planned, err, prefix)
             plans.append((manifest, planned))

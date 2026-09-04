@@ -61,7 +61,7 @@ def test_first_import_syncs_and_records(dotfiles: Dotfiles, upstream: Upstream) 
     assert "# header comment survives" in dotfiles.manifest.read_text()
 
     assert "No locked release yet" in r.out
-    assert "Syncing 2 skills from v1.0.0" in r.out
+    assert "Syncing 2 skills from release v1.0.0" in r.out
     assert "not selected (1):\n  extra" in r.out
     assert r.applied
     assert r.changed
@@ -136,7 +136,7 @@ def test_release_bump_deletes_removed_files_and_records(
 
     r = do_update(dotfiles, upstream)
 
-    assert "Syncing 2 skills from v2.0.0" in r.out
+    assert "Syncing 2 skills from release v2.0.0" in r.out
     assert (dotfiles.root / "skills/common/alpha/SKILL.md").read_text().endswith("# alpha v2\n")
     assert not (dotfiles.root / "skills/common/alpha/agents").exists()
     assert load_manifest(dotfiles.manifest).release.commit == v2

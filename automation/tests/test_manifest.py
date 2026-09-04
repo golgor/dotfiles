@@ -22,7 +22,7 @@ def test_load_maps_names_to_scopes(dotfiles: Dotfiles) -> None:
     assert manifest.repo == "example/skills"
     assert manifest.branch is None
     assert manifest.release == Release(commit=sha, tag="v1")
-    assert manifest.release.label() == f"v1 ({sha[:12]})"
+    assert manifest.release.label() == f"release v1 ({sha[:12]})"
     assert manifest.selection == {"alpha": "common", "beta": "claude"}
     assert manifest.dest(Path("/r"), "beta") == Path("/r/skills/claude/beta")
 
@@ -42,7 +42,7 @@ def test_load_branch_manifest(dotfiles: Dotfiles) -> None:
     assert manifest.repo == "ToolSense/iot-claude-plugins"
     assert manifest.branch == "main"
     assert manifest.release == Release(commit=sha, tag="")
-    assert manifest.release.label() == sha[:12]
+    assert manifest.release.label() == f"commit {sha[:12]}"
     assert manifest.selection == {"create-project": "common"}
 
 

@@ -39,11 +39,6 @@ class Upstream:
     latest: str = ""
     branch: str | None = None
 
-    def label(self) -> str:
-        if self.branch:
-            return f"branch {self.branch}"
-        return f"release {self.latest}"
-
     def resolve_latest(self, clone: Path) -> Release:
         if self.branch:
             commit = git("rev-parse", f"origin/{self.branch}^{{commit}}", cwd=clone)

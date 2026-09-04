@@ -22,8 +22,8 @@ class Release:
 
     def label(self) -> str:
         if self.tag:
-            return f"{self.tag} ({self.commit[:12]})"
-        return self.commit[:12] if self.commit else "unrecorded"
+            return f"release {self.tag} ({self.commit[:12]})"
+        return f"commit {self.commit[:12]}" if self.commit else "unrecorded"
 
 
 @dataclass(frozen=True)
@@ -75,7 +75,7 @@ def _table(value: object, where: str) -> dict[str, object]:
 # repo and release.commit are the two manifest values that reach git/gh argv; both are
 # constrained to shapes that cannot be mistaken for options.
 _REPO = re.compile(r"^[\w.-]+/[\w.-]+$")
-_BRANCH = re.compile(r"^[\w.-]+(?:/[\w.-]+)*$")
+_BRANCH = re.compile(r"^[A-Za-z0-9_][\w.-]*(?:/[A-Za-z0-9_][\w.-]*)*$")
 _COMMIT = re.compile(r"^([0-9a-f]{40})?$")  # empty until the first update records one
 
 

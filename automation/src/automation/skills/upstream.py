@@ -14,10 +14,6 @@ from automation.skills.manifest import Release
 class ReleaseSource(Protocol):
     """Where releases come from. GitHub / git remote in production; a local repo in tests."""
 
-    def label(self) -> str:
-        """Human-readable description of what is tracked (e.g. 'release v1' or 'branch main')."""
-        ...
-
     def resolve_latest(self, clone: Path) -> Release:
         """Resolve the latest Release using the clone."""
         ...
@@ -31,12 +27,6 @@ class ReleaseSource(Protocol):
 class GitHubUpstream:
     repo: str  # "owner/name"
     branch: str | None = None  # None -> tracks latest GitHub release tag
-
-    def label(self) -> str:
-        if self.branch:
-            return f"branch {self.branch}"
-        tag = run("gh", "api", f"repos/{self.repo}/releases/latest", "--jq", ".tag_name")
-        return f"release {tag}"
 
     def resolve_latest(self, clone: Path) -> Release:
         if self.branch:
