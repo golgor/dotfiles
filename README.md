@@ -70,6 +70,7 @@ mise bootstrap packages status --missing
 mise bootstrap packages apply
 mise bootstrap
 mise bootstrap dotfiles status
+mise run deploy-skills
 ```
 
 If real files already exist where symlinks should go, mise refuses to clobber them. Prefer:
@@ -119,6 +120,8 @@ fs
 ## Agent skills
 
 `skills/common/` holds the skills shared by Pi, Codex, and Claude Code; `skills/claude/` holds Claude-only ones. `mise run deploy-skills` links each skill directory into `~/.agents/skills` (Pi), `~/.codex/skills` (Codex), and `~/.claude/skills` (Claude Code, both `common/` and `claude/`). Neighbours the harnesses or other installers own (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system`) stay untouched.
+
+**One-time migration on a machine that already ran the old `symlink-each` setup:** `mise bootstrap dotfiles apply` does not prune links for entries removed from `mise.toml`, so the old `symlink-each` directories under `~/.agents/skills` and `~/.claude/skills` are still sitting there as real directories full of file symlinks into `~/.dotfiles`. `mise run deploy-skills` will refuse to touch them, listing one conflict per leftover skill, until you delete those directories by hand. You can tell them apart from the harness-owned neighbours that must be kept (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system/`, Claude's `synced/`): the leftovers are real directories whose contents are all symlinks pointing into `~/.dotfiles/skills`, while the kept ones are either real content owned by another tool or symlinks pointing elsewhere. Delete the leftovers, then rerun `mise run deploy-skills`.
 
 Vendored skills are listed in manifests under `.mise/skills/*.toml` (such as `mattpocock.toml`). When upstream updates land:
 

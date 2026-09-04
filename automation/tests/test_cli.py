@@ -1,5 +1,6 @@
 """End-to-end through `run_update()` with local repos as release sources."""
 
+import argparse
 import io
 from dataclasses import dataclass
 from pathlib import Path
@@ -7,8 +8,8 @@ from pathlib import Path
 import pytest
 
 from automation import AutomationError
-from automation.skills.cli import build_parser, run_update
-from automation.skills.deploy import deploy_skills
+from automation.skills.cli import build_parser, print_deployment, run_update
+from automation.skills.deploy import Deployment, deploy_skills
 from automation.skills.manifest import Manifest, load_manifest
 from tests.helpers import Dotfiles, Upstream, git, write_skill
 
@@ -273,3 +274,62 @@ def test_missing_target_manifest_reports_available(dotfiles: Dotfiles, upstream:
 def test_parser_accepts_optional_manifest_argument() -> None:
     assert build_parser().parse_args(["update"]).manifest is None
     assert build_parser().parse_args(["update", "mattpocock"]).manifest == "mattpocock"
+
+
+def _subparser_description(name: str) -> str | None:
+    for action in build_parser()._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            subparser = action.choices[name]
+            assert isinstance(subparser, argparse.ArgumentParser)
+            return subparser.description
+    return None
+
+
+def test_update_help_does_not_mention_dotfile_symlinks() -> None:
+    update_help = _subparser_description("update")
+    assert update_help is not None
+    assert "dotfile symlink" not in update_help
+
+
+def test_deploy_help_describes_the_actual_recognition_check() -> None:
+    deploy_help = _subparser_description("deploy")
+    assert deploy_help is not None
+    assert "not already a link of its own making" not in deploy_help
+    assert "symlink pointing into skills/" in deploy_help
+
+
+def test_print_deployment_says_nothing_to_do_when_all_empty() -> None:
+    out = io.StringIO()
+    print_deployment(Deployment(linked=[], pruned=[], unchanged=[]), out)
+    assert "nothing to do" in out.getvalue().lower()
+
+
+def test_print_deployment_omits_zero_count_line(tmp_path: Path) -> None:
+    out = io.StringIO()
+    print_deployment(Deployment(linked=[tmp_path / "linked"], pruned=[], unchanged=[]), out)
+    assert "0 link(s)" not in out.getvalue()
+    assert "link(s) already up to date" not in out.getvalue()
+
+
+def test_print_deployment_prints_nonzero_unchanged_count(tmp_path: Path) -> None:
+    out = io.StringIO()
+    print_deployment(Deployment(linked=[], pruned=[], unchanged=[tmp_path / "a"]), out)
+    assert "1 link(s) already up to date." in out.getvalue()
+
+
+def test_update_reports_vendored_state_when_deploy_fails_after_vendoring(
+    dotfiles: Dotfiles, upstream: Upstream
+) -> None:
+    dotfiles.write_manifest(common=["alpha", "beta"])
+
+    def failing_deploy(root: Path) -> None:
+        raise AutomationError("path occupied by something other than a managed skill link: X")
+
+    with pytest.raises(AutomationError, match="vendored successfully") as exc:
+        run_update(dotfiles.root, source_for=lambda _: upstream, deploy=failing_deploy)
+
+    message = str(exc.value)
+    assert "path occupied by something other than a managed skill link: X" in message
+    assert "deploy-skills" in message
+    # The vendored files from before the failed deploy step must still be on disk.
+    assert (dotfiles.root / "skills/common/alpha/SKILL.md").exists()

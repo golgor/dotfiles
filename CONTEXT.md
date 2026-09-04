@@ -116,9 +116,10 @@ this file carries the *why* and the *words*.
   and lock state, which conflicts with reviewing skill changes as ordinary
   PRs. Updates follow upstream releases or branch commits, and run only on
   explicit `mise run update-skills`. Projection moved out of mise's
-  `symlink-each` into `skills/deploy.py` so one module owns the whole
-  lifecycle (vendoring, projection, stale-link pruning) instead of splitting
-  projection into declarative `mise.toml` entries.
+  `symlink-each` into `automation/src/automation/skills/deploy.py` so the
+  `automation.skills` package owns the whole lifecycle (vendoring, projection,
+  stale-link pruning) instead of splitting projection into declarative
+  `mise.toml` entries.
 - **Codex gets its own discovery directory, `~/.pi/agent/skills` stays
   unmanaged.** Codex CLI only scans `$CODEX_HOME/skills` (`~/.codex/skills`),
   never `~/.agents/skills`, and its loader ignores a skill folder whose

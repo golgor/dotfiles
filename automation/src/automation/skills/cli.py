@@ -115,7 +115,14 @@ def run_update(
 
         if any_changed:
             print("Deploying skill symlinks...", file=out)
-            deploy(root)
+            try:
+                deploy(root)
+            except AutomationError as e:
+                raise AutomationError(
+                    f"{e}\n\nSkills were vendored successfully and the release line(s) "
+                    "were already recorded. Resolve the conflict above, then run "
+                    "`mise run deploy-skills`."
+                ) from e
             print_git_summary(root, out)
     return any_changed
 
@@ -130,11 +137,15 @@ def print_warnings(planned: update.Plan, err: TextIO, prefix: str = "") -> None:
 
 
 def print_deployment(deployment: Deployment, out: TextIO = sys.stdout) -> None:
+    if not (deployment.linked or deployment.pruned or deployment.unchanged):
+        print("Nothing to do; no skills found to deploy.", file=out)
+        return
     for path in deployment.linked:
         print(f"  linked {path}", file=out)
     for path in deployment.pruned:
         print(f"  pruned {path}", file=out)
-    print(f"{len(deployment.unchanged)} link(s) already up to date.", file=out)
+    if deployment.unchanged:
+        print(f"{len(deployment.unchanged)} link(s) already up to date.", file=out)
 
 
 def print_git_summary(root: Path, out: TextIO) -> None:
@@ -158,7 +169,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="sync selected skills from upstream manifests in .mise/skills/*.toml",
         description=(
             "Sync skills selected in manifests under .mise/skills/*.toml into skills/common/ "
-            "and skills/claude/, record the updated release/branch commit, and re-apply dotfile "
+            "and skills/claude/, record the updated release/branch commit, and deploy skill "
             "symlinks. Refuses to run over uncommitted vendored directories or vendored skills "
             "that no longer match the locked release. Never commits."
         ),
@@ -177,7 +188,7 @@ def build_parser() -> argparse.ArgumentParser:
             "into ~/.agents/skills (Pi), ~/.claude/skills (Claude Code), and ~/.codex/skills "
             "(Codex). Creates missing links, re-points moved ones, and prunes links whose "
             "skill no longer exists. Leaves harness-owned neighbours untouched and refuses "
-            "to overwrite any path not already a link of its own making."
+            "to overwrite any path that is not already a symlink pointing into skills/."
         ),
     )
     return parser

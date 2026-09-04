@@ -1,5 +1,6 @@
 """`deploy_skills`: project directory symlinks into every harness discovery directory."""
 
+import os
 import shutil
 from pathlib import Path
 
@@ -235,3 +236,116 @@ def test_harnesses_table_shape() -> None:
     assert by_name["Pi"].scopes == ("common",)
     assert by_name["Codex"].scopes == ("common",)
     assert by_name["Claude Code"].scopes == ("common", "claude")
+
+
+# -- _is_managed_link: classify by normalised target, not raw is_relative_to --
+
+
+def test_is_managed_link_rejects_target_that_escapes_skills_root_via_dotdot(
+    tmp_path: Path,
+) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    (root / "skills").mkdir(parents=True)
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+    link = link_dir / "escaped"
+    # Lexically starts with root/skills, but the trailing `../..` walks back out to a
+    # sibling of root entirely. A naive is_relative_to() on the un-normalised path
+    # would wrongly call this managed.
+    escaping_target = root / "skills" / ".." / ".." / "important"
+    link.symlink_to(escaping_target, target_is_directory=True)
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._is_managed_link(link, skills_root) is False
+
+
+def test_is_managed_link_recognises_relative_target_into_skills_root(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/tdd", "tdd")
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+    link = link_dir / "tdd"
+    relative_target = Path(os.path.relpath(root / "skills/common/tdd", link_dir))
+    link.symlink_to(relative_target, target_is_directory=True)
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._is_managed_link(link, skills_root) is True
+
+
+def test_is_managed_link_rejects_sibling_skills_backup_directory(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    (root / "skills-backup").mkdir(parents=True)
+    link_dir = home / ".agents/skills"
+    link_dir.mkdir(parents=True)
+    link = link_dir / "sneaky"
+    link.symlink_to(root / "skills-backup" / "x", target_is_directory=True)
+
+    skills_root = (root / "skills").resolve()
+    assert deploy._is_managed_link(link, skills_root) is False
+
+
+# -- atomicity: plan across every harness before writing anything --
+
+
+def test_conflict_in_one_harness_prevents_writes_everywhere(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/alpha", "alpha")
+    deploy.deploy_skills(root, home)  # baseline: every harness fully linked
+
+    # A new skill to link, and an old one to prune, in the same run.
+    write_skill(root / "skills/common/gamma", "gamma")
+    shutil.rmtree(root / "skills/common/alpha")
+
+    # Conflict: Pi's desired gamma link is blocked by a real directory.
+    pi_gamma = home / ".agents/skills/gamma"
+    pi_gamma.mkdir(parents=True)
+
+    codex_alpha = home / ".codex/skills/alpha"
+    claude_alpha = home / ".claude/skills/alpha"
+
+    with pytest.raises(AutomationError, match=str(pi_gamma)):
+        deploy.deploy_skills(root, home)
+
+    # Nothing pruned: alpha's stale links, due for removal in this same run, survive
+    # in the harnesses that never conflicted.
+    assert codex_alpha.is_symlink()
+    assert claude_alpha.is_symlink()
+    # Nothing created: the new gamma skill was not linked anywhere, including the
+    # harnesses that had no conflict of their own.
+    assert not (home / ".codex/skills/gamma").exists()
+    assert not (home / ".claude/skills/gamma").exists()
+    # The conflicting path itself is untouched too.
+    assert pi_gamma.is_dir() and not pi_gamma.is_symlink()
+
+
+# -- duplicate destination name across scopes visible to one harness --
+
+
+def test_duplicate_skill_name_across_scopes_raises(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    common_foo = root / "skills/common/foo"
+    claude_foo = root / "skills/claude/foo"
+    write_skill(common_foo, "foo")
+    write_skill(claude_foo, "foo")
+
+    with pytest.raises(AutomationError) as exc:
+        deploy.deploy_skills(root, home)
+    message = str(exc.value)
+    assert "foo" in message
+    assert str(common_foo) in message
+    assert str(claude_foo) in message
+
+
+# -- discovery path is not a directory --
+
+
+def test_discovery_path_that_is_a_file_raises_automation_error(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/alpha", "alpha")
+
+    blocker = home / ".agents/skills"
+    blocker.parent.mkdir(parents=True)
+    blocker.write_text("not a directory")
+
+    with pytest.raises(AutomationError, match=str(blocker)):
+        deploy.deploy_skills(root, home)
