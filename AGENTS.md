@@ -29,7 +29,23 @@ Known sharp edges:
 - **Zed** settings may contain a GitHub token. Do not add Zed config until the token is moved to environment/secrets handling or otherwise removed.
 - **Kubernetes/GCP** auth belongs in `~/.kube/config`, `~/.config/gcloud/`, and local credential stores, not in this repo. Tasks may set those up, but dotfiles should not track them.
 
-If a portable config genuinely needs secrets, stop and design explicit fnox/template handling first.
+If a portable config genuinely needs secrets, use the fnox model below rather than plaintext exports or committed credentials.
+
+## fnox secret model
+
+`fnox.toml` is the shared manifest and may be tracked because it contains Bitwarden references, not plaintext values. Treat even manifest metadata as public: secret names and Bitwarden item/field names are visible in git.
+
+Keep machine-local fnox state out of the repo:
+
+- `~/fnox.local.toml` — encrypted local sync cache
+- `~/.config/fnox/age.txt` — private age key
+- `~/.config/fnox/config.toml` — local `sync-age` provider
+
+Never print secret values in chat or logs. When inspecting shell config or fnox state, report variable names only and redact values. After changing `fnox.toml`, run `fs` or `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force` so the local cache matches the manifest.
+
+## Mise tools: local vs global
+
+Tools in this repo's `mise.toml` are active inside `~/.dotfiles`; user-level CLIs that must work from any directory also belong in `.config/mise/conf.d/dotfiles-tools.toml`, deployed to `~/.config/mise/conf.d/`. Keep those tool versions in sync. Do not hide shim-resolution problems with ad-hoc `mise use -g` unless the task is explicitly to mutate this one machine's global mise config.
 
 ## Track config, never runtime state
 
@@ -37,6 +53,9 @@ If a portable config genuinely needs secrets, stop and design explicit fnox/temp
 
 - **herdr**: everything except `config.toml`. `plugins.json` hardcodes absolute, content-hashed plugin paths; `.sock` / `.log` / `.lock` / `session.json` / `plugins/` are per-machine state.
 - **atuin**: `config.toml` only. The encryption key and session live under `~/.local/share/atuin/`, never here.
+- **Neovim**: runtime/plugin state lives under `~/.local/share/nvim/`, `~/.local/state/nvim/`, and `~/.cache/nvim/`. `~/.config/nvim/lua/plugins/theme.lua` is Omarchy-managed current-theme state and is intentionally not tracked.
+
+`~/.config/hypr` is tracked as a whole directory. After Hyprland config changes, validate with `hyprctl reload` and `hyprctl configerrors`.
 
 Before adding any new config, confirm the app does not rewrite it via temp-file-rename — that replaces the symlink with a real file and silently breaks the link. For such apps use `mode = "copy"` and re-capture edits with `dotfiles add`.
 
