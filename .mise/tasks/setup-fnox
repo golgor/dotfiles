@@ -8,7 +8,7 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: mise run setup-fnox [-- --no-sync|--no-shell]
+Usage: mise run setup-fnox [-- --no-sync]
 
 Prepare fnox for this machine using the shared ~/fnox.toml manifest.
 
@@ -16,8 +16,10 @@ What this does:
   - verifies age, rbw, and fnox are installed
   - creates ~/.config/fnox/age.txt if missing
   - adds a machine-local sync-age provider to ~/.config/fnox/config.toml
-  - installs an idempotent fnox block in ~/.bashrc
   - runs: cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force
+
+The fnox shell block (FNOX_AGE_KEY_FILE, fnox activate, the fs alias) lives in
+the tracked ~/.bashrc; this task does not modify shell config.
 
 Tracked vs local files:
   - ~/fnox.toml is tracked by this repo and lists Bitwarden secret references
@@ -30,20 +32,17 @@ If rbw is not configured yet, run:
   rbw login
 
 Options:
-  --no-sync   Configure files/shell only; do not unlock rbw or sync secrets
-  --no-shell  Do not modify ~/.bashrc
+  --no-sync   Configure files only; do not unlock rbw or sync secrets
   -h, --help  Show this help
 USAGE
 }
 
 sync_secrets=true
-update_shell=true
 AGE_RECIPIENT=""
 
 for arg in "$@"; do
   case "$arg" in
     --no-sync) sync_secrets=false ;;
-    --no-shell) update_shell=false ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $arg" >&2; usage >&2; exit 2 ;;
   esac
@@ -103,58 +102,6 @@ EOF
   echo "Added fnox sync-age provider: $config_file"
 }
 
-install_shell_block() {
-  local bashrc="$HOME/.bashrc"
-  local start_marker="# >>> fnox (managed by ~/.dotfiles)"
-  local end_marker="# <<< fnox (managed by ~/.dotfiles)"
-  local tmp=""
-  tmp="$(mktemp)"
-
-  python - "$bashrc" "$start_marker" "$end_marker" >"$tmp" <<'PY'
-from pathlib import Path
-import sys
-
-path = Path(sys.argv[1])
-start = sys.argv[2]
-end = sys.argv[3]
-
-block = f"""{start}
-# fnox: age-encrypted local cache, auto-loaded from ~/fnox.toml on every prompt.
-if command -v fnox &> /dev/null; then
-  export FNOX_AGE_KEY_FILE=~/.config/fnox/age.txt
-  # fnox activate bakes its resolved versioned path, which mise deletes on
-  # upgrade, breaking every open shell. Rewrite to the stable 'latest' symlink.
-  eval "$(fnox activate bash | sed 's|/mise/installs/fnox/[^/]*/fnox|/mise/installs/fnox/latest/fnox|g')"
-fi
-
-alias fs='cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force'
-{end}
-"""
-
-text = path.read_text() if path.exists() else ""
-start_idx = text.find(start)
-end_idx = text.find(end)
-
-if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-    end_idx = text.find("\n", end_idx)
-    if end_idx == -1:
-        new_text = text[:start_idx].rstrip() + "\n\n" + block
-    else:
-        new_text = text[:start_idx].rstrip() + "\n\n" + block + text[end_idx:].lstrip("\n")
-elif start_idx == -1 and end_idx == -1:
-    sep = "\n\n" if text and not text.endswith("\n\n") else ""
-    new_text = text + sep + block
-else:
-    raise SystemExit(f"Mismatched fnox markers in {path}; fix manually")
-
-sys.stdout.write(new_text)
-PY
-
-  cat "$tmp" >"$bashrc"
-  rm -f "$tmp"
-  echo "Installed fnox shell block in $bashrc"
-}
-
 sync_local_cache() {
   if [[ ! -e "$HOME/fnox.toml" ]]; then
     echo "Missing ~/fnox.toml. Run: mise bootstrap dotfiles apply" >&2
@@ -184,14 +131,9 @@ sync_local_cache() {
 require_command age-keygen
 require_command rbw
 require_command fnox
-require_command python
 
 ensure_age_key
 ensure_sync_age_provider "$AGE_RECIPIENT"
-
-if [[ "$update_shell" == true ]]; then
-  install_shell_block
-fi
 
 if [[ "$sync_secrets" == true ]]; then
   sync_local_cache

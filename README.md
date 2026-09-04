@@ -10,6 +10,7 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 
 | Path | Deploys to | Mode |
 | --- | --- | --- |
+| `.bashrc` | `~/.bashrc` | symlink |
 | `.config/git/config` | `~/.config/git/config` | symlink |
 | `.config/atuin/config.toml` | `~/.config/atuin/config.toml` | symlink |
 | `.config/herdr/config.toml` | `~/.config/herdr/config.toml` | symlink |
@@ -109,7 +110,7 @@ Normal resync after pulling a changed `fnox.toml`:
 fs
 ```
 
-`fs` is installed by `mise run setup-fnox` and runs `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force`.
+`fs` is an alias in the tracked `.bashrc` and runs `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force`. The machine-local parts (age key, sync-age provider) are created by `mise run setup-fnox`.
 
 ## Kubernetes / GKE setup
 
