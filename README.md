@@ -126,8 +126,8 @@ fs
 Vendored skills are listed in manifests under `.mise/skills/*.toml` (such as `mattpocock.toml`). When upstream updates land:
 
 ```sh
-mise run update-skills        # updates all manifests in .mise/skills/*.toml; never commits
-mise run update-matt-skills   # updates only mattpocock.toml
+mise run update-skills             # updates all manifests in .mise/skills/*.toml; never commits
+mise run update-skills mattpocock  # updates only that manifest
 git diff                      # review, then commit on a branch and open a PR
 ```
 

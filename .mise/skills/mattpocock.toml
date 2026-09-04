@@ -1,6 +1,6 @@
 # Skills vendored from https://github.com/mattpocock/skills into skills/.
 #
-# Edit the selection lists by hand, then run `mise run update-matt-skills`.
+# Edit the selection lists by hand, then run `mise run update-skills mattpocock`.
 # The task rewrites only the tag/commit lines under [release]; everything
 # else in this file is yours. Vendored skill directories are immutable
 # snapshots of the recorded release: to customise one, copy it to a new name
