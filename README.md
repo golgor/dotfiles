@@ -23,14 +23,14 @@ Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html) using 
 - kubectx `0.11.0`
 - kubens `0.11.0`
 
-### Bootstrap packages
+### Bootstrap tasks
 
-`mise bootstrap packages apply` installs these Arch/AUR host packages:
+`mise bootstrap` runs the repo's `bootstrap` task after dotfiles and tools. It currently installs these Arch/AUR host packages through `yay`/`paru` when missing:
 
 - `google-cloud-cli`
 - `google-cloud-cli-component-gke-gcloud-auth-plugin`
 
-AUR packages require `yay` or `paru`; Omarchy includes `yay`.
+This is a task rather than `[bootstrap.packages]` because this mise install does not include an AUR package manager plugin by default. Omarchy includes `yay`.
 
 ## Daily use
 
@@ -50,10 +50,8 @@ You only need `mise bootstrap dotfiles apply` after adding/removing dotfile entr
 git clone git@github.com:golgor/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 mise trust
-mise bootstrap status --missing
-mise bootstrap packages status --missing
-mise bootstrap packages apply
-mise install
+mise bootstrap --dry-run
+mise bootstrap
 mise bootstrap dotfiles status
 ```
 
@@ -78,10 +76,12 @@ It is intentionally **not** automatic bootstrap because it requires Google auth/
 
 Requirements:
 
-1. Bootstrap packages are installed:
+1. Bootstrap has installed the Google Cloud CLI packages:
 
    ```sh
-   mise bootstrap packages apply
+   mise bootstrap
+   # or just:
+   mise run install-gcloud-cli
    ```
 
 2. Mise Kubernetes tools are installed:

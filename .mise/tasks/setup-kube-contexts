@@ -14,7 +14,7 @@ Fetch GKE credentials for the configured gcloud configurations, then rename the
 long GKE context names to short local names.
 
 Requirements:
-  1. Host packages installed: mise bootstrap packages apply
+  1. Google Cloud CLI packages installed: mise bootstrap or mise run install-gcloud-cli
   2. Mise tools installed: mise install kubectl kubectx kubens
   3. Google auth completed: gcloud auth login
   4. These gcloud configurations exist with correct account/project values:
