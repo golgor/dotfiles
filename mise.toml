@@ -7,10 +7,9 @@ dotfiles.default_mode = "symlink"
 
 [dotfiles]
 # Whole-file symlinks. Source is inferred as ~/.dotfiles/<home-relative-path>.
-"~/.config/git/config"        = { mode = "symlink" }
+"~/.config/git/config" = { mode = "symlink" }
 "~/.config/atuin/config.toml" = { mode = "symlink" }
 "~/.config/herdr/config.toml" = { mode = "symlink" }
 
 # Directories mise does not fully own: link each file, leave neighbours untouched.
 "~/.bash_completions.d" = { source = ".bash_completions.d", mode = "symlink-each" }
-"~/.local/bin"          = { source = ".local/bin",          mode = "symlink-each" }
