@@ -1,14 +1,16 @@
-# Zed MCP secrets: reusing `GITHUB_MCP_PAT`
+# Zed GitHub MCP secret handling
 
 ## Conclusion
 
-**Do not put `GITHUB_MCP_PAT`, `$GITHUB_MCP_PAT`, or `${GITHUB_MCP_PAT}` in Zed's `settings.json` `env` object.** Current Zed has no documented settings-file environment-variable interpolation syntax. Its current stdio-MCP implementation passes configured `env` strings directly to the child command; it does not expand them. Therefore, the following would give the server the literal string `$GITHUB_MCP_PAT`, not the token:
+The GitHub MCP server and GitHub Copilot CLI agent are not used in this setup: agents use the already-authenticated `gh` CLI. The simplest and safest decision is therefore to remove both Zed integrations and remove `GITHUB_MCP_PAT` from fnox. The sanitized Zed settings and keymap can then be tracked without any GitHub token.
+
+If GitHub MCP is reintroduced later, **do not put `GITHUB_MCP_PAT`, `$GITHUB_MCP_PAT`, or `${GITHUB_MCP_PAT}` in Zed's `settings.json` `env` object.** Current Zed has no documented settings-file environment-variable interpolation syntax. Its current stdio-MCP implementation passes configured `env` strings directly to the child command; it does not expand them. Therefore, the following would give the server the literal string `$GITHUB_MCP_PAT`, not the token:
 
 ```jsonc
 "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_MCP_PAT" }
 ```
 
-Zed *does* pass its own inherited process environment to child processes by normal OS process inheritance. The GitHub MCP server does **not** read `GITHUB_MCP_PAT`; its documented/current source input is `GITHUB_PERSONAL_ACCESS_TOKEN`. Reuse `GITHUB_MCP_PAT` safely by replacing the extension entry with a local/stdio command that runs the server through `fnox exec` and maps the variable at run time. This is more reliable than depending on Zed's inherited environment because fnox loads secrets from the encrypted local cache on each interactive prompt, while Zed's GUI environment capture is only documented as a login shell. No token is stored in tracked configuration.
+Zed *does* pass its own inherited process environment to child processes by normal OS process inheritance. The GitHub MCP server does **not** read `GITHUB_MCP_PAT`; its documented/current source input is `GITHUB_PERSONAL_ACCESS_TOKEN`. If needed in the future, load `GITHUB_MCP_PAT` on demand with `fnox exec` and map the variable at run time. This is more reliable than depending on Zed's inherited environment because fnox loads secrets from the encrypted local cache on each interactive prompt, while Zed's GUI environment capture is only documented as a login shell. No token is stored in tracked configuration.
 
 ## Relevant Zed configuration context
 
@@ -24,7 +26,7 @@ Sources: Zed's [MCP documentation](https://zed.dev/docs/ai/mcp) (local/remote sh
 
 ### Installed configuration and extension
 
-This machine runs Zed 1.16.2 and currently uses the `mcp-server-github` extension form: `context_servers.mcp-server-github.settings.github_personal_access_token`. The installed extension is [LoamStudios/zed-mcp-server-github](https://github.com/LoamStudios/zed-mcp-server-github), version 0.1.0. Its [current source](https://github.com/LoamStudios/zed-mcp-server-github/blob/main/src/mcp_server_github.rs) deserializes `github_personal_access_token` as a required `String` and puts that string directly into the child command's `GITHUB_PERSONAL_ACCESS_TOKEN` environment variable. It has no interpolation or inherited-environment fallback. The existing extension entry therefore cannot be tracked safely and must be replaced, not merely edited to contain `$GITHUB_MCP_PAT`.
+Before cleanup, this machine ran Zed 1.16.2 and used the `mcp-server-github` extension form: `context_servers.mcp-server-github.settings.github_personal_access_token`. The installed extension is [LoamStudios/zed-mcp-server-github](https://github.com/LoamStudios/zed-mcp-server-github), version 0.1.0. Its [current source](https://github.com/LoamStudios/zed-mcp-server-github/blob/main/src/mcp_server_github.rs) deserializes `github_personal_access_token` as a required `String` and puts that string directly into the child command's `GITHUB_PERSONAL_ACCESS_TOKEN` environment variable. It has no interpolation or inherited-environment fallback. The existing extension entry therefore cannot be tracked safely and must be replaced, not merely edited to contain `$GITHUB_MCP_PAT`.
 
 ## The four distinct mechanisms
 
@@ -38,7 +40,7 @@ This machine runs Zed 1.16.2 and currently uses the `mcp-server-github` extensio
 
 4. **Zed credentials/keychain — limited to the right auth flow.** Zed stores LLM-provider keys in the system keychain, not `settings.json`, but that is not a generic secret-reference feature for arbitrary stdio-MCP `env` values. For HTTP MCP servers without a static `Authorization` header, Zed runs standard MCP OAuth and persists the OAuth session in the keychain. This can avoid a PAT only when the *remote MCP endpoint* supports that OAuth flow; it does not inject a GitHub PAT into the local GitHub MCP server. [Zed API-access docs](https://zed.dev/docs/ai/use-api-access); [MCP docs](https://zed.dev/docs/ai/mcp); [MCP OAuth/keychain source](https://github.com/zed-industries/zed/blob/main/crates/project/src/context_server_store.rs)
 
-## Recommended tracked configuration (local GitHub MCP server)
+## Fallback configuration if GitHub MCP is needed later
 
 If the GitHub MCP server is actually needed, replace the extension entry with the official custom stdio shape below. The outer login shell supplies the machine-local age-key path, changes to `$HOME` so fnox discovers `fnox.local.toml`, and calls fnox through mise's stable `latest` install path. `fnox exec` then loads `GITHUB_MCP_PAT` from the encrypted cache even when Zed inherited no secrets. The inner shell maps it to the name required by GitHub MCP. Docker is already installed on this machine.
 
