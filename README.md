@@ -132,14 +132,14 @@ Vendored skills are immutable snapshots: the task refuses to overwrite one that 
 
 ## Python automation
 
-Tasks with real logic are Python, in the `automation/` [uv](https://docs.astral.sh/uv/) project; bash file tasks under `.mise/tasks/` are kept for plain CLI glue. Each automation is a subpackage of `automation/src/automation/` with a `cli.py`, exposed as a console script in `automation/pyproject.toml` and called from a `[tasks]` entry in `mise.toml` — `update-matt-skills` runs `skills update` this way.
+Tasks with real logic are Python, in the `automation/` [uv](https://docs.astral.sh/uv/) project (one package, one subpackage per automation); bash file tasks under `.mise/tasks/` are kept for plain CLI glue. `update-matt-skills` is the first: `mise.toml` runs `skills update` from that project.
 
 ```sh
-mise run check                 # ruff, ruff format --check, ty (strict), pytest
+mise run check                 # ruff, ruff format --check, ty (strict), pytest — all offline
 cd automation && uv run pytest # or any tool directly
 ```
 
-Runtime dependencies are stdlib only, so tasks run with `uv run --no-dev` and need no dev tooling on a fresh machine. Tests stand in a local tagged git repository for GitHub, so `check` is offline. `uv.lock` is tracked; `automation/.venv/` is not. The interpreter is uv-managed via `automation/.python-version`.
+Conventions for adding an automation are in `AGENTS.md`.
 
 ## Kubernetes / GKE setup
 

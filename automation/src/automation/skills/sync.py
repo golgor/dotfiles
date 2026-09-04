@@ -30,13 +30,12 @@ def trees_differ(a: Path, b: Path) -> bool:
     return any(trees_differ(a / d, b / d) for d in cmp.common_dirs)
 
 
-def check_against_locked(
-    root: Path, manifest: Manifest, locked_upstream: dict[str, list[Path]]
-) -> None:
+def check_against_locked(root: Path, manifest: Manifest, locked: dict[str, Path]) -> None:
     """Every existing vendored skill must equal the locked release's copy.
 
     Vendored skills are immutable snapshots: a local edit is a fork and belongs
-    under a new name outside the manifest selection.
+    under a new name outside the manifest selection. `locked` maps the selected
+    names that exist in the locked release to their directories there.
     """
     divergent: list[Path] = []
     unmanaged: list[Path] = []
@@ -44,9 +43,9 @@ def check_against_locked(
         dest = manifest.dest(root, name)
         if not dest.exists():
             continue
-        if name not in locked_upstream:
+        if name not in locked:
             unmanaged.append(dest.relative_to(root))
-        elif trees_differ(dest, locked_upstream[name][0]):
+        elif trees_differ(dest, locked[name]):
             divergent.append(dest.relative_to(root))
 
     if divergent or unmanaged:
@@ -72,13 +71,16 @@ def sync_skill(src: Path, dest: Path) -> None:
 
 
 def orphans(root: Path, manifest: Manifest, upstream_names: set[str]) -> list[Path]:
-    """Vendored directories whose name is upstream but no longer selected."""
-    return sorted(
-        scope_dir / n
-        for scope_dir in SCOPE_DIRS.values()
-        for n in upstream_names - set(manifest.selection)
-        if (root / scope_dir / n).is_dir()
-    )
+    """Vendored directories named like an upstream skill that the manifest does not
+    put there: deselected, or moved to another scope."""
+    found: list[Path] = []
+    for scope_dir in SCOPE_DIRS.values():
+        for name in upstream_names:
+            path = root / scope_dir / name
+            wanted = name in manifest.selection and manifest.dest(root, name) == path
+            if path.is_dir() and not wanted:
+                found.append(scope_dir / name)
+    return sorted(found)
 
 
 def missing_claude_entries(mise_toml: str, manifest: Manifest) -> list[str]:

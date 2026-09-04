@@ -18,10 +18,7 @@ SCOPE_DIRS: dict[Scope, Path] = {scope: Path("skills") / scope for scope in SCOP
 @dataclass(frozen=True)
 class Release:
     tag: str
-    commit: str
-
-    def __bool__(self) -> bool:
-        return bool(self.commit)
+    commit: str  # empty until the first update run records one
 
 
 @dataclass(frozen=True)

@@ -33,7 +33,10 @@ def apply_dotfiles(root: Path) -> None:
     cmd = ["mise", "bootstrap", "dotfiles", "apply", "-y"]
     if subprocess.run(cmd, cwd=root, check=False).returncode != 0:
         print("apply failed once; retrying", file=sys.stderr)
-        subprocess.run(cmd, cwd=root, check=True)
+        if subprocess.run(cmd, cwd=root, check=False).returncode != 0:
+            raise AutomationError(
+                "`mise bootstrap dotfiles apply` failed twice; see its output above"
+            )
 
 
 def update(
@@ -57,10 +60,13 @@ def update(
         latest = Release(tag=latest_tag, commit=upstream.commit_for(clone, latest_tag))
 
         locked = manifest.release
-        if locked:
+        if locked.commit:
             print(f"Checking vendored skills against locked release {locked.tag}...", file=out)
             upstream.checkout(clone, locked.commit)
-            sync.check_against_locked(root, manifest, upstream.discover_skills(clone))
+            in_locked = upstream.resolve_selected(
+                upstream.discover_skills(clone), manifest.names(), missing_ok=True
+            )
+            sync.check_against_locked(root, manifest, in_locked)
         else:
             print(
                 "No locked release yet; skipping divergence check for this first import.", file=out
@@ -117,7 +123,9 @@ def update(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="skills", description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        prog="skills", description="Manage skills vendored from mattpocock/skills."
+    )
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser(
         "update",

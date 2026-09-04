@@ -4,7 +4,7 @@ import pytest
 
 from automation import AutomationError
 from automation.skills.manifest import Release, load_manifest, record_release
-from tests.conftest import Dotfiles
+from tests.helpers import Dotfiles
 
 
 def test_load_maps_names_to_scopes(dotfiles: Dotfiles) -> None:
@@ -17,8 +17,8 @@ def test_load_maps_names_to_scopes(dotfiles: Dotfiles) -> None:
     assert manifest.dest(Path("/r"), "beta") == Path("/r/skills/claude/beta")
 
 
-def test_empty_release_is_falsy(dotfiles: Dotfiles) -> None:
-    assert not load_manifest(dotfiles.manifest).release
+def test_unrecorded_release_is_empty_strings(dotfiles: Dotfiles) -> None:
+    assert load_manifest(dotfiles.manifest).release == Release("", "")
 
 
 def test_duplicate_across_scopes_rejected(dotfiles: Dotfiles) -> None:

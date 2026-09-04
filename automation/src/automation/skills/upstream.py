@@ -53,14 +53,18 @@ def discover_skills(checkout_dir: Path) -> dict[str, list[Path]]:
     return found
 
 
-def resolve_selected(upstream: dict[str, list[Path]], names: Iterable[str]) -> dict[str, Path]:
-    """Name -> upstream directory; raise listing every missing or ambiguous name."""
+def resolve_selected(
+    upstream: dict[str, list[Path]], names: Iterable[str], *, missing_ok: bool = False
+) -> dict[str, Path]:
+    """Name -> upstream directory; raise listing every ambiguous name, and every missing
+    one unless `missing_ok` (a newly selected skill is absent from the *locked* release)."""
     problems: list[str] = []
     resolved: dict[str, Path] = {}
     for name in sorted(names):
         dirs = upstream.get(name, [])
         if not dirs:
-            problems.append(f"missing upstream: {name}")
+            if not missing_ok:
+                problems.append(f"missing upstream: {name}")
         elif len(dirs) > 1:
             problems.append(f"ambiguous upstream: {name} ({', '.join(map(str, dirs))})")
         else:

@@ -23,8 +23,7 @@ uv = "0.11.14"
 "pacman:age" = "latest"
 "pacman:rbw" = "latest"
 
-# Python-backed tasks. Bash-native ones live as files under .mise/tasks/.
-# --no-dev: the runtime is stdlib-only, so a fresh machine needs no dev tools to run these.
+# Python-backed tasks; see automation/pyproject.toml. Bash-native ones live as files under .mise/tasks/.
 [tasks.update-matt-skills]
 description = "Sync vendored mattpocock/skills from the latest GitHub release"
 run = "uv run --project automation --no-dev skills update"

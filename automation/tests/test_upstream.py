@@ -4,7 +4,7 @@ import pytest
 
 from automation import AutomationError
 from automation.skills import upstream as up
-from tests.conftest import Upstream, git, write_skill
+from tests.helpers import Upstream, git, write_skill
 
 
 def test_discover_finds_skills_recursively_by_name(upstream: Upstream) -> None:
@@ -33,6 +33,9 @@ def test_resolve_selected_reports_missing_and_ambiguous(tmp_path: Path) -> None:
     assert "nothing was changed" in message
 
     assert up.resolve_selected(found, ["ok"]) == {"ok": tmp_path / "ok"}
+    assert up.resolve_selected(found, ["ok", "gone"], missing_ok=True) == {"ok": tmp_path / "ok"}
+    with pytest.raises(AutomationError, match="ambiguous"):
+        up.resolve_selected(found, ["dup"], missing_ok=True)
 
 
 @pytest.mark.parametrize(
