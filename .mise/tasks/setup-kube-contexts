@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# Configure GKE credentials and short context names for the Toolsense clusters.
+#
+# This task is intentionally manual, not part of automatic bootstrap: it requires
+# gcloud authentication/network access and mutates ~/.kube/config.
+
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage: mise run setup-kube-contexts [-- --credentials-only|--aliases-only]
+
+Fetch GKE credentials for the configured gcloud configurations, then rename the
+long GKE context names to short local names.
+
+Requirements:
+  1. Google Cloud CLI packages installed: mise bootstrap packages apply
+  2. Mise tools installed: mise install kubectl kubectx kubens
+  3. Google auth completed: gcloud auth login
+  4. These gcloud configurations exist with correct account/project values:
+     toolsense, toolsense-dev, toolsense-iot, toolsense-iot-dev
+
+Process:
+  - get-credentials runs once per gcloud configuration.
+  - Long GKE context names are renamed to short local names in ~/.kube/config.
+  - kubectx does not store these names in a separate alias dotfile.
+
+Options:
+  --credentials-only  Only run gcloud container clusters get-credentials
+  --aliases-only      Only create/update short kubectl context names
+  -h, --help          Show this help
+USAGE
+}
+
+mode="all"
+case "${1:-}" in
+  "") ;;
+  --credentials-only) mode="credentials" ;;
+  --aliases-only) mode="aliases" ;;
+  -h|--help) usage; exit 0 ;;
+  *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+esac
+
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Missing required command: $1" >&2
+    exit 1
+  fi
+}
+
+context_exists() {
+  kubectl config get-contexts -o name | grep -Fxq "$1"
+}
+
+# Format: gcloud-config:cluster:location:short-name:gke-context-name
+clusters=(
+  "toolsense:toolsense-1:europe-west1-d:toolsense:gke_toolsense_europe-west1-d_toolsense-1"
+  "toolsense-dev:toolsense-1:europe-west1-d:toolsense-dev:gke_toolsense-dev_europe-west1-d_toolsense-1"
+  "toolsense-iot:gke-cluster-toolsense-iot-1:europe-west1:toolsense-iot:gke_toolsense-iot_europe-west1_gke-cluster-toolsense-iot-1"
+  "toolsense-iot-dev:gke-cluster-toolsense-iot-1:europe-west1:toolsense-iot-dev:gke_toolsense-iot-dev_europe-west1_gke-cluster-toolsense-iot-1"
+)
+
+fetch_credentials() {
+  require_command gcloud
+
+  local original_config=""
+  original_config="$(gcloud config configurations list --filter='is_active=true' --format='value(name)' 2>/dev/null || true)"
+
+  echo "Adding GKE cluster credentials..."
+  for entry in "${clusters[@]}"; do
+    IFS=':' read -r config cluster location short_name gke_context <<<"$entry"
+
+    if ! gcloud config configurations describe "$config" >/dev/null 2>&1; then
+      echo "Missing gcloud configuration: $config" >&2
+      exit 1
+    fi
+
+    echo ""
+    echo "Processing: $config"
+    echo "  Cluster: $cluster"
+    echo "  Location: $location"
+    gcloud config configurations activate "$config"
+    gcloud container clusters get-credentials "$cluster" --location="$location"
+  done
+
+  if [[ -n "$original_config" ]]; then
+    echo ""
+    echo "Restoring active gcloud configuration: $original_config"
+    gcloud config configurations activate "$original_config" >/dev/null
+  fi
+}
+
+setup_short_context_names() {
+  require_command kubectl
+  require_command kubectx
+
+  echo "Setting up short kubectl context names..."
+  for entry in "${clusters[@]}"; do
+    IFS=':' read -r config cluster location short_name gke_context <<<"$entry"
+
+    if context_exists "$gke_context"; then
+      if context_exists "$short_name"; then
+        echo "  Refreshing $short_name from $gke_context"
+        kubectl config delete-context "$short_name" >/dev/null
+      else
+        echo "  Creating $short_name from $gke_context"
+      fi
+      kubectl config rename-context "$gke_context" "$short_name" >/dev/null
+    elif context_exists "$short_name"; then
+      echo "  Already configured: $short_name"
+    else
+      echo "Missing kubectl context: $gke_context" >&2
+      echo "Run: mise run setup-kube-contexts -- --credentials-only" >&2
+      exit 1
+    fi
+  done
+
+  echo ""
+  echo "Available contexts:"
+  kubectx
+}
+
+case "$mode" in
+  all)
+    fetch_credentials
+    echo ""
+    setup_short_context_names
+    ;;
+  credentials) fetch_credentials ;;
+  aliases) setup_short_context_names ;;
+esac

@@ -20,6 +20,17 @@ mise bootstrap dotfiles add ~/.config/foo/bar.toml
 
 First apply conflicts because real files sit where symlinks belong. mise **refuses rather than clobbers**. Resolve with `dotfiles add` (non-destructive, preferred) or `mise bootstrap dotfiles apply --force` (replaces them). Check first with `mise bootstrap dotfiles status` / `diff`.
 
+## Public repo: no secrets
+
+Treat every committed file, branch, and PR as public. Before adding config, scan for tokens, credentials, auth sessions, private keys, kubeconfigs, and host-specific runtime state. Do not commit secrets even if the remote is currently private.
+
+Known sharp edges:
+
+- **Zed** settings may contain a GitHub token. Do not add Zed config until the token is moved to environment/secrets handling or otherwise removed.
+- **Kubernetes/GCP** auth belongs in `~/.kube/config`, `~/.config/gcloud/`, and local credential stores, not in this repo. Tasks may set those up, but dotfiles should not track them.
+
+If a portable config genuinely needs secrets, stop and design explicit fnox/template handling first.
+
 ## Track config, never runtime state
 
 `herdr` and `atuin` write large runtime trees; only their `config.toml` is portable. Keep out of the repo:
@@ -28,6 +39,10 @@ First apply conflicts because real files sit where symlinks belong. mise **refus
 - **atuin**: `config.toml` only. The encryption key and session live under `~/.local/share/atuin/`, never here.
 
 Before adding any new config, confirm the app does not rewrite it via temp-file-rename — that replaces the symlink with a real file and silently breaks the link. For such apps use `mode = "copy"` and re-capture edits with `dotfiles add`.
+
+## Mise docs vs installed mise
+
+Refresh and test local behavior before changing bootstrap/package semantics. Mise docs may track unreleased `main` features; if the desired config depends on an unreleased mise PR, keep the declarative target only when the user explicitly accepts that delay and document the release dependency in the PR/HANDOFF.
 
 ## Suggested skills
 

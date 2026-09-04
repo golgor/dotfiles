@@ -1,6 +1,21 @@
 # Dotfiles managed by mise. See AGENTS.md for the working model, README.md for humans.
 # Docs: https://mise.jdx.dev/dotfiles.html
 
+[tools]
+# Atuin is not installed by default on Omarchy; install the history CLI alongside its config.
+atuin = "18.19.0"
+# Kubernetes helpers used by the manual setup-kube-contexts task.
+kubectl = "1.36.2"
+kubectx = "0.11.0"
+kubens = "0.11.0"
+
+[bootstrap.packages]
+# Google Cloud CLI and GKE auth plugin are host packages on Omarchy/Arch.
+# AUR packages should use "latest" because AUR helpers build the current PKGBUILD.
+"aur:google-cloud-cli" = "latest"
+"aur:google-cloud-cli-component-gke-gcloud-auth-plugin" = "latest"
+"aur:cloud-sql-proxy-bin" = "latest"
+
 [settings]
 dotfiles.root = "~/.dotfiles"
 dotfiles.default_mode = "symlink"
@@ -10,6 +25,22 @@ dotfiles.default_mode = "symlink"
 "~/.config/git/config" = { mode = "symlink" }
 "~/.config/atuin/config.toml" = { mode = "symlink" }
 "~/.config/herdr/config.toml" = { mode = "symlink" }
+"~/.config/hypr" = { mode = "symlink" }
+
+# Neovim config. Do not track lua/plugins/theme.lua; Omarchy owns the current-theme symlink.
+"~/.config/nvim/.gitignore" = { mode = "symlink" }
+"~/.config/nvim/.neoconf.json" = { mode = "symlink" }
+"~/.config/nvim/init.lua" = { mode = "symlink" }
+"~/.config/nvim/lazy-lock.json" = { mode = "symlink" }
+"~/.config/nvim/lazyvim.json" = { mode = "symlink" }
+"~/.config/nvim/stylua.toml" = { mode = "symlink" }
+"~/.config/nvim/lua/config" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/all-themes.lua" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/disable-news-alert.lua" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/omarchy-theme-hotreload.lua" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/snacks-animated-scrolling-off.lua" = { mode = "symlink" }
+"~/.config/nvim/lua/plugins/terraform.lua" = { mode = "symlink" }
+"~/.config/nvim/plugin/after" = { mode = "symlink" }
 
 # Directories mise does not fully own: link each file, leave neighbours untouched.
 "~/.bash_completions.d" = { source = ".bash_completions.d", mode = "symlink-each" }
