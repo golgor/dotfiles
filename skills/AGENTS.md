@@ -16,13 +16,17 @@ To add a new upstream source, create a new manifest file `../.mise/skills/<sourc
 
 | directory | reaches | deployment |
 | --- | --- | --- |
-| `common/<name>/` | Pi, Codex (`~/.agents/skills`), Claude Code (`~/.claude/skills`) | automatic: `symlink-each` in `../mise.toml` |
-| `claude/<name>/` | Claude Code only | one explicit whole-directory entry per skill in `../mise.toml`; the updater warns if it is missing |
+| `common/<name>/` | Pi (`~/.agents/skills`), Claude Code (`~/.claude/skills`), Codex (`~/.codex/skills`) | automatic: `mise run deploy-skills` (`skills deploy`) |
+| `claude/<name>/` | Claude Code only | automatic: `mise run deploy-skills` (`skills deploy`) |
 
-There is no `pi/` or `codex/`: both harnesses already scan `~/.agents/skills`, and a second discovery path only produces duplicate-name warnings.
+There is no `pi/` or `codex/` scope directory: Codex sees everything in `common/`, just through its own discovery directory (`~/.codex/skills`) rather than `~/.agents/skills`, so a separate scope would only produce duplicate-name warnings.
+
+## Deployment is content-blind
+
+`deploy-skills` never reads `SKILL.md`; it links every directory in a scope regardless of what's inside (`_skill_dirs` in `automation/src/automation/skills/deploy.py`). A skill with `disable-model-invocation: true` is still deployed and still reachable by typing its name — the flag only keeps it out of the model-facing skill list. "Deployed but not listed" is that flag, not a broken deploy.
 
 ## Authoring a skill of your own
 
-Follow the Agent Skills format the updater validates for vendored ones: a `<name>/SKILL.md` whose frontmatter `name` equals the directory and has a non-empty `description`; sidecars (`agents/openai.yaml`, reference files) sit beside it. After creating or removing a skill directory, run `mise bootstrap dotfiles apply` — the *set* of files changed, so the symlinks must be re-projected. Content edits inside an existing skill are live immediately.
+Follow the Agent Skills format the updater validates for vendored ones: a `<name>/SKILL.md` whose frontmatter `name` equals the directory and has a non-empty `description`; sidecars (`agents/openai.yaml`, reference files) sit beside it. After creating or removing a skill directory, run `mise run deploy-skills` — the *set* of skills changed, so the symlinks must be re-projected. Content edits inside an existing skill are live immediately.
 
 Every file here is public. Skills must not carry machine paths, tokens, or anything from a harness's runtime state.

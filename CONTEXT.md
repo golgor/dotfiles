@@ -11,8 +11,9 @@ this file carries the *why* and the *words*.
 - **capture / add** — `mise bootstrap dotfiles add <path>`: moves the live file
   into this repo, writes the entry, and symlinks it back. The opposite of
   hand-placing files; always prefer capturing the real file.
-- **apply** — `mise bootstrap dotfiles apply`: converges symlinks to match the
-  entry set. Needed only when the *set* changes, never for content edits.
+- **apply** — `mise bootstrap dotfiles apply`: creates symlinks for entries
+  missing from `~`. Needed only when the *set* changes, never for content
+  edits — it never removes what a deleted entry deployed.
 - **symlink model** — every deployed file in `~` points into this checkout, so
   editing a file here is live immediately and syncing machines is a plain
   `git pull`. Contrast: copy-based dotfile managers need an apply step per edit.
@@ -66,9 +67,10 @@ this file carries the *why* and the *words*.
   Claude Code only. Scope is declared by placement, never inferred from which
   links happen to exist on a machine.
 - **discovery directory** — where a harness looks for skills: `~/.agents/skills`
-  (Pi and Codex), `~/.claude/skills` (Claude Code), `~/.pi/agent/skills` (Pi
-  only). mise projects the repo's scope directories into the first two; the
-  third stays unmanaged for Pi-local and external links.
+  (Pi), `~/.claude/skills` (Claude Code), `~/.codex/skills` (Codex),
+  `~/.pi/agent/skills` (Pi only). `mise run deploy-skills` projects the repo's
+  scope directories into the first three; the fourth stays unmanaged for
+  Pi-local and external links.
 - **vendored skill** — a skill copied verbatim from an upstream repository at the
   release tag or commit recorded in `.mise/skills/*.toml`. An immutable snapshot:
   a local edit is a *fork*, which gets a new name outside the manifest.
@@ -110,14 +112,23 @@ this file carries the *why* and the *words*.
   GitHub Copilot CLI agent duplicated shell access without adding a needed
   capability, while the MCP extension required a plaintext PAT in settings.
   Keep them absent unless a concrete use-case emerges.
-- **Skills are vendored into the repo and projected by mise, not installed
-  by `npx skills`.** The upstream CLI owns its own install locations and lock
-  state, which conflicts with mise being the sole deployment mechanism and
-  with reviewing skill changes as ordinary PRs. Updates follow upstream
-  releases or branch commits, and run only on explicit `mise run update-skills`.
-- **No shared skill mapping to `~/.pi/agent/skills` or `~/.codex/skills`.**
-  Both harnesses already scan `~/.agents/skills`; a second path would only
-  create duplicate-name warnings. `~/.codex/skills/.system` is harness-owned.
+- **Skills are vendored into the repo and projected by the automation, not
+  installed by `npx skills`.** The upstream CLI owns its own install locations
+  and lock state, which conflicts with reviewing skill changes as ordinary
+  PRs. Updates follow upstream releases or branch commits, and run only on
+  explicit `mise run update-skills`. Projection moved out of mise's
+  `symlink-each` into `automation/src/automation/skills/deploy.py` so the
+  `automation.skills` package owns the whole lifecycle (vendoring, projection,
+  stale-link pruning) instead of splitting projection into declarative
+  `mise.toml` entries.
+- **Codex gets its own discovery directory, `~/.pi/agent/skills` stays
+  unmanaged.** Codex CLI only scans `$CODEX_HOME/skills` (`~/.codex/skills`),
+  never `~/.agents/skills`, and its loader ignores a skill folder whose
+  `SKILL.md` is itself a file symlink inside a real directory — what mise's
+  old `symlink-each` produced. `deploy_skills` links `~/.codex/skills/<name>`
+  as a directory symlink instead. `~/.pi/agent/skills` still isn't a shared
+  target: it holds Pi-local and external links, and Pi already sees the
+  shared skills via `~/.agents/skills`.
 - **`setup-matt-pocock-skills` is not selected.** It exists to run the
   upstream installer, which this repo replaces.
 - **Logic-bearing tasks are Python in one uv project; glue stays bash.** A

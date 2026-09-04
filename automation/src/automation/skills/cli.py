@@ -1,7 +1,7 @@
-"""`skills update`: refresh vendored skills from upstream releases or branches.
+"""`skills update` / `skills deploy`: vendor and project agent skills.
 
-Manual task: needs network access (gh + git) and rewrites tracked skill
-directories. It never commits or pushes; review the diff and open a PR.
+Manual task: `update` needs network access (gh + git) and rewrites tracked skill
+directories; it never commits or pushes, so review the diff and open a PR.
 """
 
 import argparse
@@ -14,8 +14,9 @@ from pathlib import Path
 from typing import TextIO
 
 from automation import AutomationError
-from automation.process import git_root, run, stream
+from automation.process import git_root, run
 from automation.skills import sync, update
+from automation.skills.deploy import Deployment, deploy_skills
 from automation.skills.manifest import (
     MANIFESTS_DIR,
     SCOPE_DIRS,
@@ -24,7 +25,7 @@ from automation.skills.manifest import (
 )
 from automation.skills.upstream import GitHubUpstream, ReleaseSource
 
-Apply = Callable[[Path], None]
+Deploy = Callable[[Path], None]
 SourceFor = Callable[[Manifest], ReleaseSource]
 
 
@@ -32,27 +33,16 @@ def default_source(manifest: Manifest) -> ReleaseSource:
     return GitHubUpstream(repo=manifest.repo, branch=manifest.branch)
 
 
-def apply_dotfiles(root: Path) -> None:
-    """`mise bootstrap dotfiles apply` so new/deleted files are live.
-
-    mise 2026.9.1 can fail with ENOENT while pruning parents of stale links when a
-    removed skill had files at two depths (SKILL.md + agents/openai.yaml). The links
-    are already gone by then; a second apply converges cleanly.
-    """
-    cmd = ("mise", "bootstrap", "dotfiles", "apply", "-y")
-    if stream(*cmd, cwd=root) != 0:
-        print("apply failed once; retrying", file=sys.stderr)
-        if stream(*cmd, cwd=root) != 0:
-            raise AutomationError(
-                "`mise bootstrap dotfiles apply` failed twice; see its output above"
-            )
+def default_deploy(root: Path, out: TextIO = sys.stdout) -> None:
+    """Project skill directory symlinks into every harness and print what changed."""
+    print_deployment(deploy_skills(root, Path.home()), out)
 
 
 def run_update(
     root: Path,
     target_name: str | None = None,
     source_for: SourceFor = default_source,
-    apply: Apply = apply_dotfiles,
+    deploy: Deploy = default_deploy,
     out: TextIO = sys.stdout,
     err: TextIO = sys.stderr,
 ) -> bool:
@@ -124,8 +114,15 @@ def run_update(
                     print(f"  {name}", file=out)
 
         if any_changed:
-            print("Re-applying dotfile symlinks...", file=out)
-            apply(root)
+            print("Deploying skill symlinks...", file=out)
+            try:
+                deploy(root)
+            except AutomationError as e:
+                raise AutomationError(
+                    f"{e}\n\nSkills were vendored successfully and the release line(s) "
+                    "were already recorded. Resolve the conflict above, then run "
+                    "`mise run deploy-skills`."
+                ) from e
             print_git_summary(root, out)
     return any_changed
 
@@ -137,12 +134,18 @@ def print_warnings(planned: update.Plan, err: TextIO, prefix: str = "") -> None:
             "delete it or add it back to the manifest",
             file=err,
         )
-    for name in planned.missing_claude_entries:
-        warning = (
-            f"{prefix}warning: {name} is Claude-only but mise.toml has no entry for "
-            f"skills/claude/{name}; it will not be deployed until one is added"
-        )
-        print(warning, file=err)
+
+
+def print_deployment(deployment: Deployment, out: TextIO = sys.stdout) -> None:
+    if not (deployment.linked or deployment.pruned or deployment.unchanged):
+        print("Nothing to do; no skills found to deploy.", file=out)
+        return
+    for path in deployment.linked:
+        print(f"  linked {path}", file=out)
+    for path in deployment.pruned:
+        print(f"  pruned {path}", file=out)
+    if deployment.unchanged:
+        print(f"{len(deployment.unchanged)} link(s) already up to date.", file=out)
 
 
 def print_git_summary(root: Path, out: TextIO) -> None:
@@ -166,7 +169,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="sync selected skills from upstream manifests in .mise/skills/*.toml",
         description=(
             "Sync skills selected in manifests under .mise/skills/*.toml into skills/common/ "
-            "and skills/claude/, record the updated release/branch commit, and re-apply dotfile "
+            "and skills/claude/, record the updated release/branch commit, and deploy skill "
             "symlinks. Refuses to run over uncommitted vendored directories or vendored skills "
             "that no longer match the locked release. Never commits."
         ),
@@ -177,6 +180,17 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional manifest name to update (default: all manifests in .mise/skills/*.toml)",
     )
+    sub.add_parser(
+        "deploy",
+        help="project skill directory symlinks into Pi, Claude Code, and Codex",
+        description=(
+            "Project one directory symlink per skill from skills/common/ and skills/claude/ "
+            "into ~/.agents/skills (Pi), ~/.claude/skills (Claude Code), and ~/.codex/skills "
+            "(Codex). Creates missing links, re-points moved ones, and prunes links whose "
+            "skill no longer exists. Leaves harness-owned neighbours untouched and refuses "
+            "to overwrite any path that is not already a symlink pointing into skills/."
+        ),
+    )
     return parser
 
 
@@ -185,11 +199,13 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.reconfigure(line_buffering=True)  # keep our lines ordered with mise's output
     args = build_parser().parse_args(argv)
     try:
+        root = git_root()
+        if not (root / "mise.toml").is_file():
+            raise AutomationError(f"{root} does not look like the dotfiles repository")
         if args.command == "update":
-            root = git_root()
-            if not (root / "mise.toml").is_file():
-                raise AutomationError(f"{root} does not look like the dotfiles repository")
             run_update(root, target_name=args.manifest)
+        elif args.command == "deploy":
+            default_deploy(root)
     except AutomationError as e:
         print(f"skills {args.command}: {e}", file=sys.stderr)
         return 1

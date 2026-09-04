@@ -27,15 +27,6 @@ def run(*args: str, cwd: Path | None = None) -> str:
     return result.stdout.strip()
 
 
-def stream(*args: str, cwd: Path | None = None) -> int:
-    """Run a command with its output going straight to the terminal; return the exit code."""
-    try:
-        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit
-        return subprocess.run(args, cwd=cwd, check=False).returncode
-    except OSError as e:
-        raise AutomationError(f"cannot run `{args[0]}`: {e}") from e
-
-
 def git_root(cwd: Path | None = None) -> Path:
     try:
         return Path(run("git", "rev-parse", "--show-toplevel", cwd=cwd))
