@@ -47,8 +47,9 @@ this file carries the *why* and the *words*.
   the current directory fails with "No version is set for shim" — the symptom
   of a tool declared locally but not globally.
 - **manual task** — a task under `.mise/tasks/` that is deliberately *not* part
-  of `mise bootstrap` because it needs interactive auth or mutates
-  machine-local state: `setup-fnox`, `setup-kube-contexts`.
+  of `mise bootstrap` because it needs interactive auth, network access to a
+  third party, or mutates machine-local state: `setup-fnox`,
+  `setup-kube-contexts`, `update-matt-skills`.
 - **skill** — a directory containing `SKILL.md` with `name`/`description`
   frontmatter, the cross-harness Agent Skills format. Pi, Claude Code, and
   Codex all discover them from per-harness directories.
@@ -91,8 +92,9 @@ this file carries the *why* and the *words*.
   switching.
 - **Manual tasks stay out of bootstrap.** `setup-fnox` and
   `setup-kube-contexts` need Bitwarden/gcloud interaction and create
-  machine-local secret material, so they must be run knowingly, not as a
-  bootstrap side effect.
+  machine-local secret material; `update-matt-skills` needs GitHub and
+  rewrites tracked files. They must be run knowingly, not as a bootstrap
+  side effect.
 - **fnox manifest is tracked, everything else fnox is local.** The manifest
   contains only references; the age key, provider config, and encrypted cache
   are per-machine.
@@ -100,7 +102,6 @@ this file carries the *why* and the *words*.
   GitHub Copilot CLI agent duplicated shell access without adding a needed
   capability, while the MCP extension required a plaintext PAT in settings.
   Keep them absent unless a concrete use-case emerges.
-
 - **Skills are vendored into the repo and projected by mise, not installed
   by `npx skills`.** The upstream CLI owns its own install locations and lock
   state, which conflicts with mise being the sole deployment mechanism and

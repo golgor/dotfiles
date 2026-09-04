@@ -127,7 +127,7 @@ mise run update-matt-skills   # needs gh; never commits
 git diff                      # review, then commit on a branch and open a PR
 ```
 
-The task refuses to overwrite a vendored skill that has been edited locally — vendored skills are immutable snapshots. To customise one, copy it to a new name and remove the original from the manifest. To add or drop an upstream skill, edit the manifest's selection lists and rerun the task.
+Vendored skills are immutable snapshots: the task refuses to overwrite one that has been edited locally. To customise a skill, copy it to a new name outside the manifest and leave the original vendored. To add or drop an upstream skill, edit the manifest's selection lists and rerun the task; dropping one leaves its directory behind for you to delete.
 
 ## Kubernetes / GKE setup
 
