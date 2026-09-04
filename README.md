@@ -22,8 +22,7 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 | `.config/nvim/` selected files | `~/.config/nvim/` | symlink |
 | `fnox.toml` | `~/fnox.toml` | symlink |
 | `.bash_completions.d/` | `~/.bash_completions.d/` | symlink-each |
-| `skills/common/` | `~/.agents/skills/`, `~/.claude/skills/` | symlink-each |
-| `skills/claude/claude-handoff/` | `~/.claude/skills/claude-handoff/` | symlink |
+| `skills/common/`, `skills/claude/` | `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/` | one directory symlink per skill, via `mise run deploy-skills` (not a mise `[dotfiles]` entry) |
 
 ### Mise tools
 
@@ -119,7 +118,7 @@ fs
 
 ## Agent skills
 
-`skills/common/` is the one copy of the skills shared by Pi, Codex, and Claude Code; mise links each file into `~/.agents/skills` (Pi, Codex) and `~/.claude/skills` (Claude Code). Claude-only skills sit in `skills/claude/` with their own `mise.toml` entry. Neighbours the harnesses or other installers own (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system`) stay untouched.
+`skills/common/` holds the skills shared by Pi, Codex, and Claude Code; `skills/claude/` holds Claude-only ones. `mise run deploy-skills` links each skill directory into `~/.agents/skills` (Pi), `~/.codex/skills` (Codex), and `~/.claude/skills` (Claude Code, both `common/` and `claude/`). Neighbours the harnesses or other installers own (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system`) stay untouched.
 
 Vendored skills are listed in manifests under `.mise/skills/*.toml` (such as `mattpocock.toml`). When upstream updates land:
 

@@ -6,7 +6,8 @@ Python-implemented mise tasks for this repo: one uv project, one package (`autom
 
 | subpackage | console script | mise task | does |
 | --- | --- | --- | --- |
-| `skills` | `skills update [manifest]` | `update-skills` (or `update-matt-skills`) | vendors selected skills from upstream manifests in `../.mise/skills/*.toml` into `../skills/{common,claude}/`, records tag/commit, re-applies dotfile symlinks |
+| `skills` | `skills update [manifest]` | `update-skills` (or `update-matt-skills`) | vendors selected skills from upstream manifests in `../.mise/skills/*.toml` into `../skills/{common,claude}/`, records tag/commit, deploys skill symlinks |
+| `skills` | `skills deploy` | `deploy-skills` | projects one directory symlink per skill from `../skills/{common,claude}/` into `~/.agents/skills`, `~/.claude/skills`, `~/.codex/skills` |
 
 ### `skills` module map
 
@@ -14,11 +15,12 @@ Python-implemented mise tasks for this repo: one uv project, one package (`autom
 | --- | --- | --- |
 | `manifest.py` | discover and parse manifests in `.mise/skills/*.toml` into `Manifest`/`Release` (shape-validated; `repo` must be `owner/name`, `branch` a valid ref, `commit` a 40-hex SHA or empty); collision check across manifests; `record_release` rewrites only release lines so comments survive | no |
 | `upstream.py` | `ReleaseSource` protocol (`GitHubUpstream` adapter supports both release tags and branch tracking); `discover_skills` (recursive by `SKILL.md`), `resolve_selected`, frontmatter integrity checks | no |
-| `sync.py` | dirty-tree check, `trees_differ`, divergence check against locked release, verbatim copy, orphan detection, missing Claude `mise.toml` entries | no |
+| `sync.py` | dirty-tree check, `trees_differ`, divergence check against locked release, verbatim copy, orphan detection | no |
 | `update.py` | `plan()` decides and returns a `Plan`; `execute()` writes it | no |
-| `cli.py` | argparse (`skills update [name]`), multi-manifest sequencing, and every `print` | yes |
+| `deploy.py` | `deploy_skills` converges every harness discovery directory (`HARNESSES`: Pi, Claude Code, Codex) to one directory symlink per skill — creates, re-points, and prunes managed links; refuses via `AutomationError` on any other conflict | no |
+| `cli.py` | argparse (`skills update [name]`, `skills deploy`), multi-manifest sequencing, and every `print` | yes |
 
-Shared: `process.py` (`run`, `stream`, `git_root`) is the **only** module that calls `subprocess`; `AutomationError` in `__init__.py` is the one exception CLIs catch and print.
+Shared: `process.py` (`run`, `git_root`) is the **only** module that calls `subprocess`; `AutomationError` in `__init__.py` is the one exception CLIs catch and print.
 
 ## Conventions
 

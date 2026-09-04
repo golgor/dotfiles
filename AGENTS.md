@@ -67,11 +67,11 @@ Tools in this repo's `mise.toml` are active inside `~/.dotfiles`; user-level CLI
 
 Before adding any new config, confirm the app does not rewrite it via temp-file-rename — that replaces the symlink with a real file and silently breaks the link. For such apps use `mode = "copy"` and re-capture edits with `dotfiles add`.
 
-## Agent skills: one tracked copy, mise projects it
+## Agent skills: one tracked copy, the automation projects it
 
-`skills/common/` is the single copy of every shared agent skill; mise `symlink-each` projects it into `~/.agents/skills` (Pi, Codex) and `~/.claude/skills` (Claude Code). Skills listed in `.mise/skills/*.toml` are **immutable vendored snapshots** — editing one in place blocks future `mise run update-skills`. Read `skills/AGENTS.md` before changing anything under `skills/`.
+`skills/common/` is the single copy of every shared agent skill; `mise run deploy-skills` (the `automation` package's `skills deploy`) projects it as one directory symlink per skill into `~/.agents/skills` (Pi), `~/.claude/skills` (Claude Code), and `~/.codex/skills` (Codex). Codex is a target because its loader only follows directory symlinks and ignores a `SKILL.md` that is itself a file symlink inside a real directory — what mise's old `symlink-each` produced. Skills listed in `.mise/skills/*.toml` are **immutable vendored snapshots** — editing one in place blocks future `mise run update-skills`. Read `skills/AGENTS.md` before changing anything under `skills/`.
 
-Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli`), `omarchy` and `diagnose-crash` (symlinks into `/usr/share/omarchy`), `~/.codex/skills/.system` (Codex), Claude's `synced/`, and the external research links left in `~/.pi/agent/skills`. Leave them uncaptured; `symlink-each` coexists with them.
+Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli`), `omarchy` and `diagnose-crash` (symlinks into `/usr/share/omarchy`), `~/.codex/skills/.system` (Codex), Claude's `synced/`, and the external research links left in `~/.pi/agent/skills`. Because each managed link sits one level deep (`<discovery dir>/<name>`), the deployer never has to look inside these neighbours to leave them alone.
 
 ## Tasks: bash for glue, Python for logic
 
