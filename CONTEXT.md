@@ -79,6 +79,10 @@ this file carries the *why* and the *words*.
 - **fnox manifest is tracked, everything else fnox is local.** The manifest
   contains only references; the age key, provider config, and encrypted cache
   are per-machine.
+- **GitHub access for agents goes through `gh`.** The Zed GitHub MCP server and
+  GitHub Copilot CLI agent duplicated shell access without adding a needed
+  capability, while the MCP extension required a plaintext PAT in settings.
+  Keep them absent unless a concrete use-case emerges.
 
 If this section outgrows a screenful, move entries to `docs/adr/`.
 

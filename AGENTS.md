@@ -32,7 +32,7 @@ Treat every committed file, branch, and PR as public. Before adding config, scan
 
 Known sharp edges:
 
-- **Zed** settings may contain a GitHub token. Do not add Zed config until the token is moved to environment/secrets handling or otherwise removed.
+- **Zed**: `settings.json` and `keymap.json` are tracked; extension/runtime data under `~/.local/share/zed/` is not. GitHub access for agents goes through the authenticated `gh` CLI—do not add the GitHub MCP server, Copilot CLI agent, or PAT settings without an explicit new need. Zed canonicalizes its settings path before atomic writes, so saving settings preserves the symlink and updates the repo target.
 - **Kubernetes/GCP** auth belongs in `~/.kube/config`, `~/.config/gcloud/`, and local credential stores, not in this repo. Tasks may set those up, but dotfiles should not track them.
 
 If a portable config genuinely needs secrets, use the fnox model below rather than plaintext exports or committed credentials.

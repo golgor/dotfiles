@@ -17,6 +17,8 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 | `.config/hypr/` | `~/.config/hypr/` | symlink |
 | `.config/mise/conf.d/dotfiles-tools.toml` | `~/.config/mise/conf.d/dotfiles-tools.toml` | symlink |
 | `.config/starship.toml` | `~/.config/starship.toml` | symlink |
+| `.config/zed/settings.json` | `~/.config/zed/settings.json` | symlink |
+| `.config/zed/keymap.json` | `~/.config/zed/keymap.json` | symlink |
 | `.config/nvim/` selected files | `~/.config/nvim/` | symlink |
 | `fnox.toml` | `~/fnox.toml` | symlink |
 | `.bash_completions.d/` | `~/.bash_completions.d/` | symlink-each |
