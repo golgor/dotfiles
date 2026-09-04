@@ -3,3 +3,9 @@
 
 # fnox machine-local encrypted sync cache; ~/fnox.toml is the tracked manifest.
 /fnox.local.toml
+
+# Python automation: environment and tool caches. uv.lock is tracked.
+/automation/.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/

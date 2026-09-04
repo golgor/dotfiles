@@ -34,6 +34,7 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 - kubectx `0.11.0`
 - kubens `0.11.0`
 - fnox `latest`
+- uv `0.11.14`
 
 ### Bootstrap packages
 
@@ -128,6 +129,17 @@ git diff                      # review, then commit on a branch and open a PR
 ```
 
 Vendored skills are immutable snapshots: the task refuses to overwrite one that has been edited locally. To customise a skill, copy it to a new name outside the manifest and leave the original vendored. To add or drop an upstream skill, edit the manifest's selection lists and rerun the task; dropping one leaves its directory behind for you to delete.
+
+## Python automation
+
+Tasks with real logic are Python, in the `automation/` [uv](https://docs.astral.sh/uv/) project (one package, one subpackage per automation); bash file tasks under `.mise/tasks/` are kept for plain CLI glue. `update-matt-skills` is the first: `mise.toml` runs `skills update` from that project.
+
+```sh
+mise run check                 # ruff, ruff format --check, ty (strict), pytest — all offline
+cd automation && uv run pytest # or any tool directly
+```
+
+Conventions for adding an automation are in `AGENTS.md`.
 
 ## Kubernetes / GKE setup
 

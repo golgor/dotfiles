@@ -10,6 +10,8 @@ kubectx = "0.11.0"
 kubens = "0.11.0"
 # Secret loader. age/rbw are host packages below; fnox itself is a mise tool.
 fnox = "latest"
+# Runs the Python automation under automation/ (interpreter, venv, dev tools).
+uv = "0.11.14"
 
 [bootstrap.packages]
 # Google Cloud CLI and GKE auth plugin are host packages on Omarchy/Arch.
@@ -20,6 +22,16 @@ fnox = "latest"
 # fnox prerequisites.
 "pacman:age" = "latest"
 "pacman:rbw" = "latest"
+
+# Python-backed tasks; see automation/pyproject.toml. Bash-native ones live as files under .mise/tasks/.
+[tasks.update-matt-skills]
+description = "Sync vendored mattpocock/skills from the latest GitHub release"
+run = "uv run --project automation --no-dev skills update"
+
+[tasks.check]
+description = "Lint, format-check, type-check, and test automation/"
+dir = "automation"
+run = ["uv run ruff check", "uv run ruff format --check", "uv run ty check", "uv run pytest"]
 
 [settings]
 dotfiles.root = "~/.dotfiles"
