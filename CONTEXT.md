@@ -128,6 +128,12 @@ this file carries the *why* and the *words*.
   one stdlib-only tool does not have them. Converting later is a directory
   move. Interpreter is uv-managed (`automation/.python-version`) so Arch's
   rolling Python is not a dependency; ty runs with every rule as an error.
+- **Automation runtime is stdlib-only; no pydantic yet.** Stdlib-only is what
+  lets `uv run --no-dev` work on a fresh machine offline (verified with an
+  empty uv cache). The skills manifest is five hand-edited fields, so
+  hand-narrowing `tomllib`'s output costs twenty lines. Add pydantic or
+  msgspec when an automation parses external or deeply nested data, and
+  retire the offline claim in the same change.
 
 If this section outgrows a screenful, move entries to `docs/adr/`.
 

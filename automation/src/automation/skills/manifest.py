@@ -62,10 +62,23 @@ def _table(value: object, where: str) -> dict[str, object]:
     return {_string(k, where): v for k, v in value.items()}
 
 
+_REPO = re.compile(r"^[\w.-]+/[\w.-]+$")  # "owner/name": the only manifest value handed to gh/git
+
+
+def _repo(value: object) -> str:
+    repo = _string(value, "repo")
+    if not _REPO.match(repo):
+        raise AutomationError(f"manifest: repo must look like owner/name, got {repo!r}")
+    return repo
+
+
 def load_manifest(path: Path) -> Manifest:
     if not path.is_file():
         raise AutomationError(f"missing manifest: {path}")
-    data = _table(tomllib.loads(path.read_text()), "manifest")
+    try:
+        data = _table(tomllib.loads(path.read_text()), "manifest")
+    except tomllib.TOMLDecodeError as e:
+        raise AutomationError(f"invalid manifest {path}: {e}") from e
 
     selection: dict[str, Scope] = {}
     for key, names in _table(data.get("scopes"), "scopes").items():
@@ -77,7 +90,7 @@ def load_manifest(path: Path) -> Manifest:
 
     release = _table(data.get("release"), "release")
     return Manifest(
-        repo=_string(data.get("repo"), "repo"),
+        repo=_repo(data.get("repo")),
         release=Release(
             tag=_string(release.get("tag"), "release.tag"),
             commit=_string(release.get("commit"), "release.commit"),

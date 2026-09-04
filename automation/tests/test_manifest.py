@@ -57,3 +57,18 @@ def test_record_release_refuses_ambiguous_file(dotfiles: Dotfiles) -> None:
     dotfiles.manifest.write_text(dotfiles.manifest.read_text() + 'tag = "again"\n')
     with pytest.raises(AutomationError, match="exactly one `tag"):
         record_release(dotfiles.manifest, Release("v2", "abc"))
+
+
+def test_malformed_toml_is_an_automation_error(dotfiles: Dotfiles) -> None:
+    dotfiles.manifest.write_text("repo = \n")
+    with pytest.raises(AutomationError, match="invalid manifest"):
+        load_manifest(dotfiles.manifest)
+
+
+@pytest.mark.parametrize("repo", ["", "just-a-name", "owner/name/extra", "owner/na me", "-o/../x"])
+def test_repo_must_be_owner_slash_name(dotfiles: Dotfiles, repo: str) -> None:
+    dotfiles.manifest.write_text(
+        f'repo = "{repo}"\n[release]\ntag = ""\ncommit = ""\n[scopes]\ncommon = []\n'
+    )
+    with pytest.raises(AutomationError, match="owner/name"):
+        load_manifest(dotfiles.manifest)
