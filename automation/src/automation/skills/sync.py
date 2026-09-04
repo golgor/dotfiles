@@ -70,15 +70,14 @@ def sync_skill(src: Path, dest: Path) -> None:
     shutil.copytree(src, dest, symlinks=True)
 
 
-def orphans(root: Path, manifest: Manifest, upstream_names: set[str]) -> list[Path]:
-    """Vendored directories named like an upstream skill that the manifest does not
-    put there: deselected, or moved to another scope."""
+def orphans(root: Path, manifests: list[Manifest], upstream_names: set[str]) -> list[Path]:
+    """Vendored directories named like an upstream skill that no manifest wants there."""
     found: list[Path] = []
+    all_wanted = {m.dest(root, name) for m in manifests for name in m.selection}
     for scope_dir in SCOPE_DIRS.values():
         for name in upstream_names:
             path = root / scope_dir / name
-            wanted = name in manifest.selection and manifest.dest(root, name) == path
-            if path.is_dir() and not wanted:
+            if path.is_dir() and path not in all_wanted:
                 found.append(scope_dir / name)
     return sorted(found)
 

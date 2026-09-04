@@ -18,7 +18,7 @@ def test_plan_first_import(dotfiles: Dotfiles, upstream: Upstream, tmp_path: Pat
     manifest = load_manifest(dotfiles.manifest)
     clone = clone_of(upstream, tmp_path)
     latest = upstream.resolve_latest(clone)
-    planned = update.plan(dotfiles.root, manifest, clone, latest)
+    planned = update.plan(dotfiles.root, manifest, [manifest], clone, latest)
 
     assert not planned.up_to_date
     assert set(planned.to_sync) == {"alpha", "beta"}
@@ -34,11 +34,15 @@ def test_plan_up_to_date_still_reports_orphans(
     clone = clone_of(upstream, tmp_path)
     manifest = load_manifest(dotfiles.manifest)
     latest = upstream.resolve_latest(clone)
-    update.execute(dotfiles.root, manifest, update.plan(dotfiles.root, manifest, clone, latest))
+    update.execute(
+        dotfiles.root,
+        manifest,
+        update.plan(dotfiles.root, manifest, [manifest], clone, latest),
+    )
     write_skill(dotfiles.root / "skills/common/extra", "extra")  # not selected
     manifest = load_manifest(dotfiles.manifest)  # now carries the recorded release
 
-    planned = update.plan(dotfiles.root, manifest, clone, latest)
+    planned = update.plan(dotfiles.root, manifest, [manifest], clone, latest)
 
     assert planned.up_to_date
     assert planned.to_sync == {}
@@ -50,7 +54,7 @@ def test_execute_writes_and_records(dotfiles: Dotfiles, upstream: Upstream, tmp_
     manifest = load_manifest(dotfiles.manifest)
     clone = clone_of(upstream, tmp_path)
     latest = upstream.resolve_latest(clone)
-    planned = update.plan(dotfiles.root, manifest, clone, latest)
+    planned = update.plan(dotfiles.root, manifest, [manifest], clone, latest)
 
     written = update.execute(dotfiles.root, manifest, planned)
 

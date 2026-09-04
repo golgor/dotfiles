@@ -188,6 +188,31 @@ def test_multi_manifest_updates_all_and_applies_once(
     assert "[second]" in r.out
 
 
+def test_multi_manifest_failure_is_atomic_nothing_written_on_failure(
+    dotfiles: Dotfiles, upstream: Upstream, tmp_path: Path
+) -> None:
+    dotfiles.manifest.unlink()
+    # Manifest 1 is valid (alpha)
+    dotfiles.write_manifest("first", common=["alpha"])
+    # Manifest 2 has a broken skill (bad has no description)
+    up2_path = tmp_path / "up2"
+    up2_path.mkdir()
+    git("init", "-q", cwd=up2_path)
+    bad_dir = up2_path / "bad"
+    bad_dir.mkdir()
+    (bad_dir / "SKILL.md").write_text("---\nname: bad\n---\n")
+    up2 = Upstream(up2_path, branch="main")
+    up2.commit("init", branch="main")
+    dotfiles.write_manifest("second", repo="work/other", branch="main", common=["bad"])
+
+    with pytest.raises(AutomationError, match="integrity checks"):
+        do_update(dotfiles, {"first": upstream, "second": up2})
+
+    # Failure in manifest 2 must have prevented manifest 1 from writing to disk
+    assert not (dotfiles.root / "skills/common/alpha").exists()
+    assert not (dotfiles.root / "skills/common/bad").exists()
+
+
 def test_single_manifest_targeted_update(
     dotfiles: Dotfiles, upstream: Upstream, tmp_path: Path
 ) -> None:

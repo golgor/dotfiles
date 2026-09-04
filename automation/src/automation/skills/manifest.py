@@ -75,7 +75,7 @@ def _table(value: object, where: str) -> dict[str, object]:
 # repo and release.commit are the two manifest values that reach git/gh argv; both are
 # constrained to shapes that cannot be mistaken for options.
 _REPO = re.compile(r"^[\w.-]+/[\w.-]+$")
-_BRANCH = re.compile(r"^[\w.-]+$")
+_BRANCH = re.compile(r"^[\w.-]+(?:/[\w.-]+)*$")
 _COMMIT = re.compile(r"^([0-9a-f]{40})?$")  # empty until the first update records one
 
 
@@ -119,8 +119,8 @@ def load_manifest(path: Path) -> Manifest:
             selection[name] = scope
 
     release = _table(data.get("release"), "release")
-    tag_val = release.get("tag", "")
-    tag = _string(tag_val, "release.tag") if tag_val else ""
+    tag_val = release.get("tag")
+    tag = _string(tag_val, "release.tag") if tag_val is not None else ""
     return Manifest(
         name=path.stem,
         path=path,

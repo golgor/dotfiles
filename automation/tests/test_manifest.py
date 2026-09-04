@@ -117,6 +117,39 @@ def test_repo_must_be_owner_slash_name(dotfiles: Dotfiles, repo: str) -> None:
         load_manifest(dotfiles.manifest)
 
 
+@pytest.mark.parametrize("branch", ["main", "feature/skills", "release/v2.0", "team/user/task"])
+def test_valid_branch_names_with_slashes(dotfiles: Dotfiles, branch: str) -> None:
+    dotfiles.write_manifest("branch_repo", branch=branch, common=["alpha"])
+    manifest = load_manifest(dotfiles.manifest_path("branch_repo"))
+    assert manifest.branch == branch
+
+
+@pytest.mark.parametrize("branch", ["/leading", "trailing/", "double//slash", "has space"])
+def test_invalid_branch_names_rejected(dotfiles: Dotfiles, branch: str) -> None:
+    dotfiles.write_manifest("branch_repo", branch=branch, common=["alpha"])
+    with pytest.raises(AutomationError, match="branch must be a valid ref name"):
+        load_manifest(dotfiles.manifest_path("branch_repo"))
+
+
+def test_empty_branch_name_rejected(dotfiles: Dotfiles) -> None:
+    dotfiles.manifest.parent.mkdir(parents=True, exist_ok=True)
+    dotfiles.manifest.write_text(
+        'repo = "owner/repo"\nbranch = ""\n[release]\ncommit = ""\n[scopes]\ncommon = []\n'
+    )
+    with pytest.raises(AutomationError, match="branch must be a valid ref name"):
+        load_manifest(dotfiles.manifest)
+
+
+@pytest.mark.parametrize("tag_val", ["false", "[]", "123", "{ foo = 'bar' }"])
+def test_non_string_release_tag_rejected(dotfiles: Dotfiles, tag_val: str) -> None:
+    dotfiles.manifest.parent.mkdir(parents=True, exist_ok=True)
+    dotfiles.manifest.write_text(
+        f'repo = "owner/repo"\n[release]\ntag = {tag_val}\ncommit = ""\n[scopes]\ncommon = []\n'
+    )
+    with pytest.raises(AutomationError, match=r"release\.tag must be a string"):
+        load_manifest(dotfiles.manifest)
+
+
 @pytest.mark.parametrize("commit", ["abc", "--detach", "g" * 40, "A" * 40])
 def test_commit_must_be_full_lowercase_sha_or_empty(dotfiles: Dotfiles, commit: str) -> None:
     dotfiles.write_manifest(common=["alpha"], tag="v1", commit=commit)

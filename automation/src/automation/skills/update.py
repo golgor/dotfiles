@@ -18,7 +18,13 @@ class Plan:
     missing_claude_entries: list[str] = field(default_factory=list)
 
 
-def plan(root: Path, manifest: Manifest, clone: Path, latest: Release) -> Plan:
+def plan(
+    root: Path,
+    manifest: Manifest,
+    all_manifests: list[Manifest],
+    clone: Path,
+    latest: Release,
+) -> Plan:
     """Inspect the locked and latest releases; raise AutomationError rather than plan
     anything that would overwrite a local fork or lose a skill.
 
@@ -49,7 +55,7 @@ def plan(root: Path, manifest: Manifest, clone: Path, latest: Release) -> Plan:
         up_to_date=up_to_date,
         to_sync=to_sync,
         unselected=sorted(set(found) - set(manifest.selection)),
-        orphans=sync.orphans(root, manifest, set(found)),
+        orphans=sync.orphans(root, all_manifests, set(found)),
         missing_claude_entries=sync.missing_claude_entries(
             (root / "mise.toml").read_text(), manifest
         ),

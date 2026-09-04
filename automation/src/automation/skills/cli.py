@@ -5,6 +5,7 @@ directories. It never commits or pushes; review the diff and open a PR.
 """
 
 import argparse
+import contextlib
 import io
 import sys
 import tempfile
@@ -67,39 +68,49 @@ def run_update(
     else:
         targets = all_manifests
 
-    any_changed = False
-    for manifest in targets:
-        source = source_for(manifest)
-        label_target = source.label()
-        prefix = f"[{manifest.name}] " if len(targets) > 1 else ""
+    # Phase 1: Plan all targets. If any manifest fails (divergence, integrity, etc.),
+    # we fail immediately before writing any files to disk.
+    plans: list[tuple[Manifest, update.Plan]] = []
+    with contextlib.ExitStack() as stack:
+        for manifest in targets:
+            source = source_for(manifest)
+            label_target = source.label()
+            prefix = f"[{manifest.name}] " if len(targets) > 1 else ""
 
-        print(f"{prefix}Latest target of {manifest.repo}: {label_target}", file=out)
-        if manifest.release.commit:
-            print(
-                f"{prefix}Checking vendored skills against locked {manifest.release.label()}...",
-                file=out,
-            )
-        else:
-            print(
-                f"{prefix}No locked release yet; skipping divergence check for this first import.",
-                file=out,
-            )
+            print(f"{prefix}Latest target of {manifest.repo}: {label_target}", file=out)
+            if manifest.release.commit:
+                lbl = manifest.release.label()
+                print(f"{prefix}Checking vendored skills against locked {lbl}...", file=out)
+            else:
+                msg = (
+                    f"{prefix}No locked release yet; skipping divergence check "
+                    "for this first import."
+                )
+                print(msg, file=out)
 
-        with tempfile.TemporaryDirectory(prefix=f"{manifest.name}-skills.") as tmp:
-            clone = Path(tmp) / "repo"
+            tmp_dir = stack.enter_context(
+                tempfile.TemporaryDirectory(prefix=f"{manifest.name}-skills.")
+            )
+            clone = Path(tmp_dir) / "repo"
             source.clone(clone)
             latest = source.resolve_latest(clone)
-            planned = update.plan(root, manifest, clone, latest)
+            planned = update.plan(root, manifest, all_manifests, clone, latest)
             print_warnings(planned, err, prefix)
+            plans.append((manifest, planned))
 
+        # Phase 2: Execute all validated plans.
+        any_changed = False
+        for manifest, planned in plans:
+            prefix = f"[{manifest.name}] " if len(targets) > 1 else ""
             if planned.up_to_date:
-                print(f"{prefix}Already at {latest.label()}; nothing to do.", file=out)
+                print(f"{prefix}Already at {planned.latest.label()}; nothing to do.", file=out)
                 continue
 
             any_changed = True
-            release_label = latest.label()
+            release_label = planned.latest.label()
             print(
-                f"{prefix}Syncing {len(planned.to_sync)} skills from {release_label}...", file=out
+                f"{prefix}Syncing {len(planned.to_sync)} skills from {release_label}...",
+                file=out,
             )
             for path in update.execute(root, manifest, planned):
                 print(f"  {path}", file=out)
@@ -112,10 +123,10 @@ def run_update(
                 for name in planned.unselected:
                     print(f"  {name}", file=out)
 
-    if any_changed:
-        print("Re-applying dotfile symlinks...", file=out)
-        apply(root)
-        print_git_summary(root, out)
+        if any_changed:
+            print("Re-applying dotfile symlinks...", file=out)
+            apply(root)
+            print_git_summary(root, out)
     return any_changed
 
 
