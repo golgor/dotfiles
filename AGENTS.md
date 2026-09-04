@@ -67,11 +67,19 @@ Tools in this repo's `mise.toml` are active inside `~/.dotfiles`; user-level CLI
 
 Before adding any new config, confirm the app does not rewrite it via temp-file-rename — that replaces the symlink with a real file and silently breaks the link. For such apps use `mode = "copy"` and re-capture edits with `dotfiles add`.
 
+## Agent skills: one tracked copy, mise projects it
+
+`skills/common/` is the single copy of every shared agent skill. mise `symlink-each` projects it into `~/.agents/skills` (Pi and Codex scan it) and `~/.claude/skills` (Claude Code). Harness-only skills live in `skills/<harness>/<name>` with one explicit whole-directory entry in `mise.toml`; `claude-handoff` is the example. Never add a shared mapping to `~/.pi/agent/skills` or `~/.codex/skills`: Pi and Codex already find `~/.agents/skills`, and duplicate discovery paths make the harness warn or pick a different copy.
+
+Most skills are vendored from `mattpocock/skills` and are **immutable snapshots** of the release recorded in `.mise/skills/mattpocock.toml`. To change one, copy it to a new name outside the manifest selection; the updater refuses to overwrite a vendored directory that has drifted. To pick up a new upstream release, run `mise run update-matt-skills` (needs `gh`), review the diff, and open a PR — the task never commits. To add or drop an upstream skill, edit the selection lists in the manifest and rerun the task; the task reports upstream skills that exist but are not selected.
+
+Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli`), `omarchy` and `diagnose-crash` (symlinks into `/usr/share/omarchy`), `~/.codex/skills/.system` (Codex), Claude's `synced/`, and the external research links left in `~/.pi/agent/skills`. Leave them uncaptured; `symlink-each` coexists with them.
+
 ## Mise docs vs installed mise
 
 Refresh and test local behavior before changing bootstrap/package semantics. Mise docs may track unreleased `main` features; if the desired config depends on an unreleased mise PR, keep the declarative target only when the user explicitly accepts that delay and document the release dependency in the PR/HANDOFF.
 
 ## Suggested skills
 
-- `writing-for-agents` — editing this file or `README.md`.
+- `writing-for-agents` — editing this file or `README.md`, never the vendored skills under `skills/common/`.
 - `research` — verifying mise behaviour against the docs before changing the model.
