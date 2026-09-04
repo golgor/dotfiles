@@ -94,7 +94,7 @@ rbw login
 mise run setup-fnox
 ```
 
-The setup task creates machine-local files:
+The setup task sets a global mise version for `fnox` if needed, so the `fnox` shim works from new terminals outside this repo. It also creates machine-local files:
 
 - `~/.config/fnox/age.txt` — private age key
 - `~/.config/fnox/config.toml` — local `sync-age` provider
