@@ -1,6 +1,10 @@
 # Dotfiles managed by mise. See AGENTS.md for the working model, README.md for humans.
 # Docs: https://mise.jdx.dev/dotfiles.html
 
+[tools]
+# Atuin is not installed by default on Omarchy; install the history CLI alongside its config.
+atuin = "18.19.0"
+
 [settings]
 dotfiles.root = "~/.dotfiles"
 dotfiles.default_mode = "symlink"
