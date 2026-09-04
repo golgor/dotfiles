@@ -49,7 +49,7 @@ this file carries the *why* and the *words*.
 - **manual task** — a mise task that is deliberately *not* part of
   `mise bootstrap` because it needs interactive auth, network access to a
   third party, or mutates machine-local state: `setup-fnox`,
-  `setup-kube-contexts`, `update-matt-skills`.
+  `setup-kube-contexts`, `update-skills`.
 - **automation** — a Python-implemented task: a subpackage of the `automation/`
   uv project with a `cli.py`, exposed as a console script and called from a
   `[tasks]` entry in `mise.toml`. Contrast: bash file tasks under
@@ -69,12 +69,12 @@ this file carries the *why* and the *words*.
   (Pi and Codex), `~/.claude/skills` (Claude Code), `~/.pi/agent/skills` (Pi
   only). mise projects the repo's scope directories into the first two; the
   third stays unmanaged for Pi-local and external links.
-- **vendored skill** — a skill copied verbatim from `mattpocock/skills` at the
-  release recorded in `.mise/skills/mattpocock.toml`. An immutable snapshot:
+- **vendored skill** — a skill copied verbatim from an upstream repository at the
+  release tag or commit recorded in `.mise/skills/*.toml`. An immutable snapshot:
   a local edit is a *fork*, which gets a new name outside the manifest.
-- **skills manifest** — `.mise/skills/mattpocock.toml`: the upstream repo, the
-  selected skill names per scope, and the locked release tag/commit.
-  `update-matt-skills` reads the selection and rewrites only the release lines.
+- **skills manifest** — a file in `.mise/skills/*.toml`: the upstream repo,
+  optional branch, selected skill names per scope, and the locked release tag/commit.
+  `update-skills` reads the selection and rewrites only the release lines.
 - **`fs`** — an alias provided by the tracked `.bashrc`:
   `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force`.
   `setup-fnox` creates the machine-local age key and sync-age provider; it does
@@ -113,9 +113,8 @@ this file carries the *why* and the *words*.
 - **Skills are vendored into the repo and projected by mise, not installed
   by `npx skills`.** The upstream CLI owns its own install locations and lock
   state, which conflicts with mise being the sole deployment mechanism and
-  with reviewing skill changes as ordinary PRs. Updates follow GitHub
-  *releases*, not `main`, and run only on explicit `mise run
-  update-matt-skills`.
+  with reviewing skill changes as ordinary PRs. Updates follow upstream
+  releases or branch commits, and run only on explicit `mise run update-skills`.
 - **No shared skill mapping to `~/.pi/agent/skills` or `~/.codex/skills`.**
   Both harnesses already scan `~/.agents/skills`; a second path would only
   create duplicate-name warnings. `~/.codex/skills/.system` is harness-owned.

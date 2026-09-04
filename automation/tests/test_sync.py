@@ -83,7 +83,7 @@ def test_orphans_and_all_present(dotfiles: Dotfiles) -> None:
     write_skill(dotfiles.root / "skills/common/mine", "mine")  # not upstream at all
 
     assert sync.all_present(dotfiles.root, manifest)
-    assert sync.orphans(dotfiles.root, manifest, {"alpha", "beta", "extra"}) == [
+    assert sync.orphans(dotfiles.root, [manifest], {"alpha", "beta", "extra"}) == [
         Path("skills/common/extra")
     ]
 
@@ -94,7 +94,23 @@ def test_orphans_flags_stale_copy_after_scope_move(dotfiles: Dotfiles) -> None:
     write_skill(dotfiles.root / "skills/common/beta", "beta")  # old location
     write_skill(dotfiles.root / "skills/claude/beta", "beta")  # new location
 
-    assert sync.orphans(dotfiles.root, manifest, {"alpha", "beta"}) == [Path("skills/common/beta")]
+    assert sync.orphans(dotfiles.root, [manifest], {"alpha", "beta"}) == [
+        Path("skills/common/beta")
+    ]
+
+
+def test_orphans_ignores_skill_owned_by_another_manifest(dotfiles: Dotfiles) -> None:
+    dotfiles.manifest.unlink()
+    m1 = load_manifest(dotfiles.write_manifest("first", common=["shared_name"]))
+    m2 = load_manifest(dotfiles.write_manifest("second", common=["other"]))
+    write_skill(dotfiles.root / "skills/common/shared_name", "shared_name")
+    write_skill(dotfiles.root / "skills/common/other", "other")
+    write_skill(dotfiles.root / "skills/common/stale_orphan", "stale_orphan")
+
+    # Upstream repo 2 contains shared_name and stale_orphan
+    assert sync.orphans(dotfiles.root, [m1, m2], {"shared_name", "other", "stale_orphan"}) == [
+        Path("skills/common/stale_orphan")
+    ]
 
 
 def test_missing_claude_entries(dotfiles: Dotfiles) -> None:

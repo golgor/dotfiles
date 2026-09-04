@@ -6,22 +6,23 @@ Python-implemented mise tasks for this repo: one uv project, one package (`autom
 
 | subpackage | console script | mise task | does |
 | --- | --- | --- | --- |
-| `skills` | `skills update` | `update-matt-skills` | vendors selected skills from the latest `mattpocock/skills` GitHub release into `../skills/{common,claude}/`, records tag + commit in `../.mise/skills/mattpocock.toml`, re-applies dotfile symlinks |
+| `skills` | `skills update [manifest]` | `update-skills` (or `update-matt-skills`) | vendors selected skills from upstream manifests in `../.mise/skills/*.toml` into `../skills/{common,claude}/`, records tag/commit, re-applies dotfile symlinks |
 
 ### `skills` module map
 
 | module | role | prints? |
 | --- | --- | --- |
-| `manifest.py` | parse the tracked manifest into `Manifest`/`Release` (shape-validated; `repo` must be `owner/name`, `commit` a 40-hex SHA or empty); `record_release` rewrites only the two release lines so comments survive | no |
-| `upstream.py` | `ReleaseSource` protocol (`GitHubReleases` adapter); `discover_skills` (recursive by `SKILL.md`), `resolve_selected`, frontmatter integrity checks | no |
-| `sync.py` | dirty-tree check, `trees_differ`, divergence check against the locked release, verbatim copy, orphan detection, missing Claude `mise.toml` entries | no |
+| `manifest.py` | discover and parse manifests in `.mise/skills/*.toml` into `Manifest`/`Release` (shape-validated; `repo` must be `owner/name`, `branch` a valid ref, `commit` a 40-hex SHA or empty); collision check across manifests; `record_release` rewrites only release lines so comments survive | no |
+| `upstream.py` | `ReleaseSource` protocol (`GitHubUpstream` adapter supports both release tags and branch tracking); `discover_skills` (recursive by `SKILL.md`), `resolve_selected`, frontmatter integrity checks | no |
+| `sync.py` | dirty-tree check, `trees_differ`, divergence check against locked release, verbatim copy, orphan detection, missing Claude `mise.toml` entries | no |
 | `update.py` | `plan()` decides and returns a `Plan`; `execute()` writes it | no |
-| `cli.py` | argparse, sequencing, and every `print` | yes |
+| `cli.py` | argparse (`skills update [name]`), multi-manifest sequencing, and every `print` | yes |
 
 Shared: `process.py` (`run`, `stream`, `git_root`) is the **only** module that calls `subprocess`; `AutomationError` in `__init__.py` is the one exception CLIs catch and print.
 
 ## Conventions
 
+- **Implementation must follow TDD, preferably using the `/tdd` skill.** Write failing unit or integration tests first before writing production code. Keep tests completely offline by using local git fixtures (`tests/helpers.py::Upstream` / `Dotfiles`) rather than network calls. Follow red → green → refactor, and run `mise run check` to verify formatting, strict typing (`ty`), and test suite health.
 - **Library code returns findings or raises `AutomationError`; only `cli.py` prints.** Tests then assert on values, not captured stdout.
 - **A seam exists where two adapters exist.** `ReleaseSource` has GitHub in production and `tests/helpers.py::Upstream` (a local tagged git repo) in tests. Filesystem and git are exercised for real via `tmp_path`; `mise apply` is injected as a callable and not run in tests.
 - **Subprocess safety lives in `process.py`.** Argv sequences, never `shell=True`. Program names and flags are literals at every call site; the data-derived values (`repo`, `commit`, release tag) are validated in `manifest.py` or passed in option-proof form (`refs/tags/<tag>`, after `--`). The `# nosemgrep` markers record that the audit rule was checked — keep them accurate if you add a subprocess call, and add it in `process.py`.
@@ -31,7 +32,7 @@ Shared: `process.py` (`run`, `stream`, `git_root`) is the **only** module that c
 
 ## Adding an automation
 
-1. Write the failing test first (`/tdd`): fixtures in `tests/conftest.py`, helpers in `tests/helpers.py`.
+1. Write the failing test first (follow TDD, preferably using the `/tdd` skill): fixtures in `tests/conftest.py`, helpers in `tests/helpers.py`.
 2. Create `src/automation/<name>/` with `cli.py` exposing `main(argv) -> int` that catches `AutomationError`.
 3. Add `<name> = "automation.<name>.cli:main"` under `[project.scripts]` in `pyproject.toml`.
 4. Add `[tasks.<name>]` in `../mise.toml` running `uv run --project automation --no-dev <name> …`, and describe it in the table above.
@@ -39,4 +40,4 @@ Shared: `process.py` (`run`, `stream`, `git_root`) is the **only** module that c
 
 ## Verifying `skills update` for real
 
-`mise run update-matt-skills` from the repo root must print `Already at <tag> (<sha>); nothing to do.` when the manifest is current. To exercise the refusal path, append a line to a vendored `SKILL.md`, commit it, run the task (expect `differs from locked release`), then `git reset --hard HEAD~1`. Commit only that scratch change — `git commit -a` will sweep in unrelated work.
+`mise run update-skills` from the repo root must print `Already at <tag/sha>; nothing to do.` when all manifests are current. To exercise the refusal path, append a line to a vendored `SKILL.md`, commit it, run the task (expect `differs from locked`), then `git reset --hard HEAD~1`. Commit only that scratch change — `git commit -a` will sweep in unrelated work.

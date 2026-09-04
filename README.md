@@ -121,18 +121,19 @@ fs
 
 `skills/common/` is the one copy of the skills shared by Pi, Codex, and Claude Code; mise links each file into `~/.agents/skills` (Pi, Codex) and `~/.claude/skills` (Claude Code). Claude-only skills sit in `skills/claude/` with their own `mise.toml` entry. Neighbours the harnesses or other installers own (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system`) stay untouched.
 
-Most skills are vendored from [mattpocock/skills](https://github.com/mattpocock/skills). `.mise/skills/mattpocock.toml` lists which ones, in which scope, and the release they were taken from. When a new release lands:
+Vendored skills are listed in manifests under `.mise/skills/*.toml` (such as `mattpocock.toml`). When upstream updates land:
 
 ```sh
-mise run update-matt-skills   # needs gh; never commits
+mise run update-skills        # updates all manifests in .mise/skills/*.toml; never commits
+mise run update-matt-skills   # updates only mattpocock.toml
 git diff                      # review, then commit on a branch and open a PR
 ```
 
-Vendored skills are immutable snapshots: the task refuses to overwrite one that has been edited locally. To customise a skill, copy it to a new name outside the manifest and leave the original vendored. To add or drop an upstream skill, edit the manifest's selection lists and rerun the task; dropping one leaves its directory behind for you to delete.
+Vendored skills are immutable snapshots: the task refuses to overwrite one that has been edited locally. To customise a skill, copy it to a new name outside all manifests and leave the original vendored. To add or drop an upstream skill, edit the manifest's selection lists and rerun the task; dropping one leaves its directory behind for you to delete. To add a new upstream source, create `.mise/skills/<source>.toml` and run `mise run update-skills`.
 
 ## Python automation
 
-Tasks with real logic are Python, in the `automation/` [uv](https://docs.astral.sh/uv/) project (one package, one subpackage per automation); bash file tasks under `.mise/tasks/` are kept for plain CLI glue. `update-matt-skills` is the first: `mise.toml` runs `skills update` from that project.
+Tasks with real logic are Python, in the `automation/` [uv](https://docs.astral.sh/uv/) project (one package, one subpackage per automation); bash file tasks under `.mise/tasks/` are kept for plain CLI glue. `update-skills` is the first: `mise.toml` runs `skills update` from that project.
 
 ```sh
 mise run check                 # ruff, ruff format --check, ty (strict), pytest — all offline

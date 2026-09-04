@@ -69,7 +69,7 @@ Before adding any new config, confirm the app does not rewrite it via temp-file-
 
 ## Agent skills: one tracked copy, mise projects it
 
-`skills/common/` is the single copy of every shared agent skill; mise `symlink-each` projects it into `~/.agents/skills` (Pi, Codex) and `~/.claude/skills` (Claude Code). Skills listed in `.mise/skills/mattpocock.toml` are **immutable vendored snapshots** — editing one in place blocks every future `mise run update-matt-skills`. Read `skills/AGENTS.md` before changing anything under `skills/`.
+`skills/common/` is the single copy of every shared agent skill; mise `symlink-each` projects it into `~/.agents/skills` (Pi, Codex) and `~/.claude/skills` (Claude Code). Skills listed in `.mise/skills/*.toml` are **immutable vendored snapshots** — editing one in place blocks future `mise run update-skills`. Read `skills/AGENTS.md` before changing anything under `skills/`.
 
 Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli`), `omarchy` and `diagnose-crash` (symlinks into `/usr/share/omarchy`), `~/.codex/skills/.system` (Codex), Claude's `synced/`, and the external research links left in `~/.pi/agent/skills`. Leave them uncaptured; `symlink-each` coexists with them.
 
