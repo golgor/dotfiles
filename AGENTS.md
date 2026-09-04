@@ -63,6 +63,8 @@ Tools in this repo's `mise.toml` are active inside `~/.dotfiles`; user-level CLI
 
 `~/.config/hypr` is tracked as a whole directory. After Hyprland config changes, validate with `hyprctl reload` and `hyprctl configerrors`.
 
+`~/.bashrc` is tracked and public. Keep its guard convention: every `eval "$(tool ...)"` is wrapped in `command -v tool`, so a fresh machine mid-bootstrap still gets a working shell. Curl-pipe installers that append to `.bashrc` write through the symlink and show up as a repo diff — review and fold or drop the addition. The fnox block is tracked content; `setup-fnox` creates only machine-local files and never edits shell config.
+
 Before adding any new config, confirm the app does not rewrite it via temp-file-rename — that replaces the symlink with a real file and silently breaks the link. For such apps use `mode = "copy"` and re-capture edits with `dotfiles add`.
 
 ## Mise docs vs installed mise

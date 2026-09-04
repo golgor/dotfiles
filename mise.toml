@@ -27,7 +27,9 @@ dotfiles.default_mode = "symlink"
 
 [dotfiles]
 # Whole-file symlinks. Source is inferred as ~/.dotfiles/<home-relative-path>.
+"~/.bashrc" = { mode = "symlink" }
 "~/.config/git/config" = { mode = "symlink" }
+"~/.config/starship.toml" = { mode = "symlink" }
 "~/.config/atuin/config.toml" = { mode = "symlink" }
 "~/.config/herdr/config.toml" = { mode = "symlink" }
 "~/.config/hypr" = { mode = "symlink" }

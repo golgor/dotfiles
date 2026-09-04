@@ -49,9 +49,10 @@ this file carries the *why* and the *words*.
 - **manual task** — a task under `.mise/tasks/` that is deliberately *not* part
   of `mise bootstrap` because it needs interactive auth or mutates
   machine-local state: `setup-fnox`, `setup-kube-contexts`.
-- **`fs`** — the bashrc alias installed by `setup-fnox`:
+- **`fs`** — an alias provided by the tracked `.bashrc`:
   `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force`.
-  Run it after any manifest change.
+  `setup-fnox` creates the machine-local age key and sync-age provider; it does
+  not edit shell config. Run `fs` after any manifest change.
 
 ## Decisions
 
