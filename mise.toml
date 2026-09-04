@@ -55,3 +55,10 @@ dotfiles.default_mode = "symlink"
 "~/.config/zed/keymap.json" = { mode = "symlink" }
 "~/.config/zed/settings.json" = { mode = "symlink" }
 "~/fnox.toml" = { mode = "symlink" }
+
+# Agent skills. skills/common is the one tracked copy; Pi and Codex scan ~/.agents/skills,
+# Claude Code scans ~/.claude/skills. symlink-each leaves harness-owned neighbours
+# (hey, omarchy, Claude's synced/) alone. Harness-only skills get one explicit entry each.
+"~/.agents/skills" = { source = "skills/common", mode = "symlink-each" }
+"~/.claude/skills" = { source = "skills/common", mode = "symlink-each" }
+"~/.claude/skills/claude-handoff" = { source = "skills/claude/claude-handoff", mode = "symlink" }

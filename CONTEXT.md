@@ -47,8 +47,26 @@ this file carries the *why* and the *words*.
   the current directory fails with "No version is set for shim" — the symptom
   of a tool declared locally but not globally.
 - **manual task** — a task under `.mise/tasks/` that is deliberately *not* part
-  of `mise bootstrap` because it needs interactive auth or mutates
-  machine-local state: `setup-fnox`, `setup-kube-contexts`.
+  of `mise bootstrap` because it needs interactive auth, network access to a
+  third party, or mutates machine-local state: `setup-fnox`,
+  `setup-kube-contexts`, `update-matt-skills`.
+- **skill** — a directory containing `SKILL.md` with `name`/`description`
+  frontmatter, the cross-harness Agent Skills format. Pi, Claude Code, and
+  Codex all discover them from per-harness directories.
+- **skill scope** — which harnesses see a skill, encoded as the source
+  directory: `skills/common/` reaches every harness; `skills/claude/` reaches
+  Claude Code only. Scope is declared by placement, never inferred from which
+  links happen to exist on a machine.
+- **discovery directory** — where a harness looks for skills: `~/.agents/skills`
+  (Pi and Codex), `~/.claude/skills` (Claude Code), `~/.pi/agent/skills` (Pi
+  only). mise projects the repo's scope directories into the first two; the
+  third stays unmanaged for Pi-local and external links.
+- **vendored skill** — a skill copied verbatim from `mattpocock/skills` at the
+  release recorded in `.mise/skills/mattpocock.toml`. An immutable snapshot:
+  a local edit is a *fork*, which gets a new name outside the manifest.
+- **skills manifest** — `.mise/skills/mattpocock.toml`: the upstream repo, the
+  selected skill names per scope, and the locked release tag/commit.
+  `update-matt-skills` reads the selection and rewrites only the release lines.
 - **`fs`** — an alias provided by the tracked `.bashrc`:
   `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force`.
   `setup-fnox` creates the machine-local age key and sync-age provider; it does
@@ -74,8 +92,9 @@ this file carries the *why* and the *words*.
   switching.
 - **Manual tasks stay out of bootstrap.** `setup-fnox` and
   `setup-kube-contexts` need Bitwarden/gcloud interaction and create
-  machine-local secret material, so they must be run knowingly, not as a
-  bootstrap side effect.
+  machine-local secret material; `update-matt-skills` needs GitHub and
+  rewrites tracked files. They must be run knowingly, not as a bootstrap
+  side effect.
 - **fnox manifest is tracked, everything else fnox is local.** The manifest
   contains only references; the age key, provider config, and encrypted cache
   are per-machine.
@@ -83,6 +102,17 @@ this file carries the *why* and the *words*.
   GitHub Copilot CLI agent duplicated shell access without adding a needed
   capability, while the MCP extension required a plaintext PAT in settings.
   Keep them absent unless a concrete use-case emerges.
+- **Skills are vendored into the repo and projected by mise, not installed
+  by `npx skills`.** The upstream CLI owns its own install locations and lock
+  state, which conflicts with mise being the sole deployment mechanism and
+  with reviewing skill changes as ordinary PRs. Updates follow GitHub
+  *releases*, not `main`, and run only on explicit `mise run
+  update-matt-skills`.
+- **No shared skill mapping to `~/.pi/agent/skills` or `~/.codex/skills`.**
+  Both harnesses already scan `~/.agents/skills`; a second path would only
+  create duplicate-name warnings. `~/.codex/skills/.system` is harness-owned.
+- **`setup-matt-pocock-skills` is not selected.** It exists to run the
+  upstream installer, which this repo replaces.
 
 If this section outgrows a screenful, move entries to `docs/adr/`.
 
@@ -94,6 +124,9 @@ If this section outgrows a screenful, move entries to `docs/adr/`.
 - Auth/credential state: kube tokens, gcloud auth, Bitwarden session, age key.
 - Runtime state of any application.
 - `.local/bin` scripts.
+- Skills owned elsewhere: HEY's `hey`, Omarchy's `omarchy`/`diagnose-crash`,
+  Codex's `.system`, Claude's `synced/`, and the research links in
+  `~/.pi/agent/skills`.
 
 ## Typical sessions
 

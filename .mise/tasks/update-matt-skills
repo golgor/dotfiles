@@ -1,0 +1,338 @@
+#!/usr/bin/env python3
+"""Refresh the vendored mattpocock/skills snapshot from the latest GitHub release.
+
+Manual task: it needs network access (gh + git) and rewrites tracked skill
+directories. It never commits or pushes; review the diff and open a PR.
+Stdlib only, so it runs on a fresh machine with host Python.
+"""
+
+import filecmp
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import tomllib
+from pathlib import Path
+
+USAGE = """\
+Usage: mise run update-matt-skills
+
+Sync the skills selected in .mise/skills/mattpocock.toml from the latest
+GitHub release of mattpocock/skills into skills/common/ and skills/claude/,
+then re-apply the dotfile symlinks so new or deleted files are live.
+
+What this does:
+  - refuses to run with uncommitted changes under the managed skill paths
+  - refuses to overwrite a vendored skill that no longer matches the release
+    recorded in the manifest (fork it under a new name instead)
+  - copies each selected skill directory verbatim, deleting removed files
+  - records the release tag and commit in the manifest
+  - runs: mise bootstrap dotfiles apply -y
+  - reports upstream skills that exist but are not selected
+
+Never commits or pushes.
+
+Options:
+  -h, --help  Show this help
+"""
+
+MANIFEST = Path(".mise/skills/mattpocock.toml")
+SCOPE_DIRS = {"common": Path("skills/common"), "claude": Path("skills/claude")}
+MANAGED_PATHS = [str(p) for p in SCOPE_DIRS.values()]
+
+
+def fail(message):
+    print(f"update-matt-skills: {message}", file=sys.stderr)
+    sys.exit(1)
+
+
+def run(*args, cwd=None):
+    try:
+        result = subprocess.run(args, cwd=cwd, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as e:
+        fail(f"`{' '.join(args)}` failed:\n{e.stderr.strip()}")
+    return result.stdout.strip()
+
+
+def dest_for(root, selection, name):
+    return root / SCOPE_DIRS[selection[name]] / name
+
+
+# --- manifest -----------------------------------------------------------------
+
+
+def load_manifest(root):
+    path = root / MANIFEST
+    if not path.is_file():
+        fail(f"missing manifest: {MANIFEST}")
+    data = tomllib.loads(path.read_text())
+
+    selection = {}
+    for scope, names in data["scopes"].items():
+        if scope not in SCOPE_DIRS:
+            fail(f"unknown scope in manifest: {scope}")
+        for name in names:
+            if name in selection:
+                fail(f"skill selected in two scopes: {name}")
+            selection[name] = scope
+
+    return data["repo"], data["release"], selection
+
+
+def record_release(root, tag, commit):
+    path = root / MANIFEST
+    text = path.read_text()
+    for key, value in (("tag", tag), ("commit", commit)):
+        text, count = re.subn(rf'^{key} = ".*"$', f'{key} = "{value}"', text, flags=re.M)
+        if count != 1:
+            fail(f"expected exactly one `{key} = ...` line in {MANIFEST}, found {count}")
+    path.write_text(text)
+
+
+# --- upstream -----------------------------------------------------------------
+
+
+def discover_skills(checkout):
+    """Map skill name -> list of directories containing SKILL.md (recursive)."""
+    found = {}
+    for skill_md in checkout.rglob("SKILL.md"):
+        if ".git" in skill_md.parts:
+            continue
+        found.setdefault(skill_md.parent.name, []).append(skill_md.parent)
+    return found
+
+
+def resolve_selected(upstream, selection):
+    """Return name -> upstream directory, or fail listing missing/ambiguous names."""
+    missing = sorted(n for n in selection if n not in upstream)
+    ambiguous = sorted(n for n in selection if len(upstream.get(n, [])) > 1)
+    if missing or ambiguous:
+        for n in missing:
+            print(f"  missing upstream: {n}", file=sys.stderr)
+        for n in ambiguous:
+            dirs = ", ".join(str(d) for d in upstream[n])
+            print(f"  ambiguous upstream: {n} ({dirs})", file=sys.stderr)
+        fail("selected skills could not be resolved in the release; nothing was changed")
+    return {n: upstream[n][0] for n in selection}
+
+
+FRONTMATTER_KEY = re.compile(r"^(name|description):\s*(.*?)\s*$")
+BLOCK_SCALARS = {">", "|", ">-", "|-", ">+", "|+"}
+
+
+def frontmatter_fields(skill_md):
+    lines = skill_md.read_text().splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}
+    fields = {}
+    for i, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            break
+        match = FRONTMATTER_KEY.match(line)
+        if not match:
+            continue
+        key, value = match.groups()
+        if value in BLOCK_SCALARS:
+            rest = [l.strip() for l in lines[i + 1 :] if l.startswith((" ", "\t"))]
+            value = rest[0] if rest else ""
+        fields[key] = value.strip("\"'")
+    return fields
+
+
+def validate_skill(name, directory):
+    """Lightweight integrity check: one SKILL.md, name/description, name == dir."""
+    problems = []
+    if len(list(directory.rglob("SKILL.md"))) != 1:
+        problems.append("expected exactly one SKILL.md")
+    fields = frontmatter_fields(directory / "SKILL.md")
+    if not fields.get("name"):
+        problems.append("frontmatter has no name")
+    elif fields["name"] != name:
+        problems.append(f"frontmatter name {fields['name']!r} != directory {name!r}")
+    if not fields.get("description"):
+        problems.append("frontmatter has no description")
+    return problems
+
+
+# --- local state --------------------------------------------------------------
+
+
+def require_clean(root):
+    """Managed skill directories must be committed. The manifest may be dirty:
+    editing its selection and then running this task is the normal workflow."""
+    dirty = run("git", "status", "--porcelain", "--", *MANAGED_PATHS, cwd=root)
+    if dirty:
+        print(dirty, file=sys.stderr)
+        fail("uncommitted changes under managed skill paths; commit or stash them first")
+
+
+def trees_differ(a, b):
+    cmp = filecmp.dircmp(a, b, ignore=[])
+    if cmp.left_only or cmp.right_only or cmp.funny_files:
+        return True
+    _, mismatch, errors = filecmp.cmpfiles(a, b, cmp.common_files, shallow=False)
+    if mismatch or errors:
+        return True
+    return any(trees_differ(a / d, b / d) for d in cmp.common_dirs)
+
+
+def check_local_matches_locked(root, checkout, locked_commit, selection):
+    """Every existing vendored skill must equal the locked release's copy."""
+    run("git", "checkout", "-q", locked_commit, cwd=checkout)
+    upstream = discover_skills(checkout)
+    divergent, unmanaged = [], []
+    for name in selection:
+        dest = dest_for(root, selection, name)
+        if not dest.exists():
+            continue
+        if name not in upstream:
+            unmanaged.append(name)
+        elif trees_differ(dest, upstream[name][0]):
+            divergent.append(name)
+
+    if divergent or unmanaged:
+        for n in divergent:
+            print(f"  differs from locked release: {SCOPE_DIRS[selection[n]] / n}", file=sys.stderr)
+        for n in unmanaged:
+            print(f"  exists locally but not in locked release: {SCOPE_DIRS[selection[n]] / n}", file=sys.stderr)
+        fail(
+            "refusing to overwrite. Vendored skills are immutable snapshots: "
+            "restore with `git checkout -- <path>`, or move your fork to a new "
+            "name outside the manifest selection"
+        )
+
+
+# --- sync ---------------------------------------------------------------------
+
+
+def sync_skill(src, dest):
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(src, dest, symlinks=True)
+
+
+def report_unselected(upstream, selection):
+    unselected = sorted(n for n in upstream if n not in selection)
+    if unselected:
+        print(f"Available upstream but not selected ({len(unselected)}):")
+        for n in unselected:
+            print(f"  {n}")
+
+
+def warn_orphans(root, upstream, selection):
+    """A vendored directory whose name is upstream but no longer selected."""
+    for scope_dir in SCOPE_DIRS.values():
+        for n in sorted(upstream):
+            if n not in selection and (root / scope_dir / n).is_dir():
+                print(
+                    f"warning: {scope_dir / n} matches an upstream skill but is not selected; "
+                    "delete it or add it back to the manifest",
+                    file=sys.stderr,
+                )
+
+
+def apply_dotfiles(root):
+    # mise 2026.9.1 can fail with ENOENT while pruning parents of stale links
+    # when a removed skill had files at two depths (SKILL.md + agents/openai.yaml).
+    # The links are already gone by then; a second apply converges cleanly.
+    cmd = ["mise", "bootstrap", "dotfiles", "apply", "-y"]
+    if subprocess.run(cmd, cwd=root).returncode != 0:
+        print("apply failed once; retrying", file=sys.stderr)
+        subprocess.run(cmd, cwd=root, check=True)
+
+
+def warn_missing_claude_entries(root, selection):
+    mise_toml = (root / "mise.toml").read_text()
+    for name, scope in selection.items():
+        if scope == "claude" and f"skills/claude/{name}" not in mise_toml:
+            print(
+                f"warning: {name} is Claude-only but mise.toml has no entry for "
+                f"skills/claude/{name}; it will not be deployed until one is added",
+                file=sys.stderr,
+            )
+
+
+def main():
+    if len(sys.argv) > 1:
+        if sys.argv[1] in ("-h", "--help"):
+            print(USAGE, end="")
+            return
+        print(f"Unknown option: {sys.argv[1]}", file=sys.stderr)
+        print(USAGE, file=sys.stderr, end="")
+        sys.exit(2)
+
+    sys.stdout.reconfigure(line_buffering=True)  # keep our lines ordered with mise's output
+
+    for tool in ("git", "gh", "mise"):
+        if shutil.which(tool) is None:
+            fail(f"missing required command: {tool}")
+
+    try:
+        root = Path(run("git", "rev-parse", "--show-toplevel"))
+    except subprocess.CalledProcessError:
+        fail("run inside the dotfiles repository")
+    if not (root / "mise.toml").is_file():
+        fail(f"{root} does not look like the dotfiles repository (no mise.toml)")
+
+    repo, locked, selection = load_manifest(root)
+    require_clean(root)
+
+    latest_tag = run("gh", "api", f"repos/{repo}/releases/latest", "--jq", ".tag_name")
+    print(f"Latest release of {repo}: {latest_tag}")
+
+    with tempfile.TemporaryDirectory(prefix="matt-skills.") as tmp:
+        checkout = Path(tmp) / "repo"
+        run("git", "clone", "-q", "--no-checkout", f"https://github.com/{repo}.git", str(checkout))
+        latest_commit = run("git", "rev-parse", f"{latest_tag}^{{commit}}", cwd=checkout)
+
+        if locked["commit"]:
+            print(f"Checking vendored skills against locked release {locked['tag']}...")
+            check_local_matches_locked(root, checkout, locked["commit"], selection)
+        else:
+            print("No locked release yet; skipping divergence check for this first import.")
+
+        run("git", "checkout", "-q", latest_commit, cwd=checkout)
+        upstream = discover_skills(checkout)
+        warn_orphans(root, upstream, selection)
+
+        all_present = all(dest_for(root, selection, n).exists() for n in selection)
+        if locked["commit"] == latest_commit and all_present:
+            print(f"Already at {latest_tag} ({latest_commit[:12]}); nothing to do.")
+            return
+
+        selected = resolve_selected(upstream, selection)
+
+        problems = {n: validate_skill(n, d) for n, d in selected.items()}
+        problems = {n: p for n, p in problems.items() if p}
+        if problems:
+            for n, p in sorted(problems.items()):
+                print(f"  {n}: {'; '.join(p)}", file=sys.stderr)
+            fail("release skills failed integrity checks; nothing was changed")
+
+        print(f"Syncing {len(selected)} skills from {latest_tag} ({latest_commit[:12]})...")
+        for name, src in sorted(selected.items()):
+            dest = dest_for(root, selection, name)
+            sync_skill(src, dest)
+            print(f"  {dest.relative_to(root)}")
+
+        report_unselected(upstream, selection)
+
+    record_release(root, latest_tag, latest_commit)
+    warn_missing_claude_entries(root, selection)
+
+    print("Re-applying dotfile symlinks...")
+    apply_dotfiles(root)
+
+    changed = [str(MANIFEST), *MANAGED_PATHS]
+    print()
+    print(run("git", "status", "--short", "--", *changed, cwd=root))
+    print()
+    print(run("git", "diff", "--stat", "--", *changed, cwd=root))
+    print()
+    print("Review the changes, then commit them on a branch and open a PR.")
+
+
+if __name__ == "__main__":
+    main()

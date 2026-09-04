@@ -67,11 +67,19 @@ Tools in this repo's `mise.toml` are active inside `~/.dotfiles`; user-level CLI
 
 Before adding any new config, confirm the app does not rewrite it via temp-file-rename — that replaces the symlink with a real file and silently breaks the link. For such apps use `mode = "copy"` and re-capture edits with `dotfiles add`.
 
+## Agent skills: one tracked copy, mise projects it
+
+`skills/common/` is the single copy of every shared agent skill. mise `symlink-each` projects it into `~/.agents/skills` (Pi and Codex scan it) and `~/.claude/skills` (Claude Code). Harness-only skills live in `skills/<harness>/<name>` with one explicit whole-directory entry in `mise.toml`; `claude-handoff` is the example. Never add a shared mapping to `~/.pi/agent/skills` or `~/.codex/skills`: Pi and Codex already find `~/.agents/skills`, and duplicate discovery paths make the harness warn or pick a different copy.
+
+Most skills are vendored from `mattpocock/skills` and are **immutable snapshots** of the release recorded in `.mise/skills/mattpocock.toml`. Edit a skill by copying it to a new name outside the manifest selection; the original stays vendored. Selection changes and release bumps go through `mise run update-matt-skills` (see its `--help` and the manifest header), then a normal PR.
+
+Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli`), `omarchy` and `diagnose-crash` (symlinks into `/usr/share/omarchy`), `~/.codex/skills/.system` (Codex), Claude's `synced/`, and the external research links left in `~/.pi/agent/skills`. Leave them uncaptured; `symlink-each` coexists with them.
+
 ## Mise docs vs installed mise
 
 Refresh and test local behavior before changing bootstrap/package semantics. Mise docs may track unreleased `main` features; if the desired config depends on an unreleased mise PR, keep the declarative target only when the user explicitly accepts that delay and document the release dependency in the PR/HANDOFF.
 
 ## Suggested skills
 
-- `writing-for-agents` — editing this file or `README.md`.
+- `writing-for-agents` — editing this file or `README.md`, never the vendored skills under `skills/common/`.
 - `research` — verifying mise behaviour against the docs before changing the model.

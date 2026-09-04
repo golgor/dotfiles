@@ -22,6 +22,8 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 | `.config/nvim/` selected files | `~/.config/nvim/` | symlink |
 | `fnox.toml` | `~/fnox.toml` | symlink |
 | `.bash_completions.d/` | `~/.bash_completions.d/` | symlink-each |
+| `skills/common/` | `~/.agents/skills/`, `~/.claude/skills/` | symlink-each |
+| `skills/claude/claude-handoff/` | `~/.claude/skills/claude-handoff/` | symlink |
 
 ### Mise tools
 
@@ -114,6 +116,19 @@ fs
 
 `fs` is an alias in the tracked `.bashrc` and runs `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force`. The machine-local parts (age key, sync-age provider) are created by `mise run setup-fnox`.
 
+## Agent skills
+
+`skills/common/` is the one copy of the skills shared by Pi, Codex, and Claude Code; mise links each file into `~/.agents/skills` (Pi, Codex) and `~/.claude/skills` (Claude Code). Claude-only skills sit in `skills/claude/` with their own `mise.toml` entry. Neighbours the harnesses or other installers own (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system`) stay untouched.
+
+Most skills are vendored from [mattpocock/skills](https://github.com/mattpocock/skills). `.mise/skills/mattpocock.toml` lists which ones, in which scope, and the release they were taken from. When a new release lands:
+
+```sh
+mise run update-matt-skills   # needs gh; never commits
+git diff                      # review, then commit on a branch and open a PR
+```
+
+Vendored skills are immutable snapshots: the task refuses to overwrite one that has been edited locally. To customise a skill, copy it to a new name outside the manifest and leave the original vendored. To add or drop an upstream skill, edit the manifest's selection lists and rerun the task; dropping one leaves its directory behind for you to delete.
+
 ## Kubernetes / GKE setup
 
 The repo includes a manual task:
@@ -202,4 +217,5 @@ mise run setup-kube-contexts -- --aliases-only
 - `~/.config/nvim/lua/plugins/theme.lua` is Omarchy-managed current-theme state and is intentionally not tracked.
 - Neovim runtime/plugin state lives under `~/.local/share/nvim/`, `~/.local/state/nvim/`, and `~/.cache/nvim/`; do not track it.
 - If VS Code or Windsurf fails to save credentials with Gnome Keyring, add `{ "password-store": "gnome-libsecret" }` to `~/.vscode/argv.json` or `~/.windsurf/argv.json`.
+- `~/.pi/agent/skills/` is not managed here; it holds Pi-only links to external research folders. Pi finds the shared skills through `~/.agents/skills`.
 - Agent working notes: see `AGENTS.md`.
