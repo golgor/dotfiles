@@ -26,6 +26,8 @@ mise bootstrap dotfiles add ~/.config/foo/bar.toml
 
 First apply conflicts because real files sit where symlinks belong. mise **refuses rather than clobbers**. Resolve with `dotfiles add` (non-destructive, preferred) or `mise bootstrap dotfiles apply --force` (replaces them). Check first with `mise bootstrap dotfiles status` / `diff`.
 
+`--force` is **not scoped to one entry** — it applies *every* pending entry and overrides the refuse-on-conflict guard for all of them at once. Running it to deploy one file will silently clobber every other real file or directory that sits where a symlink belongs, replacing it with the repo version and destroying local content that was never committed (no backup, no prompt). Before `--force`, run `mise bootstrap dotfiles status` and read the full conflict list; `dotfiles add` each real file you want to keep, or back it up, first. To deploy a single conflicting file, prefer capturing or moving that one path rather than a repo-wide `--force`.
+
 ## Removing an entry
 
 The opposite direction is unguarded: dropping a line from `[dotfiles]` does not remove what it deployed. `apply` reports success and leaves the old symlink — or, for `symlink-each`, the whole real directory — orphaned in `~`. `status` stops listing the path once the entry is gone, so neither command reveals the leftover; there is no command that shows it. Delete it by hand when dropping an entry, and expect the other machine to need the same cleanup after it pulls.
