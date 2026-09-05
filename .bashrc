@@ -42,7 +42,7 @@ _mise_agent_run() {
 	local name=$1
 	shift
 	local bin
-	bin=$(mise which "$name" 2>/dev/null) || bin=$(command -v "$name")
+	bin=$(mise which "$name" 2>/dev/null) || bin=$(type -P "$name")
 	[ -x "$bin" ] || {
 		printf '%s: not found\n' "$name" >&2
 		return 127
