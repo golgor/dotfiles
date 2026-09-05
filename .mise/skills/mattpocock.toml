@@ -46,7 +46,6 @@ common = [
   "writing-for-agents",
   "writing-fragments",
   "writing-shape",
+  "scaffold-exercises",
 ]
-claude = [
-  "claude-handoff",
-]
+claude = ["claude-handoff"]
