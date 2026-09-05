@@ -6,11 +6,61 @@
 # (don't mess with these directly, just overwrite them here!)
 source /usr/share/omarchy/default/bash/rc
 
+# ── mise: shim-first PATH for agent-launched harnesses only ────────────────
+# Omarchy's default/bash/init runs `mise activate bash` (hook mode) for this
+# interactive shell. That's correct here: it's what injects mise [env]/_.file
+# secrets (e.g. project .env vars) on `cd`, and a human's PATH does update on the
+# next prompt anyway. Leave it alone.
+#
+# But an agent harness (claude/pi/codex) freezes whatever PATH mise resolved at
+# launch and never re-resolves after that — its own Bash-tool calls are
+# non-interactive, so the hook never fires again. If the agent later works in a
+# directory pinning a different tool version than its launch directory, every
+# command after that silently uses the wrong version.
+#
+# Fix: launch the agent with a PATH that has mise's *shims* dir first instead of
+# a frozen install dir. Each shim re-resolves the correct version per directory,
+# on every invocation, for the life of the session — no relaunch needed.
+#
+# One catch: a mise shim is a symlink to `mise` itself (`readlink shims/claude`
+# -> /usr/bin/mise). Looking the agent up by name would resolve through its own
+# shim, and mise would rebuild *its* PATH with install dirs prepended again,
+# re-poisoning the long-lived agent process right at the start. So resolve the
+# absolute binary first (`mise which`) and exec that directly — never let the
+# agent's own name go through PATH lookup. Only safe for native-binary CLIs
+# (verified: claude, pi, codex are all ELF binaries, not shebang scripts).
+_mise_agent_path() {
+	local p= d
+	local IFS=:
+	for d in $PATH; do
+		[[ $d == *"/.local/share/mise/installs/"* ]] || p+="${p:+:}$d"
+	done
+	printf '%s:%s' "$HOME/.local/share/mise/shims" "$p"
+}
+
+_mise_agent_run() {
+	local name=$1
+	shift
+	local bin
+	bin=$(mise which "$name" 2>/dev/null) || bin=$(type -P "$name")
+	[ -x "$bin" ] || {
+		printf '%s: not found\n' "$name" >&2
+		return 127
+	}
+	env PATH="$(_mise_agent_path)" "$bin" "$@"
+}
+
+claude() { _mise_agent_run claude "$@"; }
+pi() { _mise_agent_run pi "$@"; }
+codex() { _mise_agent_run codex "$@"; }
+# ───────────────────────────────────────────────────────────────
+
 alias c="clear"
 alias tree="eza -T --icons=always --color=always --group-directories-first --git-ignore --no-quotes"
 alias src="source ~/.bashrc"
 alias br="nvim ~/.bashrc"
 alias task="go-task"
+alias rbw-work="RBW_PROFILE=work rbw" # separate Bitwarden account, work vault
 alias pm='cd ~/Documents/ToolSense && pi --append-system-prompt ./SYSTEM.md'
 alias cq='cloud-sql-tracker'
 
