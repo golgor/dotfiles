@@ -40,16 +40,13 @@ this file carries the *why* and the *words*.
   pacman/AUR system packages like `age` and `rbw`; mise tools (`[tools]`) are
   versioned per-user CLIs like `kubectl`. Rule of thumb: if it needs system
   integration or is a build dependency, it is a host package.
-- **local vs global mise config** — this repo's `mise.toml` is active only
-  inside `~/.dotfiles` and overrides global versions there, so it declares only
-  task dependencies (`uv`). User-level CLIs live solely in
-  `.config/mise/conf.d/dotfiles-tools.toml` (deployed to
-  `~/.config/mise/conf.d/`), which makes them resolve from any directory.
-  `uv` is the one deliberate exception present in both: conf.d for user-level
-  use, `mise.toml` pinned for the automation tasks. No other tool may be.
+- **global mise config** — `.config/mise/config.toml`, tracked and linked to
+  `~/.config/mise/config.toml`. The single list of tools, all `latest`. This
+  repo's `mise.toml` has no `[tools]`: a project table is directory-scoped and
+  would override the global version inside `~/.dotfiles`.
 - **shim** — mise's PATH stub for a tool. A shim without an active version for
   the current directory fails with "No version is set for shim" — the symptom
-  of a tool declared locally but not globally.
+  of a tool not declared in the global config.
 - **manual task** — a mise task that is deliberately *not* part of
   `mise bootstrap` because it needs interactive auth, network access to a
   third party, or mutates machine-local state: `setup-fnox`,
@@ -147,6 +144,19 @@ this file carries the *why* and the *words*.
   hand-narrowing `tomllib`'s output costs twenty lines. Add pydantic or
   msgspec when an automation parses external or deeply nested data, and
   retire the offline claim in the same change.
+- **Global tools are `latest`; projects pin their own.** A pin in the global
+  config either goes stale or costs a manual bump; neither is wanted. The only
+  known needs for fixed versions (production Python, one project's Node) are
+  declared by those projects. Runtimes and CLIs alike are `latest`; pin a
+  single global tool to a major only if a bump actually breaks something, and
+  record why here. Ruby was dropped in the same move: unused.
+- **The global mise config is tracked, not a `conf.d` fragment.** The fragment
+  plus a `[tools]` table in this repo's `mise.toml` meant tools declared twice
+  with independent versions; a pinned atuin in the project table shadowed the
+  global one inside `~/.dotfiles` and stalled every prompt (#26, #20). The
+  repo's tasks run after bootstrap, so they use the global `uv` and the
+  project table is gone. `mise use -g` writes through the symlink, so global
+  adds become repo diffs by design.
 
 If this section outgrows a screenful, move entries to `docs/adr/`.
 
