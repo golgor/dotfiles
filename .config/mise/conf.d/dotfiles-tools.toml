@@ -2,6 +2,12 @@
 #
 # This is linked into ~/.config/mise/conf.d so mise shims resolve these tools
 # from any directory, not only inside ~/.dotfiles.
+#
+# This is the only place these tools are declared. Do not repeat them in
+# ~/.dotfiles/mise.toml: a project [tools] entry overrides the global version
+# inside the repo, and a version mismatch there can break shell-integrated
+# tools (a pinned atuin could not talk to the newer global daemon and stalled
+# every prompt for ~8 s).
 
 [tools]
 atuin = "latest"

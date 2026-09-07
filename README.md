@@ -26,14 +26,14 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 
 ### Mise tools
 
-`mise install` installs these versioned tools. They are also declared in `~/.config/mise/conf.d/dotfiles-tools.toml` so mise shims resolve them outside this repo.
+User-level CLIs live in `.config/mise/conf.d/dotfiles-tools.toml`, which `mise bootstrap dotfiles apply` links into `~/.config/mise/conf.d/`. That makes them resolve from any directory; `mise install` installs them.
 
-- Atuin `18.19.0`
-- kubectl `1.36.2`
-- kubectx `0.11.0`
-- kubens `0.11.0`
-- fnox `latest`
-- uv `0.11.14`
+- atuin
+- kubectl, kubectx, kubens
+- fnox
+- uv
+
+This repo's own `mise.toml` declares only what its tasks need (`uv` for the Python automation). Tools must not appear in both files: a project `[tools]` entry overrides the global version inside `~/.dotfiles`, and a version mismatch can break shell-integrated tools such as atuin.
 
 ### Bootstrap packages
 

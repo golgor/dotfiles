@@ -57,7 +57,13 @@ Never print secret values in chat or logs. When inspecting shell config or fnox 
 
 ## Mise tools: local vs global
 
-Tools in this repo's `mise.toml` are active inside `~/.dotfiles`; user-level CLIs that must work from any directory also belong in `.config/mise/conf.d/dotfiles-tools.toml`, deployed to `~/.config/mise/conf.d/`. Keep those tool versions in sync. Do not hide shim-resolution problems with ad-hoc `mise use -g` unless the task is explicitly to mutate this one machine's global mise config.
+A `[tools]` table in any `mise.toml` is directory-scoped: it is active whenever the cwd is in or under that directory and overrides the global version there. "Global" means `~/.config/mise/config.toml` and `conf.d/*.toml` only.
+
+- User-level CLIs (atuin, fnox, kubectl, …) go in `.config/mise/conf.d/dotfiles-tools.toml`, deployed to `~/.config/mise/conf.d/`, and nowhere else.
+- This repo's `mise.toml` declares only tools its own tasks need (`uv`).
+- Never declare a tool in both. A pinned `atuin` in `mise.toml` once shadowed the global `latest` inside `~/.dotfiles`; it could not talk to the newer daemon and stalled every prompt for ~8 s.
+
+Do not hide shim-resolution problems with ad-hoc `mise use -g` unless the task is explicitly to mutate this one machine's global mise config.
 
 ## Track config, never runtime state
 
