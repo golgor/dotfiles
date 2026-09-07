@@ -3,10 +3,15 @@
 
 -- Keyboard layout and options.
 -- See https://wiki.hypr.land/Configuring/Basics/Variables/#input
+--
+-- Default layout is per machine: the laptop starts on "de", the stationary on
+-- "se". The first entry is the default Hyprland resets to on each unlock.
+local kb_layout = require("hypr.host").hostname() == "golgor-framework" and "de,se" or "se,de"
+
 hl.config({
 	input = {
 		-- Use multiple keyboard layouts and switch between them with Left Alt + Right Alt.
-		kb_layout = "se,de",
+		kb_layout = kb_layout,
 		kb_options = "compose:caps,shift:both_capslock_cancel,grp:alt_altgr_toggle",
 
 		-- Use a specific keyboard variant if needed (e.g. intl for international keyboards).
