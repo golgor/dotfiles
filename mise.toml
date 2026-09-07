@@ -1,13 +1,10 @@
 # Dotfiles managed by mise. See AGENTS.md for the working model, README.md for humans.
 # Docs: https://mise.jdx.dev/dotfiles.html
 
-# Only tools this repo's own tasks need. These are active inside ~/.dotfiles and
-# override the global version there, so user-level CLIs (atuin, fnox, kubectl…)
-# belong in .config/mise/conf.d/dotfiles-tools.toml instead.
-[tools]
-# Runs the Python automation under automation/ (interpreter, venv, dev tools).
-# Deliberately also in conf.d as the user-level uv; this pin is the task one.
-uv = "0.11.14"
+# No [tools] here: a project [tools] table would override the global version
+# inside ~/.dotfiles. All tools, including the uv that runs the tasks below,
+# come from the tracked global config at .config/mise/config.toml. The tasks
+# are not expected to run before bootstrap has finished, so global uv suffices.
 
 [bootstrap.packages]
 # Google Cloud CLI and GKE auth plugin are host packages on Omarchy/Arch.
@@ -54,7 +51,7 @@ dotfiles.default_mode = "symlink"
 # ~/.config/hypr/hyprmoncfg-monitors.lua stays machine-local (see .gitignore).
 # Each machine auto-applies the saved profile matching its connected monitors.
 "~/.config/hyprmoncfg/profiles" = { mode = "symlink" }
-"~/.config/mise/conf.d/dotfiles-tools.toml" = { mode = "symlink" }
+"~/.config/mise/config.toml" = { mode = "symlink" }
 
 # Neovim config. Do not track lua/plugins/theme.lua; Omarchy owns the current-theme symlink.
 "~/.config/nvim/.gitignore" = { mode = "symlink" }

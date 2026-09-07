@@ -15,7 +15,7 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 | `.config/atuin/config.toml` | `~/.config/atuin/config.toml` | symlink |
 | `.config/herdr/config.toml` | `~/.config/herdr/config.toml` | symlink |
 | `.config/hypr/` | `~/.config/hypr/` | symlink |
-| `.config/mise/conf.d/dotfiles-tools.toml` | `~/.config/mise/conf.d/dotfiles-tools.toml` | symlink |
+| `.config/mise/config.toml` | `~/.config/mise/config.toml` | symlink |
 | `.config/starship.toml` | `~/.config/starship.toml` | symlink |
 | `.config/zed/settings.json` | `~/.config/zed/settings.json` | symlink |
 | `.config/zed/keymap.json` | `~/.config/zed/keymap.json` | symlink |
@@ -26,14 +26,16 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 
 ### Mise tools
 
-User-level CLIs live in `.config/mise/conf.d/dotfiles-tools.toml`, which `mise bootstrap dotfiles apply` links into `~/.config/mise/conf.d/`. That makes them resolve from any directory; `mise install` installs them.
+The global mise config is tracked: `.config/mise/config.toml` is linked to `~/.config/mise/config.toml`, so both machines share one tool list and `mise install` installs it. Every tool is `latest`; a project that needs a specific version pins it in its own `mise.toml`. `mise up` (Omarchy alias `mup`) moves `latest` forward; nothing upgrades on its own.
 
-- atuin
+- atuin, fnox, gh, ruff, uv
 - kubectl, kubectx, kubens
-- fnox
-- uv
+- bun, go, node, python
+- claude, codex, `npm:@earendil-works/pi-coding-agent`
 
-This repo's own `mise.toml` declares only what its tasks need: a pinned `uv` for the Python automation. That is the one deliberate overlap with the list above. No other tool may appear in both files: a project `[tools]` entry overrides the global version inside `~/.dotfiles`, and a version mismatch can break shell-integrated tools such as atuin.
+This repo's own `mise.toml` has no `[tools]` table. Its tasks run after bootstrap has finished, so they use the global `uv`; a project pin inside `~/.dotfiles` would only shadow the global version there.
+
+`mise use -g` writes through the symlink, so an ad-hoc global add shows up as a repo diff to commit or revert.
 
 ### Bootstrap packages
 
@@ -83,6 +85,14 @@ mise bootstrap dotfiles apply
 
 Use `mise bootstrap dotfiles apply --force` only when replacing the existing files is intended.
 
+`~/.config/mise/config.toml` always hits this: Omarchy's installer creates it (`mise use -g node`) before this repo is cloned. `dotfiles add` moves that machine's file over the repo copy and links it back, so `git diff` shows exactly what the machine had that the repo did not. Reconcile, commit, then `mise install`:
+
+```sh
+mise bootstrap dotfiles add ~/.config/mise/config.toml
+git diff .config/mise/config.toml   # usually: drop the machine's node pin, keep "latest"
+mise install
+```
+
 ## Secrets / fnox setup
 
 The repo tracks `~/fnox.toml` as a shared fnox manifest. It lists Bitwarden references only; secret values and local encrypted sync cache stay out of git.
@@ -101,8 +111,6 @@ rbw config set email <your-bitwarden-email>
 rbw login
 mise run setup-fnox
 ```
-
-The tracked `~/.config/mise/conf.d/dotfiles-tools.toml` fragment makes shims such as `atuin`, `kubectl`, `kubectx`, `kubens`, and `fnox` work from new terminals outside `~/.dotfiles`.
 
 The setup task creates machine-local files:
 

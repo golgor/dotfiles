@@ -17,8 +17,9 @@ skills = "automation.skills.cli:main"
 dev = ["pytest>=9.1", "ruff>=0.16", "ty>=0.0.78"]
 
 [build-system]
-# Keep in step with the uv version pinned in mise.toml, or the offline fast path is lost.
-requires = ["uv_build>=0.11,<0.12"]
+# No upper bound: uv is the global "latest" (.config/mise/config.toml), and the
+# offline fast path only holds while this range contains the running uv.
+requires = ["uv_build>=0.11"]
 build-backend = "uv_build"
 
 [tool.ty.rules]

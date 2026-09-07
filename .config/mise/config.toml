@@ -1,0 +1,32 @@
+# Global mise config, tracked by ~/.dotfiles and linked to ~/.config/mise/config.toml.
+#
+# Policy: every global tool is "latest"; a project that needs a specific version
+# pins it in its own mise.toml. `mise up` (Omarchy alias: mup) moves latest
+# forward; nothing upgrades on its own between runs.
+#
+# This is the only place global tools are declared. ~/.dotfiles/mise.toml has no
+# [tools] table: the repo's tasks run after bootstrap has finished, so they use
+# the global uv from here rather than a project pin.
+#
+# `mise use -g` and Omarchy migrations write through the symlink, so an ad-hoc
+# global add shows up as a repo diff. Review it and commit or revert.
+
+[settings.python]
+compile = false
+
+[tools]
+atuin = "latest"
+bun = "latest"
+claude = "latest"
+codex = "latest"
+fnox = "latest"
+gh = "latest"
+go = "latest"
+kubectl = "latest"
+kubectx = "latest"
+kubens = "latest"
+node = "latest"
+"npm:@earendil-works/pi-coding-agent" = "latest"
+python = "latest"
+ruff = "latest"
+uv = "latest"

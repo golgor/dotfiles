@@ -55,15 +55,14 @@ Keep machine-local fnox state out of the repo:
 
 Never print secret values in chat or logs. When inspecting shell config or fnox state, report variable names only and redact values. After changing `fnox.toml`, run `fs` or `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force` so the local cache matches the manifest.
 
-## Mise tools: local vs global
+## Mise tools: one global file, all latest
 
-A `[tools]` table in any `mise.toml` is directory-scoped: it is active whenever the cwd is in or under that directory and overrides the global version there. "Global" means `~/.config/mise/config.toml` and `conf.d/*.toml` only.
+The global mise config is tracked: `.config/mise/config.toml` → `~/.config/mise/config.toml`. It is the only place tools are declared, and every entry is `latest`. Projects that need a specific version pin it in their own `mise.toml`; this repo never pins on their behalf.
 
-- User-level CLIs (atuin, fnox, kubectl, …) go in `.config/mise/conf.d/dotfiles-tools.toml`, deployed to `~/.config/mise/conf.d/`, and nowhere else.
-- This repo's `mise.toml` declares only tools its own tasks need. Today that is `uv`, the one deliberate exception that appears in both files: conf.d provides the user-level `uv`, `mise.toml` pins the `uv` that runs `automation/`.
-- No other tool may be declared in both. A pinned `atuin` in `mise.toml` once shadowed the global `latest` inside `~/.dotfiles`; it could not talk to the newer daemon and stalled every prompt for ~8 s.
-
-Do not hide shim-resolution problems with ad-hoc `mise use -g` unless the task is explicitly to mutate this one machine's global mise config.
+- This repo's `mise.toml` has **no** `[tools]` table. A `[tools]` table in any `mise.toml` is directory-scoped and overrides the global version under that directory; a pinned `atuin` there once shadowed the global `latest`, could not talk to the newer daemon, and stalled every prompt for ~8 s. The repo's tasks run after bootstrap has finished, so the global `uv` is the one they use.
+- `mise use -g`, `mise settings set`, and Omarchy migrations write through the symlink (verified), so they land as a repo diff. Treat that diff like any other edit: commit it or revert it, and keep the file `latest`-only.
+- Versions move only on `mise up` / `mup` or `mise install`; the two machines may have different installed versions under the same `latest`, which is fine.
+- Omarchy pre-creates `~/.config/mise/config.toml`, so on a new machine this entry needs `mise bootstrap dotfiles add ~/.config/mise/config.toml` and a reconcile, not `--force`.
 
 ## Track config, never runtime state
 
