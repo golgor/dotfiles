@@ -22,7 +22,6 @@ require("hypr.bindings")
 require("hypr.looknfeel")
 require("hypr.autostart")
 require("hypr.windowrules")
-require("hypr.workspaces")
 require("hypr.animations")
 
 -- Toggle config flags dynamically.
