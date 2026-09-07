@@ -41,9 +41,12 @@ this file carries the *why* and the *words*.
   versioned per-user CLIs like `kubectl`. Rule of thumb: if it needs system
   integration or is a build dependency, it is a host package.
 - **local vs global mise config** — this repo's `mise.toml` is active only
-  inside `~/.dotfiles`; `.config/mise/conf.d/dotfiles-tools.toml` (deployed to
-  `~/.config/mise/conf.d/`) makes the same tools resolve from any directory.
-  Both must list the same versions.
+  inside `~/.dotfiles` and overrides global versions there, so it declares only
+  task dependencies (`uv`). User-level CLIs live solely in
+  `.config/mise/conf.d/dotfiles-tools.toml` (deployed to
+  `~/.config/mise/conf.d/`), which makes them resolve from any directory.
+  `uv` is the one deliberate exception present in both: conf.d for user-level
+  use, `mise.toml` pinned for the automation tasks. No other tool may be.
 - **shim** — mise's PATH stub for a tool. A shim without an active version for
   the current directory fails with "No version is set for shim" — the symptom
   of a tool declared locally but not globally.
