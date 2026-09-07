@@ -4,6 +4,14 @@
 # fnox machine-local encrypted sync cache; ~/fnox.toml is the tracked manifest.
 /fnox.local.toml
 
+# hyprmoncfg's generated live monitor config — machine-specific, rewritten by the
+# daemon on apply. The profiles under .config/hyprmoncfg/profiles/ are tracked.
+/.config/hypr/hyprmoncfg-monitors.lua
+
+# hyprmoncfg regenerates a .conf export beside each profile on every save.
+# Hyprland uses the .lua path here, so keep the conf export out of the repo.
+/.config/hyprmoncfg/profiles/*.conf
+
 # Python automation: environment and tool caches. uv.lock is tracked.
 /automation/.venv/
 __pycache__/

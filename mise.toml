@@ -52,6 +52,10 @@ dotfiles.default_mode = "symlink"
 "~/.config/git/config" = { mode = "symlink" }
 "~/.config/herdr/config.toml" = { mode = "symlink" }
 "~/.config/hypr" = { mode = "symlink" }
+# hyprmoncfg profiles are the version-controlled source of truth. The generated
+# ~/.config/hypr/hyprmoncfg-monitors.lua stays machine-local (see .gitignore).
+# Each machine auto-applies the saved profile matching its connected monitors.
+"~/.config/hyprmoncfg/profiles" = { mode = "symlink" }
 "~/.config/mise/conf.d/dotfiles-tools.toml" = { mode = "symlink" }
 
 # Neovim config. Do not track lua/plugins/theme.lua; Omarchy owns the current-theme symlink.
