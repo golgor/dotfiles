@@ -42,6 +42,7 @@ This repo's own `mise.toml` declares only what its tasks need: a pinned `uv` for
 - `google-cloud-cli`
 - `google-cloud-cli-component-gke-gcloud-auth-plugin`
 - `cloud-sql-proxy-bin`
+- `hyprmoncfg-bin`
 - `age`
 - `rbw`
 
