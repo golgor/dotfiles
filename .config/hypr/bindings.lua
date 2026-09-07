@@ -49,3 +49,9 @@ o.bind("SUPER + SHIFT + M", "Google Maps", { webapp = "https://maps.google.com/"
 -- Audio panel in the bar on SUPER+SHIFT+S (was: Google Maps).
 hl.unbind("SUPER + SHIFT + S")
 o.bind("SUPER + SHIFT + S", "Audio panel", "omarchy-shell shell toggle omarchy.audio")
+
+-- Obsidian quick-notes plugin (golgor.notes)
+o.bind("SUPER + N", "New note", "omarchy-shell golgor.notes capture")
+hl.unbind("SUPER + CTRL + N")
+o.bind("SUPER + CTRL + N", "Toggle notes", "omarchy-shell shell toggle golgor.notes")
+
