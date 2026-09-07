@@ -79,6 +79,9 @@ export GOOGLE_CLOUD_PROJECT="toolsense"
 # Set up GOPRIVATE to enable installing from toolsense repos
 export GOPRIVATE="go.iot.toolsense.dev/*","go.iot.toolsense.io/*"
 
+# Obsidian notes directory
+export NOTES_DIR="$HOME/Documents/ToolSense/Notes"
+
 # grok CLI (completions live in ~/.bash_completions.d/grok)
 export PATH="$HOME/.grok/bin:$PATH"
 
