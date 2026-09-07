@@ -30,3 +30,4 @@ require("default.hypr.toggles")
 
 -- Add any other personal Hyprland configuration below.
 -- o.window("qemu", { workspace = "5" })
+hl.env("NOTES_DIR", (os.getenv("HOME") or "") .. "/Documents/ToolSense/Notes")
