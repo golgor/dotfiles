@@ -1,7 +1,7 @@
 {
-  "name": "Default Workstation",
-  "created_at": "2026-08-20T13:04:28.913963484Z",
-  "updated_at": "2026-08-20T13:04:28.915339943Z",
+  "name": "golgor-framework",
+  "created_at": "2026-09-07T14:33:17.783058973Z",
+  "updated_at": "2026-09-07T14:33:17.790402854Z",
   "outputs": [
     {
       "key": "boe|ne160qdm-nz6",
@@ -39,7 +39,7 @@
       "mode": "3440x1440@59.97Hz",
       "width": 3440,
       "height": 1440,
-      "refresh": 59.97,
+      "refresh": 59.973,
       "x": 2560,
       "y": 0,
       "scale": 1,
