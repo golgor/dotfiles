@@ -45,7 +45,8 @@ this file carries the *why* and the *words*.
   task dependencies (`uv`). User-level CLIs live solely in
   `.config/mise/conf.d/dotfiles-tools.toml` (deployed to
   `~/.config/mise/conf.d/`), which makes them resolve from any directory.
-  A tool is declared in exactly one of the two files, never both.
+  `uv` is the one deliberate exception present in both: conf.d for user-level
+  use, `mise.toml` pinned for the automation tasks. No other tool may be.
 - **shim** — mise's PATH stub for a tool. A shim without an active version for
   the current directory fails with "No version is set for shim" — the symptom
   of a tool declared locally but not globally.

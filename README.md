@@ -33,7 +33,7 @@ User-level CLIs live in `.config/mise/conf.d/dotfiles-tools.toml`, which `mise b
 - fnox
 - uv
 
-This repo's own `mise.toml` declares only what its tasks need (`uv` for the Python automation). Tools must not appear in both files: a project `[tools]` entry overrides the global version inside `~/.dotfiles`, and a version mismatch can break shell-integrated tools such as atuin.
+This repo's own `mise.toml` declares only what its tasks need: a pinned `uv` for the Python automation. That is the one deliberate overlap with the list above. No other tool may appear in both files: a project `[tools]` entry overrides the global version inside `~/.dotfiles`, and a version mismatch can break shell-integrated tools such as atuin.
 
 ### Bootstrap packages
 

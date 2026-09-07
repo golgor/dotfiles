@@ -60,8 +60,8 @@ Never print secret values in chat or logs. When inspecting shell config or fnox 
 A `[tools]` table in any `mise.toml` is directory-scoped: it is active whenever the cwd is in or under that directory and overrides the global version there. "Global" means `~/.config/mise/config.toml` and `conf.d/*.toml` only.
 
 - User-level CLIs (atuin, fnox, kubectl, …) go in `.config/mise/conf.d/dotfiles-tools.toml`, deployed to `~/.config/mise/conf.d/`, and nowhere else.
-- This repo's `mise.toml` declares only tools its own tasks need (`uv`).
-- Never declare a tool in both. A pinned `atuin` in `mise.toml` once shadowed the global `latest` inside `~/.dotfiles`; it could not talk to the newer daemon and stalled every prompt for ~8 s.
+- This repo's `mise.toml` declares only tools its own tasks need. Today that is `uv`, the one deliberate exception that appears in both files: conf.d provides the user-level `uv`, `mise.toml` pins the `uv` that runs `automation/`.
+- No other tool may be declared in both. A pinned `atuin` in `mise.toml` once shadowed the global `latest` inside `~/.dotfiles`; it could not talk to the newer daemon and stalled every prompt for ~8 s.
 
 Do not hide shim-resolution problems with ad-hoc `mise use -g` unless the task is explicitly to mutate this one machine's global mise config.
 
