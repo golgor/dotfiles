@@ -144,6 +144,11 @@ this file carries the *why* and the *words*.
   hand-narrowing `tomllib`'s output costs twenty lines. Add pydantic or
   msgspec when an automation parses external or deeply nested data, and
   retire the offline claim in the same change.
+- **Pi and OMP share one append prompt.** `.pi/agent/APPEND_SYSTEM.md` is the
+  tracked source symlinked to both harnesses by mise; static prompt deployment
+  stays declarative rather than extending the automation. OMP applies it as the
+  global default, while a project `APPEND_SYSTEM.md` or CLI append deliberately
+  overrides it. Do not use `SYSTEM.md`: it replaces OMP's built-in prompt.
 - **Global tools are `latest`; projects pin their own.** A pin in the global
   config either goes stale or costs a manual bump; neither is wanted. The only
   known needs for fixed versions (production Python, one project's Node) are

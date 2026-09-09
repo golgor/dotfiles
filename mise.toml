@@ -76,5 +76,9 @@ dotfiles.default_mode = "symlink"
 "~/.config/zed/settings.json" = { mode = "symlink" }
 "~/fnox.toml" = { mode = "symlink" }
 
+# One global append prompt for Pi and OMP; see docs/tools/omp.md.
+"~/.pi/agent/APPEND_SYSTEM.md" = { source = ".pi/agent/APPEND_SYSTEM.md", mode = "symlink" }
+"~/.omp/agent/APPEND_SYSTEM.md" = { source = ".pi/agent/APPEND_SYSTEM.md", mode = "symlink" }
+
 # Agent skills are not projected by mise: `mise run deploy-skills` (the Python automation)
 # owns those symlinks so it can give Codex the directory symlinks its loader requires.

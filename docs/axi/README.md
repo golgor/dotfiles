@@ -95,36 +95,22 @@ The axi tools' own Agent Skills are separate from this repo's skills
 
 ## Guiding agents to use them
 
-Installing a tool does not make an agent reach for it. Two ways to route agents,
-both **machine-local** (neither is tracked in this repo):
+Installing a tool does not make an agent reach for it. Two routing paths are
+available:
 
 1. **Skill + SessionStart hook** (upstream-recommended, per AXI principle 7). Each
    tool ships an Agent Skill and a hook installer, e.g. `gh-axi setup hooks` or
    `npx skills add maximebrmd/notion-axi --skill notion-axi -g`. The hook feeds
    ambient context at session start; the skill teaches the command surface on
-   demand. Run per machine; treat as machine-local state.
+   demand. Run per machine; treat this as machine-local state.
 
-2. **A directive in a global agent instructions file** (`~/.claude/CLAUDE.md`,
-   `~/.codex/AGENTS.md`, etc.). You do not currently track one. If you add it,
-   paste a block like:
+2. **The tracked Pi/OMP append prompt**
+   ([`.pi/agent/APPEND_SYSTEM.md`](../../.pi/agent/APPEND_SYSTEM.md)). It contains
+   the global AXI routing directive and is symlinked to both harnesses by mise;
+   see [OMP configuration](../tools/omp.md). Edit that source when the routing
+   changes rather than copying its instructions elsewhere.
 
-   ```markdown
-   ## Agent-native CLIs
-
-   Prefer these agent-native CLIs over MCP servers or raw CLIs:
-
-   - `gh-axi` for GitHub
-   - `obsidian-axi` for Obsidian vaults
-   - `notion-axi` for Notion
-   - `gws-axi` for Google Workspace (Gmail, Calendar, Docs, Drive, Slides, Sheets)
-   - `slack-axi` for Slack
-   - `pg-axi` for PostgreSQL
-   - `superbee` for cross-session agent memory
-
-   Run bare `<tool>` for live state or `<tool> --help` for the command surface.
-   ```
-
-   (kubernetes-axi is omitted — it is not installed; see its page.)
+   `kubernetes-axi` is omitted because it is not installed; see its page.
 
 ## Secrets
 
