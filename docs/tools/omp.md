@@ -34,6 +34,16 @@ Unlike upstream Pi (`~/.pi`), `omp` uses isolated `.omp` roots by default:
 | **Project Config**| `<cwd>/.omp/config.yml` or `settings.json` | Project-local overrides |
 | **Session DB / State** | `~/.omp/agent/` | History and SQLite runtime state |
 
+## Global Prompt Policy
+
+The tracked [Pi append prompt](../../.pi/agent/APPEND_SYSTEM.md) is symlinked to
+`~/.omp/agent/APPEND_SYSTEM.md` by mise. It is the global default shared with Pi;
+edit the tracked source rather than either deployed path.
+
+OMP uses a project `APPEND_SYSTEM.md` or `--append-system-prompt` as a deliberate
+override of that default. Do not add `SYSTEM.md`: it replaces OMP's built-in
+prompt rather than extending it.
+
 ## Skills & Capabilities
 
 `omp` includes an `agents` discovery provider (`discovery/agents.ts`) and natively discovers skills from:
