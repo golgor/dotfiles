@@ -56,7 +56,7 @@ codex() { _mise_agent_run codex "$@"; }
 # ───────────────────────────────────────────────────────────────
 
 alias c="clear"
-alias tree="eza -T --icons=always --color=always --group-directories-first --git-ignore --no-quotes"
+alias tree="eza -T -a -I .git --icons=always --color=always --group-directories-first --git-ignore --no-quotes"
 alias src="source ~/.bashrc"
 alias br="nvim ~/.bashrc"
 alias task="go-task"
