@@ -1,0 +1,15 @@
+# aube user config. aube is mise's npm backend engine (npm.package_manager=auto).
+# See ~/.dotfiles/docs/axi/README.md.
+#
+# Exempt niche AXI CLIs from aube's low-download reputation gate (<1000
+# downloads/week). These are vetted by hand; the OSV malicious-package check
+# still runs, and the gate stays on for every other package. Entries can be
+# dropped once a package clears the threshold on its own.
+allowedUnpopularPackages = [
+  "notion-axi",
+  "pg-axi",
+  "gws-axi",
+  "slack-axi",
+  "superbee",
+  "@andershoffmann/obsidian-axi",
+]
