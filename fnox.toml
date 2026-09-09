@@ -7,3 +7,9 @@ FLESPI_TOKEN = { provider = "bitwarden", value = "flespi.io/My Token" }
 BAMBOO_HR_API_TOKEN = { provider = "bitwarden", value = "bamboohr.com/API" }
 GEMINI_API_KEY = { provider = "bitwarden", value = "Google (Toolsense)/Gemini API Key" }
 OPENCODE_API_KEY = { provider = "bitwarden", value = "Opencode/API Key" }
+
+# gws-axi's OAuth client JSON is a FILE, not an env var, so it is intentionally NOT
+# a [secrets] entry (those are exported into every shell by `fnox activate`).
+# `mise run setup-gws-axi` restores it from the Bitwarden note "gws-axi-json"
+# (field "Secret") to ~/.config/gws-axi/credentials.json via rbw. See
+# docs/axi/gws-axi.md.

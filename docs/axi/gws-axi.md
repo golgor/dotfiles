@@ -36,6 +36,10 @@ gws-axi doctor      # prerequisites + live API health
 
 ## Auth (per machine)
 
+This is the full, from-scratch flow — creating a **new** OAuth client (a new Google
+org, or changing companies). To reuse an existing client on another machine, see
+**Fresh machine** below.
+
 An **agent-driven, 7-step** progressive flow. Run `gws-axi auth setup` repeatedly;
 it prints the next step and updates a helper page at `~/.config/gws-axi/setup.html`.
 The agent runs the CLI; you do the browser/Console clicks in `setup.html` — open it
@@ -95,6 +99,31 @@ gws-axi auth login --account <email>   # re-auth once so the stored token is pos
 
 **Do not** run the full `gws-axi auth publish` walkthrough when the consent screen
 is shared with other services — it would try to publish that shared screen.
+
+## Fresh machine (restore an existing client)
+
+The flow above creates a new OAuth client. To reuse an **existing** client on
+another machine, skip the Console entirely with `auth join`:
+
+```sh
+mise run setup-gws-axi                  # restore credentials.json from Bitwarden + auth join
+gws-axi auth login --account <email>    # browser loopback (manual — see above)
+```
+
+`setup-gws-axi` unlocks Bitwarden (rbw), writes `~/.config/gws-axi/credentials.json`
+from the Bitwarden note `gws-axi-json` (field `Secret`), then runs
+`gws-axi auth join … --published`. The OAuth client JSON is a secret — it lives in
+Bitwarden and `~/.config/gws-axi/`, never in this repo.
+
+Manual equivalent (no task): download the client JSON from Bitwarden, then:
+
+```sh
+gws-axi auth join <path-to-json> --published
+gws-axi auth login --account <email>
+```
+
+`--published` assumes the consent screen is Internal or already published
+(permanent tokens); omit it for an External + Testing client.
 
 ## Notes
 
