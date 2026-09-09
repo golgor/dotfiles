@@ -53,5 +53,8 @@ notion-axi          # recently edited pages & databases
 ## Notes
 
 - Listing workspace users needs elevated permissions; `notion-axi users` is often `RESTRICTED_RESOURCE`.
-- Optional ambient context: `notion-axi setup hooks` (machine-local, not tracked here).
+
+## Hooks
+
+`notion-axi setup hooks` loads a compact Notion workspace view (recently edited pages and databases) at the start of each agent session. Opt-in, idempotent, machine-local (Claude Code / Codex / OpenCode); restart the agent after. Shared hook caveats: the hooks notes in this folder's `README.md`.
 </content>

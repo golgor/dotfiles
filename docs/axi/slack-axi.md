@@ -38,5 +38,8 @@ the long-lived `xoxp` token (resolvable from env). Keep the token out of this re
 
 - `slack-axi channels` lists all conversation types you belong to, including
   private channels and group DMs.
-- Optional ambient context: `slack-axi setup hooks` (machine-local, not tracked here).
+
+## Hooks
+
+`slack-axi setup hooks` opens each agent session with the slack-axi home view (active workspace + channel count) as ambient context. Opt-in, idempotent, machine-local (Claude Code / Codex / OpenCode); restart the agent after. Shared hook caveats: the hooks notes in this folder's `README.md`.
 </content>

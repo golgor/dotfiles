@@ -44,4 +44,8 @@ shell directly. This is per-machine state; mise does not manage it.
 
 Mutations are dry-run until `--execute`; review the generated command and
 preflight output first.
+
+## Hooks
+
+Per its upstream README, `kubernetes-axi hooks install --agent all --scope project --execute` installs ambient session-context hooks (opt-in). Unverified here — kubernetes-axi is clone-only (not installed), so confirm the exact command with `kubernetes-axi hooks --help` after cloning.
 </content>

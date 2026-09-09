@@ -50,6 +50,9 @@ in this repo.
 
 - Multi-account: with 2+ accounts authenticated, writes require `--account <email>`.
   Pin one with `export GWS_AXI_ACCOUNT=<email>` (accident boundary, not a security one).
-- Optional ambient context: `gws-axi setup hooks` (machine-local, not tracked here).
 - If you keep other Google MCP servers/skills, disable them to avoid tool ambiguity.
+
+## Hooks
+
+`gws-axi setup hooks` opens each agent session with the gws-axi home view (authenticated accounts, write-protection status, setup/health) as ambient context. Opt-in, idempotent, machine-local (Claude Code / Codex / OpenCode); restart the agent after. Shared hook caveats: the hooks notes in this folder's `README.md`.
 </content>

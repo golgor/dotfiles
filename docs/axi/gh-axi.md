@@ -39,5 +39,8 @@ the `project` / `read:project` scope: `gh auth refresh -s project`.
 ## Notes
 
 - Secrets are read from piped stdin only (never argv): `echo -n "sk-..." | gh-axi secret set NAME`.
-- Optional ambient context: `gh-axi setup hooks` (machine-local, not tracked here).
+
+## Hooks
+
+`gh-axi setup hooks` opens each agent session with the current repo's open issues and PRs as ambient context. Opt-in, idempotent, machine-local (Claude Code / Codex / OpenCode); restart the agent after. Shared hook caveats: the hooks notes in this folder's `README.md`.
 </content>

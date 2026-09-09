@@ -41,5 +41,8 @@ policy. Only switch to a dist-tag if you add a native-Windows machine.
 - A shared bundle lives on an orphan `board` branch (never merges into `main`).
   If you enable sharing, protect `board` with delete/force-push protection like `main`.
 - `npx -y superbee` runs read-only/bootstrap commands without installing.
-- Optional SessionStart hook via `superbee setup` (machine-local, not tracked here).
+
+## Hooks
+
+`superbee hook install [--scope project|user]` installs the SessionStart hook — it runs `superbee session-start` (pulls the board, then renders a compact orientation) for Claude Code, Codex, and OpenCode. `superbee hook status` / `uninstall` manage it; `superbee setup` is the agent-driven inspector that recommends it. Opt-in, machine-local; restart the agent after. Shared hook caveats: the hooks notes in this folder's `README.md`.
 </content>

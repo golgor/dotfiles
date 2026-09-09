@@ -63,7 +63,7 @@ other tool.
 | obsidian-axi | `@andershoffmann/obsidian-axi` | yes | none (reads vault folder) | [obsidian-axi.md](obsidian-axi.md) |
 | notion-axi | `notion-axi` | yes | `ntn` CLI + `ntn login` | [notion-axi.md](notion-axi.md) |
 | gws-axi | `gws-axi` | yes | Google Cloud OAuth (BYO client) | [gws-axi.md](gws-axi.md) |
-| pg-axi | `pg-axi` | yes | Postgres client tools (`psql`, `pg_dump`, …) | [pg-axi.md](pg-axi.md) |
+| pg-axi | `pg-axi` | yes | reachable Postgres (connection string) | [pg-axi.md](pg-axi.md) |
 | slack-axi | `slack-axi` | yes | Slack app + `xoxp` token | [slack-axi.md](slack-axi.md) |
 | superbee | `superbee` | yes | `superbee setup` (early/experimental) | [superbee.md](superbee.md) |
 | kubernetes-axi | — (not on npm) | **no** | git clone; `kubectl` (in mise) | [kubernetes-axi.md](kubernetes-axi.md) |
@@ -72,12 +72,26 @@ All tools need **Node 20+** (the global `node` is already `latest`).
 
 ## Skills and session hooks
 
-Most of these ship an optional Agent Skill and a `setup hooks` command that wires
-a SessionStart hook into Claude Code / Codex / OpenCode. This repo already manages
-agent skills through `skills/common/` + `mise run deploy-skills`; the axi tools'
-own `setup hooks` writes into agent config directories that are **not** tracked
-here. Run `<tool> setup hooks` per machine if you want ambient context, and treat
-it as machine-local state, not a repo diff.
+Each tool ships an optional Agent Skill (command surface on demand) and a hook
+command that injects live tool state at the start of every agent session. Shared
+facts for every hook below: **opt-in** (never auto-installed), idempotent (safe to
+re-run; repairs a stale executable path), written into **Claude Code / Codex /
+OpenCode** config — not Pi, and **not tracked** in this repo (machine-local, run
+per machine). Restart the agent session after installing.
+
+| Tool | Hook command | Injects at session start |
+| --- | --- | --- |
+| gh-axi | `gh-axi setup hooks` | current repo's open issues + PRs |
+| notion-axi | `notion-axi setup hooks` | compact Notion workspace view (recent pages/dbs) |
+| obsidian-axi | `obsidian-axi setup hooks` | vault dashboard (needs a global install) |
+| gws-axi | `gws-axi setup hooks` | authed accounts, write-protection, setup/health |
+| slack-axi | `slack-axi setup hooks` | active workspace + channel count |
+| superbee | `superbee hook install [--scope project\|user]` | bundle orientation (pulls board, renders) |
+| pg-axi | — none — | inspection tool, no hook command |
+| kubernetes-axi | `kubernetes-axi hooks install --agent all --scope project --execute` | ambient k8s context (per upstream README; clone-only, unverified) |
+
+The axi tools' own Agent Skills are separate from this repo's skills
+(`skills/common/` + `mise run deploy-skills`) and are not deployed here.
 
 ## Guiding agents to use them
 

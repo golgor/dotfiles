@@ -1,24 +1,23 @@
 # pg-axi
 
-Agent-facing PostgreSQL operations: discover, create, inspect, query, back up,
-restore, and maintain databases. Read-only/dry-run by default; mutations need
-`--execute`, destructive ops also need `--confirm <exact-name>`. Redacts
-passwords, URLs, tokens, and secret-like columns.
+A read-only PostgreSQL CLI shaped for agents: token-efficient schema summary,
+per-table detail, capped queries, name search, index stats, and query plans in
+TOON output. Connects directly and never prompts for credentials.
 
-- Source: <https://github.com/thatdudealso/pg-axi>
+- Source: <https://github.com/Abdul-Rehman6/pg-axi>
 - npm: [`pg-axi`](https://www.npmjs.com/package/pg-axi)
 - Command: `pg-axi`
 
-Unlike its sibling `kubernetes-axi`, pg-axi **is** published to npm, so it uses
-the mise npm backend like the rest.
+> **Name note:** the npm `pg-axi` is Abdul Rehman's project. It is **not** the
+> `pg-axi` in the AXI catalog (thatdudealso) — see "Alternative" below.
 
 ## Requirements
 
 - Node 20+.
-- The standard PostgreSQL client tools it shells out to: `psql`, `createdb`,
-  `dropdb`, `pg_dump`, `pg_restore`. These are **not** in the mise config; install
-  them per machine (Arch: `sudo pacman -S postgresql` for the client binaries).
-- A reachable Postgres (connection URL, host/port/user flags, or a service file).
+- A reachable PostgreSQL. Connection resolves from `--url`, then `DATABASE_URL`,
+  then `PGHOST`/`PGPORT`/`PGUSER`/`PGPASSWORD`/`PGDATABASE`. No external client
+  tools (`psql`, `pg_dump`) needed — it connects directly. Keep connection
+  secrets out of this repo.
 
 ## Install
 
@@ -31,20 +30,32 @@ Tracked via the mise npm backend:
 
 ```sh
 mise install
-pg-axi doctor       # connection + tool readiness
-pg-axi discover     # live Postgres context
+pg-axi                       # schema summary: every table, row + column counts
 ```
 
-## Connection
+## Usage
 
-Pass a URL or host/port/user/database flags, or use a Postgres service file.
-Managed Postgres (Supabase, Neon, RDS) and local Docker Compose services are
-detected. Keep connection secrets out of this repo.
+```sh
+pg-axi                            # schema summary
+pg-axi table users                # one table: columns, keys, FKs both ways, indexes
+pg-axi query "select now()"       # run SQL, capped at 20 rows (--full / --limit to widen)
+pg-axi search order               # tables/columns whose name matches
+pg-axi indexes users              # index sizes + scan counts
+pg-axi explain "select ..."       # condensed plan (--analyze to really run, rolled back)
+```
 
-## Notes
+Read-oriented: `query` is capped and there are no mutation/backup/restore
+commands. `--json` swaps TOON for JSON.
 
-- Mutations are dry-run until `--execute`; review the generated SQL first.
-  Destructive ops also require `--confirm <exact-name>`.
-- Optional ambient context: `pg-axi hooks install --agent all --scope project --execute`
-  (machine-local, not tracked here).
+## Hooks
+
+None — pg-axi has no `setup hooks` / agent-hook command.
+
+## Alternative: thatdudealso/pg-axi
+
+The AXI catalog's `pg-axi` is a different, broader project:
+<https://github.com/thatdudealso/pg-axi> — discover/plan/apply, backup/restore,
+mutation guards (`--execute` / `--confirm`), and its own `hooks install` and
+skill. It is **not published to npm** (clone-only, like `kubernetes-axi`), so it
+is not mise-tracked here. Consider it if you outgrow read-only inspection.
 </content>

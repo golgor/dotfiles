@@ -44,5 +44,8 @@ First match wins:
 
 - Writes are atomic (temp file + rename); `rm` moves to `.trash` unless `--permanent`.
 - With Obsidian Sync, save/close a note with unsaved edits before writing to it.
-- Optional ambient context: `obsidian-axi setup hooks` (machine-local, not tracked here).
+
+## Hooks
+
+`obsidian-axi setup hooks` opens each agent session with your vault dashboard as ambient context. Needs a global install (nothing stable for the hook to point at via npx). Opt-in, idempotent, machine-local (Claude Code / Codex / OpenCode); restart the agent after. Shared hook caveats: the hooks notes in this folder's `README.md`.
 </content>
