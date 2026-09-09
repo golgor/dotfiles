@@ -25,6 +25,7 @@ codex = "latest"
 fnox = "latest"
 gh = "latest"
 go = "latest"
+"github:can1357/oh-my-pi" = "latest"            # omp (Oh My Pi)
 kubectl = "latest"
 kubectx = "latest"
 kubens = "latest"

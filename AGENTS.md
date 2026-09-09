@@ -15,6 +15,7 @@ The repo's rules and guides are split by area; read the matching file before wor
 | `skills/AGENTS.md` | touching `skills/` — check vendored vs. authored first |
 | `.config/hypr/AGENTS.md` | editing Hyprland config — per-machine, branches on hostname |
 | `docs/axi/README.md` | adding, installing, or routing an AXI tool |
+| `docs/tools/README.md` | development tools and agent harness documentation |
 
 ## Workflow: PRs to main
 
