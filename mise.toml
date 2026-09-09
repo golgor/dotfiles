@@ -70,6 +70,7 @@ dotfiles.default_mode = "symlink"
 "~/.config/nvim/lua/plugins/terraform.lua" = { mode = "symlink" }
 "~/.config/nvim/plugin/after" = { mode = "symlink" }
 "~/.config/nvim/stylua.toml" = { mode = "symlink" }
+"~/.config/obsidian-axi/config.json" = { mode = "symlink" }
 "~/.config/starship.toml" = { mode = "symlink" }
 "~/.config/zed/keymap.json" = { mode = "symlink" }
 "~/.config/zed/settings.json" = { mode = "symlink" }
