@@ -7,6 +7,7 @@ FLESPI_TOKEN = { provider = "bitwarden", value = "flespi.io/My Token" }
 BAMBOO_HR_API_TOKEN = { provider = "bitwarden", value = "bamboohr.com/API" }
 GEMINI_API_KEY = { provider = "bitwarden", value = "Google (Toolsense)/Gemini API Key" }
 OPENCODE_API_KEY = { provider = "bitwarden", value = "Opencode/API Key" }
+SLACK_AXI_TOKEN = { provider = "bitwarden", value = "slack-axi/Token" }
 
 # gws-axi's OAuth client JSON is a FILE, not an env var, so it is intentionally NOT
 # a [secrets] entry (those are exported into every shell by `fnox activate`).

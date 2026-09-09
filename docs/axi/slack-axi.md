@@ -60,6 +60,21 @@ you want it, but `auth login` is the step that actually authenticates.
 Tokens live under `~/.config/slack-axi/` — machine-local, never in this repo.
 `SLACK_AXI_TOKEN` is an env alternative for headless use.
 
+## Fresh machine (restore from Bitwarden)
+
+Unlike gws-axi (whose credential is a JSON file restored by a task), slack-axi's
+credential is a **plain token**, so it lives in **fnox** as an env var — no task
+and no per-machine `auth login`. `slack-axi` reads `SLACK_AXI_TOKEN` directly.
+
+- Store the `xoxp-…` token in a Bitwarden item named `slack-axi`, in a custom
+  field named `Token`.
+- `fnox.toml` references it (value, not plaintext):
+  `SLACK_AXI_TOKEN = { provider = "bitwarden", value = "slack-axi/Token" }`.
+- On a new machine, `mise run setup-fnox` then `fs` syncs it into the env;
+  slack-axi picks up `SLACK_AXI_TOKEN` automatically. Verify with `slack-axi doctor`.
+
+The fnox manifest holds only the Bitwarden reference, never the token value.
+
 ## Notes
 
 - `slack-axi channels` lists all conversation types you belong to, including
