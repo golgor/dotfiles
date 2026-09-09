@@ -68,9 +68,9 @@ and no per-machine `auth login`. `slack-axi` reads `SLACK_AXI_TOKEN` directly.
 
 - Store the `xoxp-…` token in a Bitwarden item, in a custom field of its own
   (this setup uses item `ToolSense Slack Apps`, field `Slack-axi OAuth Token`).
-- `fnox.toml` references it by `item/field` (value, not plaintext):
+- The fnox manifest (`~/.config/fnox/config.toml`) references it by `item/field` (value, not plaintext):
   `SLACK_AXI_TOKEN = { provider = "bitwarden", value = "ToolSense Slack Apps/Slack-axi OAuth Token" }`.
-- On a new machine, `mise run setup-fnox` then `fs` syncs it into the env;
+- On a new machine, `rbw login` unlocks rbw; fnox then resolves it into the env;
   slack-axi picks up `SLACK_AXI_TOKEN` automatically. Verify with `slack-axi doctor`.
 
 The fnox manifest holds only the Bitwarden reference, never the token value.

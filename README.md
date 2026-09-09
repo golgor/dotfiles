@@ -20,7 +20,8 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 | `.config/zed/settings.json` | `~/.config/zed/settings.json` | symlink |
 | `.config/zed/keymap.json` | `~/.config/zed/keymap.json` | symlink |
 | `.config/nvim/` selected files | `~/.config/nvim/` | symlink |
-| `fnox.toml` | `~/fnox.toml` | symlink |
+| `.config/fnox/config.toml` | `~/.config/fnox/config.toml` | symlink |
+| `.config/rbw/config.json` | `~/.config/rbw/config.json` | symlink |
 | `.bash_completions.d/` | `~/.bash_completions.d/` | symlink-each |
 | `skills/common/`, `skills/claude/` | `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/` | one directory symlink per skill, via `mise run deploy-skills` (not a mise `[dotfiles]` entry) |
 
@@ -45,8 +46,9 @@ This repo's own `mise.toml` has no `[tools]` table. Its tasks run after bootstra
 - `google-cloud-cli-component-gke-gcloud-auth-plugin`
 - `cloud-sql-proxy-bin`
 - `hyprmoncfg-bin`
-- `age`
 - `rbw`
+- `rbw-pinentry-keyring`
+- `libsecret`
 
 AUR support requires a mise release that includes [jdx/mise#12718](https://github.com/jdx/mise/pull/12718). AUR packages require `yay` or `paru`; Omarchy includes `yay`.
 
@@ -95,36 +97,30 @@ mise install
 
 ## Secrets / fnox setup
 
-The repo tracks `~/fnox.toml` as a shared fnox manifest. It lists Bitwarden references only; secret values and local encrypted sync cache stay out of git.
+The repo tracks the fnox manifest at `~/.config/fnox/config.toml` and rbw's
+account config at `~/.config/rbw/config.json` (both symlinks). fnox reads its
+config from every directory, so the manifest lists Bitwarden references only —
+no plaintext values, no age key, no sync cache. Secret values resolve at runtime
+through rbw's offline vault, cached in fnox's in-memory `[daemon]`; rbw unlocks
+silently via `rbw-pinentry-keyring`, which reads the master password from the
+GNOME keyring.
 
 First-time setup on a machine:
 
 ```sh
-mise bootstrap
-mise run setup-fnox
+mise bootstrap        # installs rbw, rbw-pinentry-keyring, libsecret; links the configs
+rbw login             # one master-password prompt, then silent
 ```
 
-If `rbw unlock` fails because Bitwarden is not configured yet, run:
+`rbw login` reads the master password through `rbw-pinentry-keyring`, so it caches
+the password in the GNOME keyring on that first unlock and every later resolution
+is silent. The keyring is plaintext-on-LUKS — the same at-rest tier as the removed
+age key. The account email is already in the tracked `~/.config/rbw/config.json`;
+if the account requires API-key device registration, run `rbw register` first.
 
-```sh
-rbw config set email <your-bitwarden-email>
-rbw login
-mise run setup-fnox
-```
-
-The setup task creates machine-local files:
-
-- `~/.config/fnox/age.txt` — private age key
-- `~/.config/fnox/config.toml` — local `sync-age` provider
-- `~/fnox.local.toml` — encrypted local sync cache
-
-Normal resync after pulling a changed `fnox.toml`:
-
-```sh
-fs
-```
-
-`fs` is an alias in the tracked `.bashrc` and runs `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force`. The machine-local parts (age key, sync-age provider) are created by `mise run setup-fnox`.
+Changing a secret reference in the manifest needs no resync step; the daemon
+picks it up on the next resolution. The only machine-local rbw state is the
+device_id and encrypted vault under `~/.local/share/rbw/`.
 
 ## Agent skills
 
@@ -236,7 +232,7 @@ mise run setup-kube-contexts -- --aliases-only
 - `git/config` contains name/email. No secrets belong in this repo.
 - `~/.local/share/atuin/` contains Atuin key/session/database state and is intentionally not tracked.
 - `~/.config/herdr/` contains Herdr runtime state; only `config.toml` is tracked.
-- `~/fnox.local.toml`, `~/.config/fnox/age.txt`, and `~/.config/fnox/config.toml` are machine-local fnox state and are intentionally not tracked.
+- `~/.config/fnox/config.toml` and `~/.config/rbw/config.json` are now tracked; the only machine-local secret state is rbw's device_id and encrypted vault under `~/.local/share/rbw/`.
 - `~/.config/hypr/` is tracked as a whole directory; validate Hyprland changes with `hyprctl reload` and `hyprctl configerrors`.
 - `~/.config/nvim/lua/plugins/theme.lua` is Omarchy-managed current-theme state and is intentionally not tracked.
 - Neovim runtime/plugin state lives under `~/.local/share/nvim/`, `~/.local/state/nvim/`, and `~/.cache/nvim/`; do not track it.

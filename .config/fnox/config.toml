@@ -14,3 +14,7 @@ SLACK_AXI_TOKEN = { provider = "bitwarden", value = "ToolSense Slack Apps/Slack-
 # `mise run setup-gws-axi` restores it from the Bitwarden note "gws-axi-json"
 # (field "Secret") to ~/.config/gws-axi/credentials.json via rbw. See
 # docs/axi/gws-axi.md.
+
+[daemon]
+enabled = true
+idle_timeout = "8h"

@@ -58,15 +58,24 @@ If a portable config genuinely needs secrets, use the fnox model below rather th
 
 ## fnox secret model
 
-`fnox.toml` is the shared manifest and may be tracked because it contains Bitwarden references, not plaintext values. Treat even manifest metadata as public: secret names and Bitwarden item/field names are visible in git.
+`~/.config/fnox/config.toml` is the tracked manifest (a symlink into this repo).
+fnox always reads it regardless of the current directory, so it may be tracked:
+it holds Bitwarden *references*, not plaintext values. Treat even the manifest
+metadata as public — secret names and Bitwarden item/field names are visible in
+git. The account email in `~/.config/rbw/config.json` (also tracked) is already
+public in `.config/git/config`.
 
-Keep machine-local fnox state out of the repo:
+Values resolve at runtime through rbw's offline vault, cached in fnox's
+in-memory `[daemon]`. rbw unlocks silently via `rbw-pinentry-keyring`, which
+reads the Bitwarden master password from the GNOME keyring — no age key, no
+sync cache, no `fs`. The only machine-local state is rbw's device_id + vault
+under `~/.local/share/rbw/`.
 
-- `~/fnox.local.toml` — encrypted local sync cache
-- `~/.config/fnox/age.txt` — private age key
-- `~/.config/fnox/config.toml` — local `sync-age` provider
-
-Never print secret values in chat or logs. When inspecting shell config or fnox state, report variable names only and redact values. After changing `fnox.toml`, run `fs` or `cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force` so the local cache matches the manifest.
+Never print secret values in chat or logs. When inspecting shell config or fnox
+state, report variable names only and redact values. After changing the
+manifest, no resync step is needed; the daemon picks up new references on the
+next resolution. First-time machine setup is one `rbw login` — the keyring
+pinentry caches the master password on that first unlock.
 
 ## Mise tools: one global file, all latest
 
@@ -87,7 +96,7 @@ The global mise config is tracked: `.config/mise/config.toml` → `~/.config/mis
 
 `~/.config/hypr` is tracked as a whole directory. After Hyprland config changes, validate with `hyprctl reload` and `hyprctl configerrors`.
 
-`~/.bashrc` is tracked and public. Keep its guard convention: every `eval "$(tool ...)"` is wrapped in `command -v tool`, so a fresh machine mid-bootstrap still gets a working shell. Curl-pipe installers that append to `.bashrc` write through the symlink and show up as a repo diff — review and fold or drop the addition. The fnox block is tracked content; `setup-fnox` creates only machine-local files and never edits shell config.
+`~/.bashrc` is tracked and public. Keep its guard convention: every `eval "$(tool ...)"` is wrapped in `command -v tool`, so a fresh machine mid-bootstrap still gets a working shell. Curl-pipe installers that append to `.bashrc` write through the symlink and show up as a repo diff — review and fold or drop the addition. The fnox block is tracked content that no setup step rewrites.
 
 Before adding any new config, confirm the app does not rewrite it via temp-file-rename — that replaces the symlink with a real file and silently breaks the link. For such apps use `mode = "copy"` and re-capture edits with `dotfiles add`.
 
@@ -99,7 +108,7 @@ Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli
 
 ## Tasks: bash for glue, Python for logic
 
-A task that mostly chains host CLIs stays a bash file under `.mise/tasks/` (`setup-fnox`, `setup-kube-contexts`). A task with real logic — parsing, comparing trees, validating, anything you would want a test for — lives in the `automation/` uv project and is wired up as a one-line `[tasks]` entry in `mise.toml` calling `uv run --project automation --no-dev <command>`. Do not write a bash file whose only job is to call `uv run`. Read `automation/AGENTS.md` before working in that project; run `mise run check` before opening a PR that touches it.
+A task that mostly chains host CLIs stays a bash file under `.mise/tasks/` (`setup-gws-axi`, `setup-kube-contexts`). A task with real logic — parsing, comparing trees, validating, anything you would want a test for — lives in the `automation/` uv project and is wired up as a one-line `[tasks]` entry in `mise.toml` calling `uv run --project automation --no-dev <command>`. Do not write a bash file whose only job is to call `uv run`. Read `automation/AGENTS.md` before working in that project; run `mise run check` before opening a PR that touches it.
 
 ## Mise docs vs installed mise
 
