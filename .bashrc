@@ -122,7 +122,7 @@ fi
 # fnox loads its manifest + secrets from the tracked ~/.config/fnox/config.toml,
 # which it reads from every directory regardless of cwd. Values resolve through
 # rbw's offline vault with fnox's in-memory [daemon]; rbw unlocks silently via
-# the keyring pinentry (rbw-pinentry-keyring). Machine setup: mise run setup-rbw.
+# the keyring pinentry (rbw-pinentry-keyring), seeded by the first `rbw login`.
 if command -v fnox &>/dev/null; then
 	# fnox activate bakes its resolved versioned path, which mise deletes on
 	# upgrade, breaking every open shell. Rewrite to the stable 'latest' symlink.

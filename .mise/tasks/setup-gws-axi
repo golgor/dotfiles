@@ -47,7 +47,7 @@ esac
 account="${1:-<your-email>}"
 
 command -v gws-axi >/dev/null || { echo "error: gws-axi not installed — run: mise install" >&2; exit 1; }
-command -v rbw >/dev/null || { echo "error: rbw not installed — run: mise run setup-rbw" >&2; exit 1; }
+command -v rbw >/dev/null || { echo "error: rbw not installed — run: mise bootstrap packages apply" >&2; exit 1; }
 
 echo "Unlocking Bitwarden (rbw)..."
 rbw unlock

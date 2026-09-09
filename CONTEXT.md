@@ -53,7 +53,7 @@ this file carries the *why* and the *words*.
   of a tool not declared in the global config.
 - **manual task** — a mise task that is deliberately *not* part of
   `mise bootstrap` because it needs interactive auth, network access to a
-  third party, or mutates machine-local state: `setup-rbw`,
+  third party, or mutates machine-local state: `setup-gws-axi`,
   `setup-kube-contexts`, `update-skills`.
 - **automation** — a Python-implemented task: a subpackage of the `automation/`
   uv project with a `cli.py`, exposed as a console script and called from a
@@ -81,10 +81,6 @@ this file carries the *why* and the *words*.
 - **skills manifest** — a file in `.mise/skills/*.toml`: the upstream repo,
   optional branch, selected skill names per scope, and the locked release tag/commit.
   `update-skills` reads the selection and rewrites only the release lines.
-- **`setup-rbw`** — the manual task that prepares rbw on a new machine: it
-  verifies rbw, `rbw-pinentry-keyring`, and `secret-tool`, then runs `rbw unlock`
-  once so the keyring pinentry caches the master password in the GNOME keyring.
-  No sync step exists anymore; changing the manifest needs no follow-up command.
 
 ## Decisions
 
@@ -104,7 +100,7 @@ this file carries the *why* and the *words*.
 - **`theme.lua` is untracked.** Omarchy owns the current-theme state inside the
   otherwise-tracked Neovim config; tracking it would fight Omarchy's theme
   switching.
-- **Manual tasks stay out of bootstrap.** `setup-rbw` and
+- **Manual tasks stay out of bootstrap.** `setup-gws-axi` and
   `setup-kube-contexts` need Bitwarden/gcloud interaction and create
   machine-local secret material; `update-skills` needs GitHub and
   rewrites tracked files. They must be run knowingly, not as a bootstrap

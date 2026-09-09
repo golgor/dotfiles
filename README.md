@@ -108,22 +108,15 @@ GNOME keyring.
 First-time setup on a machine:
 
 ```sh
-mise bootstrap
-mise run setup-rbw
+mise bootstrap        # installs rbw, rbw-pinentry-keyring, libsecret; links the configs
+rbw login             # one master-password prompt, then silent
 ```
 
-`setup-rbw` verifies `rbw`, `rbw-pinentry-keyring`, and `secret-tool`, then runs
-`rbw unlock` once so the keyring pinentry caches the master password. The GNOME
-keyring is plaintext-on-LUKS — the same at-rest tier as the removed age key.
-
-If `rbw unlock` fails because this device is not registered yet, run:
-
-```sh
-rbw config set email <your-bitwarden-email>   # normally the tracked config
-rbw register
-rbw login
-mise run setup-rbw
-```
+`rbw login` reads the master password through `rbw-pinentry-keyring`, so it caches
+the password in the GNOME keyring on that first unlock and every later resolution
+is silent. The keyring is plaintext-on-LUKS — the same at-rest tier as the removed
+age key. The account email is already in the tracked `~/.config/rbw/config.json`;
+if the account requires API-key device registration, run `rbw register` first.
 
 Changing a secret reference in the manifest needs no resync step; the daemon
 picks it up on the next resolution. The only machine-local rbw state is the
