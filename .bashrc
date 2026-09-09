@@ -60,7 +60,6 @@ alias tree="eza -T -a -I .git --icons=always --color=always --group-directories-
 alias src="source ~/.bashrc"
 alias br="nvim ~/.bashrc"
 alias task="go-task"
-alias rbw-work="RBW_PROFILE=work rbw" # separate Bitwarden account, work vault
 alias pm='cd ~/Documents/ToolSense && pi --append-system-prompt ./SYSTEM.md'
 alias cq='cloud-sql-tracker'
 
@@ -120,10 +119,11 @@ if [ -d ~/.bash_completions.d ]; then
 	done
 fi
 
-# fnox: age-encrypted local cache, auto-loaded from ~/fnox.toml on every prompt.
-# Machine-local setup (age key, sync-age provider) comes from: mise run setup-fnox
+# fnox loads its manifest + secrets from the tracked ~/.config/fnox/config.toml,
+# which it reads from every directory regardless of cwd. Values resolve through
+# rbw's offline vault with fnox's in-memory [daemon]; rbw unlocks silently via
+# the keyring pinentry (rbw-pinentry-keyring). Machine setup: mise run setup-rbw.
 if command -v fnox &>/dev/null; then
-	export FNOX_AGE_KEY_FILE=~/.config/fnox/age.txt
 	# fnox activate bakes its resolved versioned path, which mise deletes on
 	# upgrade, breaking every open shell. Rewrite to the stable 'latest' symlink.
 	if fnox_activation="$(fnox activate bash)" &&
@@ -134,5 +134,3 @@ if command -v fnox &>/dev/null; then
 	fi
 	unset fnox_activation
 fi
-
-alias fs='cd ~ && rbw unlock && fnox sync --provider sync-age --local-file --force'

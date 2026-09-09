@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# Prepare rbw + the keyring pinentry for silent secret unlock on this machine.
+#
+# This task is intentionally manual, not automatic bootstrap: it may require a
+# Bitwarden login/unlock prompt and seeds machine-local secret material (the
+# master password in the GNOME keyring).
+
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage: mise run setup-rbw [-- --no-unlock]
+
+Prepare rbw for this machine so fnox resolves secrets silently.
+
+What this does:
+  - verifies rbw, rbw-pinentry-keyring, and secret-tool are installed
+  - runs `rbw unlock` ONCE so rbw-pinentry-keyring stores the Bitwarden master
+    password in the GNOME keyring on the first miss
+
+It does NOT run `rbw config set`: the pinentry choice lives in the tracked
+~/.config/rbw/config.json (pinentry = "rbw-pinentry-keyring"), which mise links
+into place. The fnox manifest + [daemon] live in the tracked
+~/.config/fnox/config.toml; there is no age key and no sync cache anymore.
+
+Security note: the master password is cached in the GNOME keyring, which on this
+machine is plaintext-on-LUKS — the same at-rest tier as the age key this model
+replaced. See docs/rbw-fnox-research.md.
+
+Machine-local rbw state (never tracked):
+  - ~/.local/share/rbw/ — device_id and the encrypted offline vault
+
+If `rbw unlock` fails because this device is not registered yet, run:
+  rbw config set email <your-bitwarden-email>   # normally the tracked config
+  rbw register
+  rbw login
+Then rerun: mise run setup-rbw
+
+Options:
+  --no-unlock  Verify prerequisites only; do not unlock rbw or seed the keyring
+  -h, --help   Show this help
+USAGE
+}
+
+do_unlock=true
+
+for arg in "$@"; do
+  case "$arg" in
+    --no-unlock) do_unlock=false ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $arg" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Missing required command: $1" >&2
+    echo "Install bootstrap dependencies first: mise bootstrap packages apply" >&2
+    exit 1
+  fi
+}
+
+require_command rbw
+require_command rbw-pinentry-keyring
+require_command secret-tool
+
+if [[ "$do_unlock" == false ]]; then
+  echo "Prerequisites present. Skipped unlock (--no-unlock)."
+  exit 0
+fi
+
+echo "Unlocking rbw (rbw-pinentry-keyring seeds the GNOME keyring on first miss)..."
+if ! rbw unlock; then
+  echo "rbw unlock failed." >&2
+  echo "If this device is not registered yet, run:" >&2
+  echo "  rbw config set email <your-bitwarden-email>   # normally the tracked config" >&2
+  echo "  rbw register" >&2
+  echo "  rbw login" >&2
+  echo "Then rerun: mise run setup-rbw" >&2
+  exit 1
+fi
+
+echo "rbw unlocked. The master password is now cached in the GNOME keyring"
+echo "(plaintext-on-LUKS); future shells resolve fnox secrets without a prompt."

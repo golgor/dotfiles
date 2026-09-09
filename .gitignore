@@ -1,9 +1,6 @@
 # Local session handoff — context only, not shared
 /HANDOFF.md
 
-# fnox machine-local encrypted sync cache; ~/fnox.toml is the tracked manifest.
-/fnox.local.toml
-
 # hyprmoncfg's generated live monitor config — machine-specific, rewritten by the
 # daemon on apply. The profiles under .config/hyprmoncfg/profiles/ are tracked.
 /.config/hypr/hyprmoncfg-monitors.lua

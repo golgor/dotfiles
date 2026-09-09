@@ -15,8 +15,11 @@
 # Hyprland monitor profile manager + daemon.
 "aur:hyprmoncfg-bin" = "latest"
 # fnox prerequisites.
-"pacman:age" = "latest"
 "pacman:rbw" = "latest"
+# rbw silent-unlock via keyring: rbw-pinentry-keyring reads the master password
+# from the GNOME keyring; libsecret provides secret-tool.
+"aur:rbw-pinentry-keyring" = "latest"
+"pacman:libsecret" = "latest"
 
 # Python-backed tasks; see automation/pyproject.toml. Bash-native ones live as files under .mise/tasks/.
 # Takes an optional manifest name: `mise run update-skills mattpocock` updates only that one.
@@ -47,6 +50,9 @@ dotfiles.default_mode = "symlink"
 # aube is mise's npm backend engine; this file allowlists niche AXI CLIs past
 # aube's low-download gate. See docs/axi/README.md.
 "~/.config/aube/config.toml" = { mode = "symlink" }
+# fnox secret manifest + daemon config; machine-agnostic since the age cache
+# was dropped (see docs/rbw-fnox-research.md), so it is tracked like any config.
+"~/.config/fnox/config.toml" = { mode = "symlink" }
 "~/.config/git/config" = { mode = "symlink" }
 "~/.config/herdr/config.toml" = { mode = "symlink" }
 "~/.config/hypr" = { mode = "symlink" }
@@ -71,10 +77,11 @@ dotfiles.default_mode = "symlink"
 "~/.config/nvim/plugin/after" = { mode = "symlink" }
 "~/.config/nvim/stylua.toml" = { mode = "symlink" }
 "~/.config/obsidian-axi/config.json" = { mode = "symlink" }
+# rbw's declarative account config; device_id + vault live in ~/.local/share/rbw.
+"~/.config/rbw/config.json" = { mode = "symlink" }
 "~/.config/starship.toml" = { mode = "symlink" }
 "~/.config/zed/keymap.json" = { mode = "symlink" }
 "~/.config/zed/settings.json" = { mode = "symlink" }
-"~/fnox.toml" = { mode = "symlink" }
 
 # One global append prompt for Pi and OMP; see docs/tools/omp.md.
 "~/.pi/agent/APPEND_SYSTEM.md" = { source = ".pi/agent/APPEND_SYSTEM.md", mode = "symlink" }
