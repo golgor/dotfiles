@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+# Restore gws-axi's OAuth client on this machine from Bitwarden and join it, so a
+# fresh machine skips the manual multi-step Console setup. The final browser login
+# (token acquisition) stays manual — OAuth consent cannot be scripted.
+#
+# This restores an EXISTING client. To create one from scratch (new company / new
+# Google org), follow the full flow in docs/axi/gws-axi.md instead.
+
+set -euo pipefail
+
+BW_ITEM="gws-axi-json"                 # Bitwarden note holding the OAuth client JSON
+BW_FIELD="Secret"                      # field on that note with the JSON content
+CRED_DIR="$HOME/.config/gws-axi"
+CRED_FILE="$CRED_DIR/credentials.json"
+
+usage() {
+  cat <<'USAGE'
+Usage: mise run setup-gws-axi [-- <account-email>]
+
+Restore gws-axi's OAuth client on this machine from Bitwarden, then join it.
+
+What this does:
+  - verifies gws-axi and rbw are installed
+  - unlocks Bitwarden (rbw unlock)
+  - writes ~/.config/gws-axi/credentials.json (chmod 600) from the Bitwarden note
+    "gws-axi-json", field "Secret"
+  - runs: gws-axi auth join ~/.config/gws-axi/credentials.json --published
+
+Still manual afterwards (browser OAuth cannot be scripted):
+  gws-axi auth login --account <email>
+
+The OAuth client JSON is a secret; it lives in Bitwarden and in
+~/.config/gws-axi/, never in this repo. --published assumes the consent screen is
+Internal or already published (permanent tokens); drop it if the client is
+External + Testing.
+
+Options:
+  -h, --help  Show this help
+USAGE
+}
+
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+esac
+
+account="${1:-<your-email>}"
+
+command -v gws-axi >/dev/null || { echo "error: gws-axi not installed — run: mise install" >&2; exit 1; }
+command -v rbw >/dev/null || { echo "error: rbw not installed — run: mise run setup-fnox" >&2; exit 1; }
+
+echo "Unlocking Bitwarden (rbw)..."
+rbw unlock
+
+echo "Writing $CRED_FILE from Bitwarden note '$BW_ITEM' (field '$BW_FIELD')..."
+mkdir -p "$CRED_DIR"
+umask 077
+rbw get "$BW_ITEM" --field "$BW_FIELD" >"$CRED_FILE"
+chmod 600 "$CRED_FILE"
+
+python3 -c "import json; json.load(open('$CRED_FILE'))" \
+  || { echo "error: restored credentials.json is not valid JSON" >&2; exit 1; }
+
+echo "Joining the shared OAuth client..."
+gws-axi auth join "$CRED_FILE" --published
+
+echo
+echo "Done. Final step (manual — opens a browser):"
+echo "  gws-axi auth login --account ${account}"

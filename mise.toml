@@ -44,6 +44,9 @@ dotfiles.default_mode = "symlink"
 # Whole-file symlinks. Source is inferred as ~/.dotfiles/<home-relative-path>.
 "~/.bashrc" = { mode = "symlink" }
 "~/.config/atuin/config.toml" = { mode = "symlink" }
+# aube is mise's npm backend engine; this file allowlists niche AXI CLIs past
+# aube's low-download gate. See docs/axi/README.md.
+"~/.config/aube/config.toml" = { mode = "symlink" }
 "~/.config/git/config" = { mode = "symlink" }
 "~/.config/herdr/config.toml" = { mode = "symlink" }
 "~/.config/hypr" = { mode = "symlink" }
@@ -67,6 +70,7 @@ dotfiles.default_mode = "symlink"
 "~/.config/nvim/lua/plugins/terraform.lua" = { mode = "symlink" }
 "~/.config/nvim/plugin/after" = { mode = "symlink" }
 "~/.config/nvim/stylua.toml" = { mode = "symlink" }
+"~/.config/obsidian-axi/config.json" = { mode = "symlink" }
 "~/.config/starship.toml" = { mode = "symlink" }
 "~/.config/zed/keymap.json" = { mode = "symlink" }
 "~/.config/zed/settings.json" = { mode = "symlink" }

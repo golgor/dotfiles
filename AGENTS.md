@@ -4,6 +4,18 @@ Personal dotfiles for golgor's Omarchy/Arch machines (work laptop + stationary),
 
 Entries live in `mise.toml` under `[dotfiles]`; this file carries the conventions that config cannot show you. `CONTEXT.md` carries the glossary, decision record, and non-goals — read it before questioning terminology or re-litigating a scope decision.
 
+## Governance map
+
+The repo's rules and guides are split by area; read the matching file before working in that area. Keep this map current when one is added or removed.
+
+| File | Read before |
+| --- | --- |
+| `AGENTS.md` (this file) | the symlink/PR model, mise tools, secrets, or any repo-wide convention |
+| `automation/AGENTS.md` | writing or changing the Python uv tasks — run `mise run check` |
+| `skills/AGENTS.md` | touching `skills/` — check vendored vs. authored first |
+| `.config/hypr/AGENTS.md` | editing Hyprland config — per-machine, branches on hostname |
+| `docs/axi/README.md` | adding, installing, or routing an AXI tool |
+
 ## Workflow: PRs to main
 
 `main` is protected: no direct pushes, no force pushes. Make changes on a branch and open a PR, even for small edits. Remember the symlink model when reviewing: a checked-out branch is already live on this machine.
