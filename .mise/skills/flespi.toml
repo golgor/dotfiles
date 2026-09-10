@@ -1,0 +1,17 @@
+# Skills vendored from https://github.com/flespi-software/skills into skills/.
+#
+# Edit the selection lists by hand, then run `mise run update-skills flespi`.
+# The task rewrites only the commit line under [release]; everything else in
+# this file is yours. Vendored skill directories are immutable snapshots: to
+# customise one, copy it to a new name outside these lists.
+#
+# Upstream publishes no releases or tags, so this tracks the default branch.
+
+repo = "flespi-software/skills"
+branch = "master"
+
+[release]
+commit = "8460f4eefd5fa9be00221cbae5404a13fa32cc3a"
+
+[scopes]
+common = ["flespi"]
