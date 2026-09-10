@@ -1,18 +1,23 @@
 Favor clear, simple, readable solutions.
 
-## Agent-native CLIs
+## Agent-native CLIs (AXI)
 
-Prefer these agent-native CLIs over MCP servers or raw CLIs:
+These replace the tool you would otherwise reach for:
 
-- `gh-axi` for GitHub
-- `obsidian-axi` for Obsidian vaults
-- `notion-axi` for Notion
-- `gws-axi` for Google Workspace (Gmail, Calendar, Docs, Drive, Slides, Sheets)
-- `slack-axi` for Slack
-- `pg-axi` for PostgreSQL
-- `superbee` for cross-session agent memory
+- `gh-axi` — GitHub; instead of `gh`, the API, or web fetches
+- `pg-axi` — PostgreSQL; instead of `psql`
+- `obsidian-axi` — Obsidian vault; instead of read/grep over the vault
+- `notion-axi` — Notion
+- `slack-axi` — Slack
+- `gws-axi` — Gmail, Calendar, Docs, Drive, Slides, Sheets
+- `superbee` — cross-session agent memory
 
-Run bare `<tool>` for live state or `<tool> --help` for the command surface.
+All share one contract, so skip the help crawl and run the command:
+
+- Bare `<tool>` prints live state plus `help[N]:` next-step commands; `<tool> <command> --help` only when those don't cover it.
+- Output is TOON: `items[N]{a,b,c}:` header, one CSV row per item. `count: 30 of 847 total` is the full count.
+- `... (truncated, N chars total)` means re-run with `--full`. Cells are capped too; `--fields a,b` widens a list.
+- Errors come on stdout with a fix command; exit 2 = your flag was wrong, 0 = done (including no-op mutations). Flags go after the command. Nothing prompts.
 
 Core principles:
 - Beautiful is better than ugly.
