@@ -12,7 +12,7 @@ The repo's rules and guides are split by area; read the matching file before wor
 | --- | --- |
 | `AGENTS.md` (this file) | the symlink/PR model, mise tools, secrets, or any repo-wide convention |
 | `automation/AGENTS.md` | writing or changing the Python uv tasks — run `mise run check` |
-| `skills/AGENTS.md` | touching `skills/` — check vendored vs. authored first |
+| `skills/AGENTS.md` | touching `skills/`, or vendoring a skill from a new upstream repo — check vendored vs. authored first |
 | `.config/hypr/AGENTS.md` | editing Hyprland config — per-machine, branches on hostname |
 | `docs/axi/README.md` | adding, installing, or routing an AXI tool |
 | `docs/tools/README.md` | development tools and agent harness documentation |
