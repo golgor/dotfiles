@@ -54,6 +54,10 @@ prompt rather than extending it.
 
 All shared dotfiles skills deployed by `mise run deploy-skills` work out of the box in `omp`.
 
+## Marketplace plugins
+
+Plugins installed with `omp plugin ...` (e.g. ponytail): setup, gotchas, and why non-native plugins still load — [omp-plugins.md](omp-plugins.md).
+
 ## Key Features & Differences from Upstream Pi
 
 - **Integrated LSP**: 14 built-in LSP ops wired into edits and renames (`workspace/willRenameFiles`).
