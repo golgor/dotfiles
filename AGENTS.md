@@ -4,6 +4,8 @@ Personal dotfiles for golgor's Omarchy/Arch machines (work laptop + stationary),
 
 Entries live in `mise.toml` under `[dotfiles]`; this file carries the conventions that config cannot show you. `CONTEXT.md` carries the glossary, decision record, and non-goals — read it before questioning terminology or re-litigating a scope decision.
 
+OMP skips a standalone `AGENTS.md` whose parent directory starts with a dot, and this repo is `~/.dotfiles`. `.omp/AGENTS.md` (one line, `@../AGENTS.md`) is what actually gets this file into a session; keep the content here.
+
 ## Governance map
 
 The repo's rules and guides are split by area; read the matching file before working in that area. Keep this map current when one is added or removed.
