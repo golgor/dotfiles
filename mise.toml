@@ -21,6 +21,23 @@
 "aur:rbw-pinentry-keyring" = "latest"
 "pacman:libsecret" = "latest"
 
+# systemd user oneshot that unlocks the rbw vault at login, before the first
+# terminal's fnox hook resolves secrets. Without it the first shell after a cold
+# boot races a still-cold rbw-agent and fnox silently drops the secrets that lose
+# the unlock (e.g. unset $SLACK_AXI_TOKEN). mise writes the unit file, enables it
+# (wanted_by) and starts it (start), so `mise bootstrap` sets it up on any machine
+# with no manual `systemctl --user enable`. Unlock is silent because the
+# passwordless login keyring is already open. See docs/rbw-fnox-research.md.
+[bootstrap.linux.systemd.units.rbw-unlock]
+description = "Unlock the rbw (Bitwarden) vault at login"
+exec_start = "/usr/bin/rbw unlock"
+type = "oneshot"
+remain_after_exit = true
+timeout_start_sec = "30"
+after = ["graphical-session.target"]
+wanted_by = ["graphical-session.target"]
+start = true
+
 # Python-backed tasks; see automation/pyproject.toml. Bash-native ones live as files under .mise/tasks/.
 # Takes an optional manifest name: `mise run update-skills mattpocock` updates only that one.
 [tasks.update-skills]
