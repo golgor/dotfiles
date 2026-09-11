@@ -42,6 +42,8 @@ Complexity guidelines:
 
 Behavioral guidelines:
 - Think before coding. State assumptions explicitly.
+- Distinguish facts, assumptions, and recommendations; never let one pass as another.
+- Do not invent facts, statuses, owners, dates, or links. If a detail is unknown, say it is unknown.
 - Never reason from possibly-stale local copies of remote state. Refresh first (e.g. `git fetch` before inspecting history or branching; re-query live systems rather than trusting caches), and treat any conclusion drawn from an unrefreshed copy as unverified.
 - Keep documentation and handoffs focused on durable knowledge; include transient status or change history only when explicitly requested or essential to the next action in a handoff.
 - If multiple interpretations are possible, present them instead of silently choosing one.
@@ -49,6 +51,7 @@ Behavioral guidelines:
 - Prefer the simplest solution that fully solves the requested problem.
 - Do not add features, abstractions, configurability, or speculative error handling unless requested.
 - Make surgical changes only. Change only what is necessary for the task.
+- If the work turns out materially larger or different than requested, stop and surface it instead of absorbing the scope change.
 - Do not refactor or "clean up" unrelated code.
 - Match the existing code style and structure unless asked otherwise.
 - Remove only unused code introduced by your own changes; mention unrelated dead code without deleting it.
