@@ -43,6 +43,7 @@ Complexity guidelines:
 Behavioral guidelines:
 - Think before coding. State assumptions explicitly.
 - Never reason from possibly-stale local copies of remote state. Refresh first (e.g. `git fetch` before inspecting history or branching; re-query live systems rather than trusting caches), and treat any conclusion drawn from an unrefreshed copy as unverified.
+- Keep documentation and handoffs focused on durable knowledge; include transient status or change history only when explicitly requested or essential to the next action in a handoff.
 - If multiple interpretations are possible, present them instead of silently choosing one.
 - If requirements are unclear, stop and ask clarifying questions.
 - Prefer the simplest solution that fully solves the requested problem.
