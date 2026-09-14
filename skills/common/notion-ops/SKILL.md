@@ -14,7 +14,7 @@ Check rendering conventions against the current command documentation and the re
 ## Routes
 
 Read `~/.config/notion-axi/routes.toml` for canonical database and template IDs.
-If `routes.toml` is missing, run `mise run setup-notion-routes` to restore it from Bitwarden.
+If `routes.toml` is missing, run `mise -C ~/.dotfiles run setup-notion-routes` to restore it from Bitwarden.
 
 The file defines table sections for each supported route:
 - `[projects]`: contains `database_id`, `data_source_id`, `template_id`, `template_name`
