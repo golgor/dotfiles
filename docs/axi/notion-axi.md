@@ -60,7 +60,7 @@ notion-axi          # recently edited pages & databases
 Restore routes from Bitwarden (`Notion` item Notes field):
 
 ```sh
-mise run setup-notion-routes
+mise -C ~/.dotfiles run setup-notion-routes
 ```
 
 ## Hooks

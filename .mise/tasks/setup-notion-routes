@@ -18,9 +18,9 @@ Restore Notion database and template routes on this machine from Bitwarden.
 What this does:
   - verifies rbw is installed
   - unlocks Bitwarden (rbw unlock)
-  - writes ~/.config/notion-axi/routes.toml (chmod 600) from the Bitwarden item
-    "notion.so", field "notes"
-  - validates that the output is valid TOML
+  - fetches routes from Bitwarden item "Notion" (field "notes")
+  - validates TOML syntax, required tables ([projects], [tasks]), and route keys in a temporary file
+  - atomically installs ~/.config/notion-axi/routes.toml (chmod 600) only after validation succeeds
 
 Options:
   -h, --help  Show this help
@@ -36,9 +36,8 @@ command -v rbw >/dev/null || { echo "error: rbw not installed — run: mise boot
 echo "Unlocking Bitwarden (rbw)..."
 rbw unlock
 
-echo "Writing $DEST_FILE from Bitwarden item '$BW_ITEM' (field 'notes')..."
+echo "Fetching routes from Bitwarden item '$BW_ITEM' (field 'notes')..."
 mkdir -p "$DEST_DIR"
-umask 077
 content="$(rbw get "$BW_ITEM" --field notes)"
 
 if [[ -z "${content//[[:space:]]/}" ]]; then
@@ -47,10 +46,34 @@ if [[ -z "${content//[[:space:]]/}" ]]; then
   exit 1
 fi
 
-printf '%s\n' "$content" > "$DEST_FILE"
-chmod 600 "$DEST_FILE"
+TMP_FILE="$(mktemp "${DEST_DIR}/routes.toml.tmp.XXXXXX")"
+trap 'rm -f "$TMP_FILE"' EXIT
 
-python3 -c "import tomllib; tomllib.load(open('$DEST_FILE', 'rb'))" \
-  || { echo "error: restored routes.toml is not valid TOML" >&2; exit 1; }
+chmod 600 "$TMP_FILE"
+printf '%s\n' "$content" > "$TMP_FILE"
 
-echo "Done. Notion routes restored to $DEST_FILE."
+python3 - <<'PY' "$TMP_FILE"
+import sys, tomllib
+
+try:
+    with open(sys.argv[1], "rb") as f:
+        data = tomllib.load(f)
+except Exception as e:
+    sys.exit(f"error: restored routes configuration is not valid TOML: {e}")
+
+required_tables = ["projects", "tasks"]
+required_keys = ["database_id", "data_source_id", "template_id"]
+
+for table in required_tables:
+    if table not in data or not isinstance(data[table], dict):
+        sys.exit(f"error: routes configuration is missing [{table}] section")
+    for key in required_keys:
+        val = data[table].get(key)
+        if not val or not isinstance(val, str) or not val.strip():
+            sys.exit(f"error: [{table}] is missing or has empty required key '{key}'")
+PY
+
+mv -f "$TMP_FILE" "$DEST_FILE"
+trap - EXIT
+
+echo "Done. Notion routes verified and restored to $DEST_FILE."
