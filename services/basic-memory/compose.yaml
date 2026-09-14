@@ -1,0 +1,35 @@
+name: basic-memory
+
+services:
+  init-state:
+    image: ghcr.io/basicmachines-co/basic-memory:0.23.2
+    user: "0:0"
+    entrypoint: ["chown", "1000:1000", "/state"]
+    volumes:
+      - basic-memory-state:/state
+
+  basic-memory:
+    depends_on:
+      init-state:
+        condition: service_completed_successfully
+    image: ghcr.io/basicmachines-co/basic-memory:0.23.2
+    command:
+      - basic-memory
+      - mcp
+      - --transport
+      - streamable-http
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - basic-memory-state:/home/appuser/.basic-memory
+      - ./config.json:/home/appuser/.basic-memory/config.json
+      - ./bmignore:/home/appuser/.basic-memory/.bmignore:ro
+      - ${HOME}/Documents/ToolSense/KB:/app/data/KB
+    restart: unless-stopped
+
+volumes:
+  basic-memory-state:

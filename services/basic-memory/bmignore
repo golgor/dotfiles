@@ -1,0 +1,20 @@
+# Hidden files, local state, and temporary files.
+.*
+*.db
+*.db-shm
+*.db-wal
+config.json
+__pycache__
+node_modules
+*.tmp
+*.swp
+*.swo
+*~
+
+# Navigation and scaffolding. Keep AGENTS.md, _tasks/, and _schemas/ indexed.
+README.md
+90_templates/
+00_input/
+
+# Relative to each project root: research is indexed only in its own project.
+20_research/

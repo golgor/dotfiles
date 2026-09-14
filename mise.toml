@@ -77,6 +77,7 @@ dotfiles.default_mode = "symlink"
 # ~/.config/hypr/hyprmoncfg-monitors.lua stays machine-local (see .gitignore).
 # Each machine auto-applies the saved profile matching its connected monitors.
 "~/.config/hyprmoncfg/profiles" = { mode = "symlink" }
+"~/.config/mcp/mcp.json" = { mode = "symlink" }
 "~/.config/mise/config.toml" = { mode = "symlink" }
 
 # Neovim config. Do not track lua/plugins/theme.lua; Omarchy owns the current-theme symlink.
@@ -103,6 +104,12 @@ dotfiles.default_mode = "symlink"
 # One global append prompt for Pi and OMP; see docs/tools/omp.md.
 "~/.pi/agent/APPEND_SYSTEM.md" = { source = ".pi/agent/APPEND_SYSTEM.md", mode = "symlink" }
 "~/.omp/agent/APPEND_SYSTEM.md" = { source = ".pi/agent/APPEND_SYSTEM.md", mode = "symlink" }
+
+# Shared review prompts; each harness keeps its own discovery directory.
+"~/.pi/agent/prompts/agent-review.md" = { source = ".pi/agent/prompts/agent-review.md", mode = "symlink" }
+"~/.omp/agent/prompts/agent-review.md" = { source = ".pi/agent/prompts/agent-review.md", mode = "symlink" }
+"~/.pi/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
+"~/.omp/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
 
 # Agent skills are not projected by mise: `mise run deploy-skills` (the Python automation)
 # owns those symlinks so it can give Codex the directory symlinks its loader requires.
