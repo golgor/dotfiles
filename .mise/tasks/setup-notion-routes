@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# Restore Notion database and template routes on this machine from Bitwarden,
+# so fresh machines or new workspaces don't need manual path configuration.
+
+set -euo pipefail
+
+BW_ITEM="Notion"
+DEST_DIR="$HOME/.config/notion-axi"
+DEST_FILE="$DEST_DIR/routes.toml"
+
+usage() {
+  cat <<'USAGE'
+Usage: mise run setup-notion-routes
+
+Restore Notion database and template routes on this machine from Bitwarden.
+
+What this does:
+  - verifies rbw is installed
+  - unlocks Bitwarden (rbw unlock)
+  - writes ~/.config/notion-axi/routes.toml (chmod 600) from the Bitwarden item
+    "notion.so", field "notes"
+  - validates that the output is valid TOML
+
+Options:
+  -h, --help  Show this help
+USAGE
+}
+
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+esac
+
+command -v rbw >/dev/null || { echo "error: rbw not installed — run: mise bootstrap packages apply" >&2; exit 1; }
+
+echo "Unlocking Bitwarden (rbw)..."
+rbw unlock
+
+echo "Writing $DEST_FILE from Bitwarden item '$BW_ITEM' (field 'notes')..."
+mkdir -p "$DEST_DIR"
+umask 077
+content="$(rbw get "$BW_ITEM" --field notes)"
+
+if [[ -z "${content//[[:space:]]/}" ]]; then
+  echo "error: notes field in Bitwarden item '$BW_ITEM' is empty" >&2
+  echo "Add the routes.toml configuration into the Notes field of '$BW_ITEM' in Bitwarden, then rerun." >&2
+  exit 1
+fi
+
+printf '%s\n' "$content" > "$DEST_FILE"
+chmod 600 "$DEST_FILE"
+
+python3 -c "import tomllib; tomllib.load(open('$DEST_FILE', 'rb'))" \
+  || { echo "error: restored routes.toml is not valid TOML" >&2; exit 1; }
+
+echo "Done. Notion routes restored to $DEST_FILE."

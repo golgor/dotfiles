@@ -54,7 +54,7 @@ this file carries the *why* and the *words*.
 - **manual task** — a mise task that is deliberately *not* part of
   `mise bootstrap` because it needs interactive auth, network access to a
   third party, or mutates machine-local state: `setup-gws-axi`,
-  `setup-kube-contexts`, `update-skills`.
+  `setup-kube-contexts`, `setup-notion-routes`, `update-skills`.
 - **automation** — a Python-implemented task: a subpackage of the `automation/`
   uv project with a `cli.py`, exposed as a console script and called from a
   `[tasks]` entry in `mise.toml`. Contrast: bash file tasks under
@@ -100,11 +100,11 @@ this file carries the *why* and the *words*.
 - **`theme.lua` is untracked.** Omarchy owns the current-theme state inside the
   otherwise-tracked Neovim config; tracking it would fight Omarchy's theme
   switching.
-- **Manual tasks stay out of bootstrap.** `setup-gws-axi` and
-  `setup-kube-contexts` need Bitwarden/gcloud interaction and create
-  machine-local secret material; `update-skills` needs GitHub and
-  rewrites tracked files. They must be run knowingly, not as a bootstrap
-  side effect.
+- **Manual tasks stay out of bootstrap.** `setup-gws-axi`,
+  `setup-kube-contexts`, and `setup-notion-routes` need Bitwarden/gcloud
+  interaction and create machine-local secret/config material; `update-skills`
+  needs GitHub and rewrites tracked files. They must be run knowingly, not as
+  a bootstrap side effect.
 - **fnox config is tracked; only rbw's vault is machine-local.** Dropping the
   age sync cache — redundant beside rbw's own encrypted offline vault — made the
   fnox manifest fully machine-agnostic, so `~/.config/fnox/config.toml` and rbw's

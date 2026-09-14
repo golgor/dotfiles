@@ -110,7 +110,7 @@ Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli
 
 ## Tasks: bash for glue, Python for logic
 
-A task that mostly chains host CLIs stays a bash file under `.mise/tasks/` (`setup-gws-axi`, `setup-kube-contexts`). A task with real logic — parsing, comparing trees, validating, anything you would want a test for — lives in the `automation/` uv project and is wired up as a one-line `[tasks]` entry in `mise.toml` calling `uv run --project automation --no-dev <command>`. Do not write a bash file whose only job is to call `uv run`. Read `automation/AGENTS.md` before working in that project; run `mise run check` before opening a PR that touches it.
+A task that mostly chains host CLIs stays a bash file under `.mise/tasks/` (`setup-gws-axi`, `setup-kube-contexts`, `setup-notion-routes`). A task with real logic — parsing, comparing trees, validating, anything you would want a test for — lives in the `automation/` uv project and is wired up as a one-line `[tasks]` entry in `mise.toml` calling `uv run --project automation --no-dev <command>`. Do not write a bash file whose only job is to call `uv run`. Read `automation/AGENTS.md` before working in that project; run `mise run check` before opening a PR that touches it.
 
 ## Mise docs vs installed mise
 

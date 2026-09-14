@@ -54,6 +54,15 @@ notion-axi          # recently edited pages & databases
 
 - Listing workspace users needs elevated permissions; `notion-axi users` is often `RESTRICTED_RESOURCE`.
 
+## Routes
+
+`notion-ops` reads database and template routes from `~/.config/notion-axi/routes.toml`.
+Restore routes from Bitwarden (`Notion` item Notes field):
+
+```sh
+mise run setup-notion-routes
+```
+
 ## Hooks
 
 `notion-axi setup hooks` loads a compact Notion workspace view (recently edited pages and databases) at the start of each agent session. Opt-in, idempotent, machine-local (Claude Code / Codex / OpenCode); restart the agent after. Shared hook caveats: the hooks notes in this folder's `README.md`.
