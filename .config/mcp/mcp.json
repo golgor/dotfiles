@@ -1,7 +1,37 @@
 {
   "mcpServers": {
     "basic-memory": {
-      "url": "http://127.0.0.1:8000/mcp"
+      "type": "http",
+      "url": "http://127.0.0.1:8000/mcp",
+      "auth": false
+    },
+    "toolsense-docs": {
+      "type": "http",
+      "url": "https://api.iot.toolsense.io/mcp/documentation",
+      "oauth": {
+        "clientId": "toolsense-mcp"
+      }
+    },
+    "toolsense-erpnext": {
+      "type": "http",
+      "url": "https://api.iot.toolsense.io/mcp/erpnext",
+      "oauth": {
+        "clientId": "toolsense-mcp"
+      }
+    },
+    "backstage": {
+      "type": "http",
+      "url": "https://backstage.iot.toolsense.io/api/mcp-actions/v1",
+      "headers": {
+        "Authorization": "Bearer ${BACKSTAGE_MCP_TOKEN}"
+      }
+    },
+    "flespi": {
+      "type": "http",
+      "url": "https://flespi.io/ai/mcp/support",
+      "headers": {
+        "Authorization": "FlespiToken ${FLESPI_TOKEN}"
+      }
     }
   }
 }
