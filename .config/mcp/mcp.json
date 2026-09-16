@@ -12,6 +12,13 @@
         "clientId": "toolsense-mcp"
       }
     },
+    "iot-mcp-erpnext": {
+      "type": "http",
+      "url": "https://api.iot.toolsense.io/mcp/erpnext",
+      "oauth": {
+        "clientId": "toolsense-mcp"
+      }
+    },
     "backstage": {
       "type": "http",
       "url": "https://backstage.iot.toolsense.io/api/mcp-actions/v1",
