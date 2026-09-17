@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Launched from Hyprland (hypr/autostart.lua), host-gated to golgor-framework.
+# Slack otherwise starts the instant the session begins -- before NetworkManager
+# connects ("could not connect/authenticate") and before the USB-C monitor is
+# detected (Slack lands on the laptop screen). Wait for both, with timeouts so an
+# offline or undocked boot still launches Slack.
+set -euo pipefail
+
+# Wait up to 60s for network connectivity (NetworkManager).
+nm-online -q -t 60 || true
+
+# Wait up to 20s for any external monitor (any output other than the built-in
+# eDP-1). No-op when undocked: the loop simply times out and Slack still starts.
+for _ in $(seq 1 20); do
+	if hyprctl monitors | grep '^Monitor ' | grep -qv '^Monitor eDP-1 '; then
+		break
+	fi
+	sleep 1
+done
+
+exec /usr/bin/slack --gtk-version=3 -s
