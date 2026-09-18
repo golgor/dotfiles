@@ -7,7 +7,6 @@ Documentation for key development tools, CLIs, and coding agent harnesses config
 | Tool | Binary | Backend | Config / Notes | Doc |
 | --- | --- | --- | --- | --- |
 | Oh My Pi | `omp` | `github:can1357/oh-my-pi` | `~/.omp/` (global), `.omp/` (project) | [omp.md](omp.md) |
-| Claude Code plugins | `claude plugin` | machine-local plugin store | install per machine; not managed by mise | [claude-plugins.md](claude-plugins.md) |
 
 ## Notes
 
