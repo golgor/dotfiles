@@ -1,0 +1,20 @@
+# Skill vendored from https://github.com/grafana/gcx (claude-plugin/skills/gcx) into skills/.
+#
+# Edit the selection list by hand, then run `mise run update-skills gcx`. The task
+# rewrites only the tag/commit lines under [release]; everything else here is yours.
+# Vendored skill directories are immutable snapshots of the recorded release: to
+# customise one, copy it to a new name outside these lists and let the updater keep
+# the original.
+#
+# The updater finds SKILL.md anywhere in the repo (recursive), so the skill living
+# under claude-plugin/skills/ rather than a top-level skills/ dir is fine. Only "gcx"
+# is selected; the rest of gcx's bundle is reported as unselected and left alone.
+
+repo = "grafana/gcx"
+
+[release]
+tag = "v1.3.0"
+commit = "2c086395f972f59d12c35b2fb7d69f174a4f26bd"
+
+[scopes]
+common = ["gcx"]
