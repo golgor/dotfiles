@@ -32,7 +32,6 @@ kubens = "latest"
 node = "latest"
 "npm:@andershoffmann/obsidian-axi" = "latest"  # obsidian-axi; see docs/axi/obsidian-axi.md
 "npm:@earendil-works/pi-coding-agent" = "latest"  # https://github.com/earendil-works
-"npm:fast-jev-compaction" = "latest"  # see https://console.typesafe.ai/home
 "npm:gh-axi" = "latest"  # see docs/axi/gh-axi.md
 "npm:gws-axi" = "latest"  # see docs/axi/gws-axi.md
 "npm:notion-axi" = "latest"  # see docs/axi/notion-axi.md
