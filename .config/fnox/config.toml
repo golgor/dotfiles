@@ -9,6 +9,10 @@ GEMINI_API_KEY = { provider = "bitwarden", value = "Google (Toolsense)/Gemini AP
 OPENCODE_API_KEY = { provider = "bitwarden", value = "Opencode/API Key" }
 TYPESAFE_API_KEY = { provider = "bitwarden", value = "Typesafe AI/API Key" }
 SLACK_AXI_TOKEN = { provider = "bitwarden", value = "ToolSense Slack Apps/Slack-axi OAuth Token" }
+# gcx (Grafana CLI) is NOT here: it stores its Grafana service-account tokens in the OS
+# keyring under named contexts, not as shell env vars. `mise run setup-gcx` authenticates
+# the prod + dev contexts by pulling those tokens from Bitwarden via rbw. See
+# .mise/tasks/setup-gcx.
 
 # gws-axi's OAuth client JSON is a FILE, not an env var, so it is intentionally NOT
 # a [secrets] entry (those are exported into every shell by `fnox activate`).

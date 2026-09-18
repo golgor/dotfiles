@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+# Authenticate gcx to the self-hosted IoT Grafana instances (prod + dev) on this
+# machine, pulling the service-account tokens from Bitwarden via rbw. gcx stores
+# each token in the OS keyring under a named context, so a fresh machine gets
+# working `gcx --context prod|dev` without a manual login flow.
+#
+# Idempotent: re-running re-authenticates the existing contexts.
+#
+# Why a task and not the fnox env model: gcx rewrites ~/.config/gcx/config.yaml on
+# every login (untracked, temp-file rename — cannot be symlink-tracked), so the
+# config is reproduced here rather than committed. The tokens live in Bitwarden and
+# in the OS keyring, never in this repo. Rotating a token means updating Bitwarden
+# and re-running this task.
+
+set -euo pipefail
+
+# context | Bitwarden item | server URL   (field is always "Token", org-id always 1)
+# Pipe-delimited because the server URL contains colons.
+CONTEXTS=(
+  "prod|Grafana Robert (IoT-Prod)|https://grafana.iot.toolsense.io"
+  "dev|Grafana Robert (IoT-Dev)|https://grafana.iot.toolsense.dev"
+)
+BW_FIELD="Token"
+ORG_ID=1
+DEFAULT_CONTEXT="prod"
+
+usage() {
+  cat <<'USAGE'
+Usage: mise run setup-gcx
+
+Authenticate gcx to the IoT Grafana prod + dev instances from Bitwarden.
+
+What this does:
+  - verifies gcx and rbw are installed
+  - unlocks Bitwarden (rbw unlock)
+  - for each context, runs: gcx login <ctx> --server <url> --token <rbw> --org-id 1 --yes
+  - sets the default context to prod
+  - health-checks each context (gcx --context <ctx> config check)
+
+The tokens come from the Bitwarden items "Grafana Robert (IoT-Prod)" and
+"Grafana Robert (IoT-Dev)", field "Token". They are stored by gcx in the OS
+keyring, never in this repo. gcx OAuth is Grafana Cloud only and is not used here.
+
+Options:
+  -h, --help  Show this help
+USAGE
+}
+
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+esac
+
+command -v gcx >/dev/null || { echo "error: gcx not installed — run: mise install" >&2; exit 1; }
+command -v rbw >/dev/null || { echo "error: rbw not installed — run: mise bootstrap packages apply" >&2; exit 1; }
+
+echo "Unlocking Bitwarden (rbw)..."
+rbw unlock
+
+for entry in "${CONTEXTS[@]}"; do
+  ctx="${entry%%|*}"
+  rest="${entry#*|}"
+  item="${rest%|*}"
+  server="${rest##*|}"
+
+  echo "Authenticating context '$ctx' -> $server (token from Bitwarden '$item')..."
+  token="$(rbw get "$item" --field "$BW_FIELD")"
+  gcx login "$ctx" --server "$server" --token "$token" --org-id "$ORG_ID" --yes >/dev/null
+  unset token
+done
+
+echo "Setting default context to '$DEFAULT_CONTEXT'..."
+gcx config use-context "$DEFAULT_CONTEXT" >/dev/null
+
+echo "Health-checking each context..."
+for entry in "${CONTEXTS[@]}"; do
+  ctx="${entry%%|*}"
+  if gcx --context "$ctx" config check >/dev/null 2>&1; then
+    echo "  $ctx: ok"
+  else
+    echo "  $ctx: health check FAILED — run: gcx --context $ctx config check" >&2
+    exit 1
+  fi
+done
+
+echo
+echo "Done. Usage:"
+echo "  gcx dashboards list                 # $DEFAULT_CONTEXT (default context)"
+echo "  gcx --context dev dashboards list   # dev"
