@@ -32,6 +32,8 @@
 hl.unbind("SUPER + S")
 o.bind("SUPER + S", "Toggle Slack Special Workspace", hl.dsp.workspace.toggle_special("slack"))
 o.bind("SUPER + Q", "Toggle Altus (WhatsApp) Workspace", hl.dsp.workspace.toggle_special("altus"))
+o.bind("SUPER + CTRL + SHIFT + S", "Move window to Slack Workspace", hl.dsp.window.move({ workspace = "special:slack", follow = false }))
+o.bind("SUPER + CTRL + SHIFT + Q", "Move window to Altus Workspace", hl.dsp.window.move({ workspace = "special:altus", follow = false }))
 
 -- Cloud SQL Tracker panel (was: Calculator).
 -- Toggles the io.github.golgor.cloud-sql-tracker bar widget's dropdown.
@@ -50,8 +52,18 @@ o.bind("SUPER + SHIFT + M", "Google Maps", { webapp = "https://maps.google.com/"
 hl.unbind("SUPER + SHIFT + S")
 o.bind("SUPER + SHIFT + S", "Audio panel", "omarchy-shell shell toggle omarchy.audio")
 
+-- Move window silently to workspace: SUPER+SHIFT+ALT+<n> -> SUPER+CTRL+SHIFT+<n>
+for workspace = 1, 10 do
+	local key = "code:" .. tostring(workspace + 9)
+	hl.unbind("SUPER + SHIFT + ALT + " .. key)
+	o.bind(
+		"SUPER + CTRL + SHIFT + " .. key,
+		"Move window silently to workspace " .. workspace,
+		hl.dsp.window.move({ workspace = tostring(workspace), follow = false })
+	)
+end
+
 -- Obsidian quick-notes plugin (golgor.notes)
 o.bind("SUPER + N", "New note", "omarchy-shell golgor.notes capture")
 hl.unbind("SUPER + CTRL + N")
 o.bind("SUPER + CTRL + N", "Toggle notes", "omarchy-shell shell toggle golgor.notes")
-
