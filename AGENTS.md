@@ -27,12 +27,25 @@ The repo's rules and guides are split by area; read the matching file before wor
 
 Every entry is `symlink` or `symlink-each`, so each deployed file in `~` points into this checkout. **Editing a file here is live immediately** — no apply step. Run `mise bootstrap dotfiles apply` only when the *set* of entries changes (a new file, a removed file, a mode change). Pulling changes from the other machine is a plain `git pull`; a merge conflict is resolved in git and the live file is fixed in the same move.
 
+## Two mise configs: bootstrap and applied system
+
+Both are tracked here, which is what makes them easy to confuse:
+
+|File|Role|Holds|
+|---|---|---|
+|`mise.toml`|bootstrap|`[dotfiles]` entries, `[tasks]`, bootstrap settings|
+|`.config/mise/config.toml`|applied system|the tools installed on this machine, every one `latest`|
+
+`[dotfiles]` belongs in the bootstrap config alone. `mise bootstrap dotfiles add` defaults to `--global`, which writes the entry into the applied-system config and opens a second `[dotfiles]` table there — entries then live in two files, and the split survives until someone notices. Pass `--local`, verified against mise 2026.9.9: `--local` writes `~/.dotfiles/mise.toml`, the default writes `~/.config/mise/config.toml`, and `--dry-run` prints which one it picked before anything changes.
+
+`mise bootstrap dotfiles status` names the config behind every entry. All of them should read `~/.dotfiles/mise.toml`.
+
 ## Adding a file
 
 Capture the live file rather than hand-placing it:
 
 ```sh
-mise bootstrap dotfiles add ~/.config/foo/bar.toml
+mise bootstrap dotfiles add --local --mode symlink ~/.config/foo/bar.toml
 ```
 
 `add` moves the real file into this repo, writes the `[dotfiles]` entry, and symlinks it back. Scripts under `.local/bin/` must stay executable — mise takes permissions from the source file, so `chmod +x` the source.
