@@ -63,12 +63,14 @@ other tool.
 | obsidian-axi | `@andershoffmann/obsidian-axi` | yes | none (reads vault folder) | [obsidian-axi.md](obsidian-axi.md) |
 | notion-axi | `notion-axi` | yes | `ntn` CLI + `ntn login` | [notion-axi.md](notion-axi.md) |
 | gws-axi | `gws-axi` | yes | Google Cloud OAuth (BYO client) | [gws-axi.md](gws-axi.md) |
+| lavish-axi | `lavish-axi` | yes | none (local browser) | [lavish-axi.md](lavish-axi.md) |
 | pg-axi | `pg-axi` | yes | reachable Postgres (connection string) | [pg-axi.md](pg-axi.md) |
 | slack-axi | `slack-axi` | yes | Slack app + `xoxp` token | [slack-axi.md](slack-axi.md) |
 | superbee | `superbee` | yes | `superbee setup` (early/experimental) | [superbee.md](superbee.md) |
 | kubernetes-axi | — (not on npm) | **no** | git clone; `kubectl` (in mise) | [kubernetes-axi.md](kubernetes-axi.md) |
 
-All tools need **Node 20+** (the global `node` is already `latest`).
+All tools need **Node 20+** (the global `node` is already `latest`); `lavish-axi`
+needs Node 22+.
 
 ## Skills and session hooks
 
@@ -85,6 +87,7 @@ per machine). Restart the agent session after installing.
 | notion-axi | `notion-axi setup hooks` | compact Notion workspace view (recent pages/dbs) |
 | obsidian-axi | `obsidian-axi setup hooks` | vault dashboard (needs a global install) |
 | gws-axi | `gws-axi setup hooks` | authed accounts, write-protection, setup/health |
+| lavish-axi | `lavish-axi setup hooks` | open review sessions + visualization playbooks |
 | slack-axi | `slack-axi setup hooks` | active workspace + channel count |
 | superbee | `superbee hook install [--scope project\|user]` | bundle orientation (pulls board, renders) |
 | pg-axi | — none — | inspection tool, no hook command |

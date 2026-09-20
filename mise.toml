@@ -70,6 +70,10 @@ dotfiles.default_mode = "symlink"
 # aube is mise's npm backend engine; this file allowlists niche AXI CLIs past
 # aube's low-download gate. See docs/axi/README.md.
 "~/.config/aube/config.toml" = { mode = "symlink" }
+# systemd user-session environment. lavish-axi's review server is a long-lived
+# daemon reused across sessions, so a .bashrc export would miss any daemon
+# started outside an interactive shell. See the file for the full reasoning.
+"~/.config/environment.d/lavish-axi.conf" = { mode = "symlink" }
 # fnox secret manifest + daemon config; machine-agnostic since the age cache
 # was dropped (see docs/rbw-fnox-research.md), so it is tracked like any config.
 "~/.config/fnox/config.toml" = { mode = "symlink" }
