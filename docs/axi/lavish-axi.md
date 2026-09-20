@@ -56,9 +56,11 @@ and can serve local files to anything that can reach it. Verified on this
 machine: the session URL came back as `…ts.vpn.iot.toolsense.io:4387`, i.e. the
 work tailnet.
 
-Set `LAVISH_AXI_HOST=127.0.0.1` to force loopback-only; any explicit
-`LAVISH_AXI_HOST` overrides the Tailscale binding. Without Tailscale it is
-loopback-only with no phone URL.
+`~/.bashrc` therefore exports `LAVISH_AXI_HOST="127.0.0.1"`, which overrides the
+Tailscale binding and keeps the server loopback-only. Phone review over the
+tailnet is given up deliberately: the listener has no authentication and the
+tailnet is a work network. Drop that export (per machine, in the moment) if you
+ever actually want to review an artifact from a phone.
 
 ## State and secrets
 
@@ -73,18 +75,30 @@ loopback-only with no phone URL.
   with a locked placeholder. Treat any share as permanent and public-ish; don't
   share work artifacts casually.
 
-## Skill, hooks, and plugin
+## Skill, hooks, and plugin: none of them used here
 
-Three optional discovery paths, all machine-local and not tracked here:
+Upstream ships three discovery mechanisms. None add capability — the CLI works
+with zero setup — and all three were evaluated and rejected:
 
-- **Skill**: `npx skills add kunchenguid/lavish-axi --skill lavish -g`. A thin
-  stub that points the agent at `--help` / `design` / `playbook`.
-- **Hooks**: `lavish-axi setup hooks` — SessionStart hook for Claude Code,
-  Codex, OpenCode, GitHub Copilot CLI; adds live open sessions on top of what
-  the skill gives. Restart the agent session after. Shared hook caveats: the
+- **Skill** (`npx skills add kunchenguid/lavish-axi --skill lavish -g`, or
+  vendoring `skills/lavish` from the repo). It is a 33-line stub carrying no
+  workflow instructions by design, and it tells the agent to invoke
+  `npx -y lavish-axi` and to rewrite the CLI's own follow-up commands into npx
+  form. That bypasses the mise-tracked install: measured 0.1.74 via npx and a
+  2.7 s resolve against 0.1.73 on PATH, instantly. Tracking the version and then
+  not using it is worse than not tracking it.
+- **Hooks** (`lavish-axi setup hooks`). SessionStart hook for Claude Code,
+  Codex, OpenCode, GitHub Copilot CLI. The only thing it adds over a skill is
+  live open-session state in a fresh session, paid for with tokens in every
+  session, including the ones that never touch HTML. Shared hook caveats: the
   hooks notes in this folder's `README.md`.
-- **Plugin**: `lavish-axi setup plugin` registers the installed package as an
-  Agent Plugin in VS Code, Cursor, and Copilot CLI.
+- **Plugin** (`lavish-axi setup plugin`). Registers the package directory with
+  VS Code, Cursor, and Copilot CLI. Declares no MCP server, so its entire
+  payload is the same skill.
 
-None of these reach Pi/OMP; routing for those comes from the tracked
-[`.pi/agent/APPEND_SYSTEM.md`](../../.pi/agent/APPEND_SYSTEM.md).
+Routing instead comes from the one-line entry in the tracked
+[`.pi/agent/APPEND_SYSTEM.md`](../../.pi/agent/APPEND_SYSTEM.md), which reaches
+Pi and OMP — the harnesses actually in use, and the ones no upstream installer
+writes to. Combined with the AXI contract already stated there (bare `<tool>`
+prints live state plus next-step commands), an agent that knows the name
+self-serves the rest from `lavish-axi --help`.

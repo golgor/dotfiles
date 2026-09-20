@@ -84,6 +84,9 @@ export NOTES_DIR="$HOME/Documents/ToolSense/Notes"
 # grok CLI (completions live in ~/.bash_completions.d/grok)
 export PATH="$HOME/.grok/bin:$PATH"
 
+# lavish-axi binds this machine's Tailscale IP by default; keep it loopback-only.
+export LAVISH_AXI_HOST="127.0.0.1"
+
 # Omarchy already inits zoxide with z/zi; re-init with --cmd cd so plain
 # `cd` is the smart one.
 if command -v zoxide &>/dev/null; then
