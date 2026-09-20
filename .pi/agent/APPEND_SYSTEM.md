@@ -11,6 +11,7 @@ These replace the tool you would otherwise reach for:
 - `slack-axi` — Slack
 - `gws-axi` — Gmail, Calendar, Docs, Drive, Slides, Sheets
 - `superbee` — cross-session agent memory
+- `lavish-axi` — review an HTML artifact (plan, diagram, comparison) in a browser; instead of a wall of chat text or screenshots
 
 All share one contract, so skip the help crawl and run the command:
 
