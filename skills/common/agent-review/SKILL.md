@@ -7,7 +7,7 @@ description: Review a session for improvements to agent behavior, instructions, 
 
 Improve how future sessions work, rather than collecting everything the agent should remember.
 Run in the current conversation. The parent owns session interpretation, proposals, approval, and final verification.
-Read the available `ste-writing` and `writing-for-agents` skills before drafting proposals or instructions.
+Read the available `plain-prose` and `writing-for-agents` skills before drafting proposals or instructions.
 
 ## 1. Frame the session before discovering files
 
@@ -134,7 +134,7 @@ Use the owner's deployment mechanism and check all affected discovery paths.
 If ownership requires a fork, propose that fork instead of modifying the vendor copy.
 If new evidence materially changes the scope, return for approval.
 
-Use `writing-for-agents` for triggers, hierarchy, and completion criteria. Use `ste-writing` for clear prose.
+Use `writing-for-agents` for triggers, hierarchy, and completion criteria. Use `plain-prose` for clear prose.
 Keep changes surgical and preserve unrelated user content.
 Run the proposed checks and inspect the result. Report changed paths, reload requirements, risks, and unapplied items.
 Record an evidence summary only in an existing lessons location included in the approved scope.
