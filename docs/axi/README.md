@@ -41,7 +41,7 @@ The fix is aube's own allowlist, tracked at `~/.config/aube/config.toml`
 
 ```toml
 allowedUnpopularPackages = [
-  "notion-axi", "pg-axi", "gws-axi", "slack-axi", "superbee",
+  "notion-axi", "pg-axi", "quota-axi", "gws-axi", "slack-axi", "superbee",
   "@andershoffmann/obsidian-axi",
 ]
 ```
@@ -65,6 +65,7 @@ other tool.
 | gws-axi | `gws-axi` | yes | Google Cloud OAuth (BYO client) | [gws-axi.md](gws-axi.md) |
 | lavish-axi | `lavish-axi` | yes | none (local browser) | [lavish-axi.md](lavish-axi.md) |
 | pg-axi | `pg-axi` | yes | reachable Postgres (connection string) | [pg-axi.md](pg-axi.md) |
+| quota-axi | `quota-axi` | yes | provider API credentials | [quota-axi.md](quota-axi.md) |
 | slack-axi | `slack-axi` | yes | Slack app + `xoxp` token | [slack-axi.md](slack-axi.md) |
 | superbee | `superbee` | yes | `superbee setup` (early/experimental) | [superbee.md](superbee.md) |
 | tasks-axi | `tasks-axi` | yes | none (local markdown file) | [tasks-axi.md](tasks-axi.md) |
@@ -92,6 +93,7 @@ per machine). Restart the agent session after installing.
 | slack-axi | `slack-axi setup hooks` | active workspace + channel count |
 | superbee | `superbee hook install [--scope project\|user]` | bundle orientation (pulls board, renders) |
 | tasks-axi | `tasks-axi setup hooks` | current backlog dashboard |
+| quota-axi | — none — | quota inspection tool, no hook command |
 | pg-axi | — none — | inspection tool, no hook command |
 | kubernetes-axi | `kubernetes-axi hooks install --agent all --scope project --execute` | ambient k8s context (per upstream README; clone-only, unverified) |
 

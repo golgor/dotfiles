@@ -8,6 +8,7 @@
 allowedUnpopularPackages = [
   "notion-axi",
   "pg-axi",
+  "quota-axi",
   "gws-axi",
   "slack-axi",
   "superbee",
