@@ -6,6 +6,7 @@ These replace the tool you would otherwise reach for:
 
 - `gh-axi` — GitHub; instead of `gh`, the API, or web fetches
 - `pg-axi` — PostgreSQL; instead of `psql`
+- `quota-axi` — model and provider quota headroom; dispatch decisions
 - `obsidian-axi` — Obsidian vault; instead of read/grep over the vault
 - `notion-axi` — Notion
 - `slack-axi` — Slack

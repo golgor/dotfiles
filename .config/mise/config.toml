@@ -40,6 +40,7 @@ node = "latest"
 "npm:notion-axi" = "latest"  # see docs/axi/notion-axi.md
 "npm:ntn" = "latest"  # official Notion CLI; notion-axi wraps it
 "npm:pg-axi" = "latest"  # see docs/axi/pg-axi.md
+"npm:quota-axi" = "latest"  # see docs/axi/quota-axi.md
 "npm:slack-axi" = "latest"  # see docs/axi/slack-axi.md
 "npm:superbee" = "latest"  # early/experimental; see docs/axi/superbee.md
 "npm:tasks-axi" = "latest"  # see docs/axi/tasks-axi.md
