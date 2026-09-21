@@ -67,6 +67,7 @@ other tool.
 | pg-axi | `pg-axi` | yes | reachable Postgres (connection string) | [pg-axi.md](pg-axi.md) |
 | slack-axi | `slack-axi` | yes | Slack app + `xoxp` token | [slack-axi.md](slack-axi.md) |
 | superbee | `superbee` | yes | `superbee setup` (early/experimental) | [superbee.md](superbee.md) |
+| tasks-axi | `tasks-axi` | yes | none (local markdown file) | [tasks-axi.md](tasks-axi.md) |
 | kubernetes-axi | — (not on npm) | **no** | git clone; `kubectl` (in mise) | [kubernetes-axi.md](kubernetes-axi.md) |
 
 All tools need **Node 20+** (the global `node` is already `latest`); `lavish-axi`
@@ -90,6 +91,7 @@ per machine). Restart the agent session after installing.
 | lavish-axi | `lavish-axi setup hooks` | open review sessions + visualization playbooks |
 | slack-axi | `slack-axi setup hooks` | active workspace + channel count |
 | superbee | `superbee hook install [--scope project\|user]` | bundle orientation (pulls board, renders) |
+| tasks-axi | `tasks-axi setup hooks` | current backlog dashboard |
 | pg-axi | — none — | inspection tool, no hook command |
 | kubernetes-axi | `kubernetes-axi hooks install --agent all --scope project --execute` | ambient k8s context (per upstream README; clone-only, unverified) |
 

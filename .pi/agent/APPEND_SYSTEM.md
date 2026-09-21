@@ -11,6 +11,7 @@ These replace the tool you would otherwise reach for:
 - `slack-axi` — Slack
 - `gws-axi` — Gmail, Calendar, Docs, Drive, Slides, Sheets
 - `superbee` — cross-session agent memory
+- `tasks-axi` — task and backlog management (markdown-backed)
 - `lavish-axi` — plans, comparisons, diagrams, tables, reports; instead of a long chat reply, write one as an HTML page the user marks up in the browser. Their edits return through `poll`, which parks the turn until they answer, so it needs a user at the keyboard.
 
 All share one contract, so skip the help crawl and run the command:
