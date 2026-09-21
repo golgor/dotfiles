@@ -6,6 +6,8 @@
 	ci = commit
 	st = status
 	gone = "!f() { \n  # Switch to main or master (whichever exists)\n  if git show-ref --verify --quiet refs/heads/main; then\n    git checkout main\n  elif git show-ref --verify --quiet refs/heads/master; then\n    git checkout master\n  else\n    echo \"Neither main nor master branch found\"\n    return 1\n  fi\n  \n  # Pull latest changes\n  git pull\n  \n  # Fetch and prune remote tracking branches\n  git fetch --prune\n  \n  # Remove local branches that no longer have a remote\n  git branch -vv | grep \": gone]\" | awk \"{print \\$1}\" | xargs -r git branch -D\n}; f"
+[core]
+	autocrlf = input         # Normalize CRLF to LF when content enters the index; never convert on checkout
 [init]
 	defaultBranch = master
 [pull]

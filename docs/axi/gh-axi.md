@@ -39,6 +39,17 @@ the `project` / `read:project` scope: `gh auth refresh -s project`.
 ## Notes
 
 - Secrets are read from piped stdin only (never argv): `echo -n "sk-..." | gh-axi secret set NAME`.
+- `gh-axi api <endpoint>` returns the payload as a TOON scalar, not as JSON:
+
+  ```
+  api_response:
+    body: "<the response, as one escaped string>"
+    truncated: false
+  ```
+
+  `--jq '<filter>'` runs server-side and its result is wrapped the same way, so `gh-axi api ... | jq`, `| sed`, and `| base64 -d` all fail on the wrapper. Read the value with `sed -n 's/^  body: "\(.*\)"$/\1/p'`, or for a short scalar take the second line with `sed -n '2p'`. Escaped newlines stay escaped, so convert them when the body is multi-line text.
+- `--jq` accepts a filter that joins a list into one string, which avoids the multi-line problem: `--jq '[.[].path] | join("\n")'`.
+- The `api` subcommand reaches endpoints the named subcommands do not cover, such as `/repos/{owner}/{repo}/rules/branches/main` for ruleset-based branch protection. Legacy `/branches/main/protection` returns 404 when a ruleset enforces protection instead, so a 404 there is not proof that a branch is unprotected.
 
 ## Hooks
 
