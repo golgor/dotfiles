@@ -56,11 +56,26 @@ and can serve local files to anything that can reach it. Verified on this
 machine: the session URL came back as `…ts.vpn.iot.toolsense.io:4387`, i.e. the
 work tailnet.
 
-`~/.bashrc` therefore exports `LAVISH_AXI_HOST="127.0.0.1"`, which overrides the
-Tailscale binding and keeps the server loopback-only. Phone review over the
-tailnet is given up deliberately: the listener has no authentication and the
-tailnet is a work network. Drop that export (per machine, in the moment) if you
-ever actually want to review an artifact from a phone.
+`.config/environment.d/lavish-axi.conf` therefore sets
+`LAVISH_AXI_HOST=127.0.0.1`, which overrides the Tailscale binding and keeps the
+server loopback-only. Phone review over the tailnet is given up deliberately:
+the listener has no authentication and the tailnet is a work network. Drop that
+setting (per machine, in the moment) if you ever actually want to review an
+artifact from a phone.
+
+Measured on 2026-09-21: with the variable set, `ss -ltn` shows `127.0.0.1:4387`
+alone and the session URL is `http://127.0.0.1:4387/...`. Without it, the same
+command returns a MagicDNS URL on the work tailnet.
+
+`environment.d` reaches a process through the systemd user manager, so a login
+session that started before the file existed keeps the old environment, and so
+does every terminal and daemon under it. A first sync of this file takes effect
+at the next login. To check the live state rather than the file:
+
+```sh
+systemd-run --user --wait --pipe /usr/bin/env | grep LAVISH   # what new processes get
+grep -z LAVISH_AXI_HOST /proc/self/environ                    # what this shell has
+```
 
 ## State and secrets
 
@@ -68,6 +83,11 @@ ever actually want to review an artifact from a phone.
   (`LAVISH_AXI_STATE_DIR` to move it). Machine-local; never tracked here.
 - The background server self-stops 30 minutes idle
   (`LAVISH_AXI_IDLE_TIMEOUT_MS`).
+- Every run posts a pageview to an Umami endpoint, `a.kunchenguid.com` unless
+  `LAVISH_AXI_UMAMI_HOST` overrides it. The behavior lives in `src/telemetry.js`
+  and appears in neither the README nor the CLI help; failures are swallowed, so
+  nothing surfaces it. `LAVISH_AXI_TELEMETRY=0` opts out and is set in the same
+  `environment.d` file.
 - `lavish-axi share` publishes to **ht-ml.app**, a third-party host not part of
   Lavish, public by default. `--private` returns a generated password once, and
   the agent has to relay it, so it lands in the transcript. Pages cannot be made
@@ -101,4 +121,12 @@ Routing instead comes from the one-line entry in the tracked
 Pi and OMP — the harnesses actually in use, and the ones no upstream installer
 writes to. Combined with the AXI contract already stated there (bare `<tool>`
 prints live state plus next-step commands), an agent that knows the name
-self-serves the rest from `lavish-axi --help`.
+self-serves most of the rest from `lavish-axi --help`.
+
+Self-serve has one measured gap, so `APPEND_SYSTEM.md` carries three extra
+sentences for this tool. `lavish-axi design` states that the agent must open
+every matching playbook before writing HTML; an agent that read `design` still
+opened one playbook out of four (2026-09-21). `lavish-axi playbook` takes a
+single id and ignores extra ones with exit 0, which makes the loop worth
+spelling out. The volatile material — themes, CDN versions, playbook bodies —
+stays behind the lookup, where it cannot go stale.
