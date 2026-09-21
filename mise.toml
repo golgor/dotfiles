@@ -53,6 +53,15 @@ description = "Lint, format-check, type-check, and test automation/"
 dir = "automation"
 run = ["uv run ruff check", "uv run ruff format --check", "uv run ty check", "uv run pytest"]
 
+# Runs at bootstrap step 17. Enable package-shipped systemd *user* units that Arch
+# presets leave disabled. mise's declarative systemd sections only write their own
+# dev.mise.* units, so enabling an upstream unit in place is this imperative step.
+# hyprmoncfgd: the Hyprland monitor daemon (see .config/hypr/AGENTS.md). enable
+# --now is idempotent, so re-running bootstrap is a no-op.
+[tasks.bootstrap]
+description = "Enable package-shipped user services not covered by presets"
+run = "systemctl --user enable --now hyprmoncfgd"
+
 [settings]
 dotfiles.root = "~/.dotfiles"
 dotfiles.default_mode = "symlink"

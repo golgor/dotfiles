@@ -40,7 +40,7 @@ Profiles live under `~/.config/hyprmoncfg/profiles`, symlinked from the repo (mi
 
 ### Adding hyprmoncfg to a new machine
 
-The loader line and the shared profiles arrive via `git pull`. On the machine: install hyprmoncfg, `mise bootstrap dotfiles apply` (links the profiles dir), `hyprmoncfg manage` (starts the daemon and writes the local generated file), arrange monitors, then `hyprmoncfg save` to write a profile into the tracked dir. Commit the new profile.
+The loader line and the shared profiles arrive via `git pull`. `mise bootstrap` installs the `hyprmoncfg-bin` package, links the profiles dir, and enables the `hyprmoncfgd` user daemon (a `[tasks.bootstrap]` step, since Arch presets leave package-shipped user units disabled). The running daemon writes the local generated file. Then arrange monitors and `hyprmoncfg save` to write a profile into the tracked dir; commit the new profile. To do it by hand without a full bootstrap: `systemctl --user enable --now hyprmoncfgd`.
 
 ## Decisions
 
