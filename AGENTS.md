@@ -121,6 +121,10 @@ Before adding any new config, confirm the app does not rewrite it via temp-file-
 
 Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli`), `omarchy` and `diagnose-crash` (symlinks into `/usr/share/omarchy`), `~/.codex/skills/.system` (Codex), Claude's `synced/`, and the external research links left in `~/.pi/agent/skills`. Because each managed link sits one level deep (`<discovery dir>/<name>`), the deployer never has to look inside these neighbours to leave them alone.
 
+## AXI tools: mise-managed, surfaced via append prompt
+
+Agent-ergonomic CLIs ([AXI](https://axi.md)) are managed as global npm packages in `.config/mise/config.toml`, exempted from aube's low-download gate in `.config/aube/config.toml`, and documented under `docs/axi/`. Agents discover them via the tracked system append prompt (`.pi/agent/APPEND_SYSTEM.md`). `docs/axi/README.md` is the authoritative owner for adding, installing, or routing an AXI tool.
+
 ## Tasks: bash for glue, Python for logic
 
 A task that mostly chains host CLIs stays a bash file under `.mise/tasks/` (`setup-gws-axi`, `setup-kube-contexts`, `setup-notion-routes`). A task with real logic — parsing, comparing trees, validating, anything you would want a test for — lives in the `automation/` uv project and is wired up as a one-line `[tasks]` entry in `mise.toml` calling `uv run --project automation --no-dev <command>`. Do not write a bash file whose only job is to call `uv run`. Read `automation/AGENTS.md` before working in that project; run `mise run check` before opening a PR that touches it.
@@ -134,3 +138,10 @@ Refresh and test local behavior before changing bootstrap/package semantics. Mis
 - `writing-for-agents` — editing this file or `README.md`, never the vendored skills under `skills/common/`.
 - `research` — verifying mise behaviour against the docs before changing the model.
 - `tdd` — adding or changing anything under `automation/` (see `automation/AGENTS.md`).
+
+## Maintaining this file
+
+Keep this file for knowledge useful to almost every future agent session in this project.
+Do not repeat what the codebase already shows; point to the authoritative file or command instead.
+Prefer rewriting or pruning existing entries over appending new ones.
+When updating this file, preserve this bar for all agents and keep entries concise.

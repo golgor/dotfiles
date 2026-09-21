@@ -11,5 +11,6 @@ allowedUnpopularPackages = [
   "gws-axi",
   "slack-axi",
   "superbee",
+  "tasks-axi",
   "@andershoffmann/obsidian-axi",
 ]
