@@ -19,6 +19,7 @@ All share one contract, so skip the help crawl and run the command:
 - Output is TOON: `items[N]{a,b,c}:` header, one CSV row per item. `count: 30 of 847 total` is the full count.
 - `... (truncated, N chars total)` means re-run with `--full`. Cells are capped too; `--fields a,b` widens a list.
 - Errors come on stdout with a fix command; exit 2 = your flag was wrong, 0 = done (including no-op mutations). Flags go after the command. Nothing prompts.
+- A raw payload arrives as a TOON scalar, not as JSON: `gh-axi api` prints `api_response:` then `body: "<escaped string>"`, and `--jq` output is wrapped the same way. Unwrap it before piping to `jq`, `sed`, or `base64`.
 
 `lavish-axi` wraps two steps around that contract. Before writing HTML, read `lavish-axi design` and every playbook whose `use_when` matches — a plan carrying a table, a diagram, and a decision form matches four, and reading one is the usual failure. `playbook` takes a single id and drops extra ones with exit 0, so loop it: `for p in plan comparison table input; do lavish-axi playbook $p; done`. Write the artifact under `./.lavish/`, gitignore that directory, and keep `lavish-axi poll <file>` in the foreground of the turn that opened the session.
 

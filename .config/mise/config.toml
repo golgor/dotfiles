@@ -30,6 +30,7 @@ go = "latest"
 kubectl = "latest"
 kubectx = "latest"
 kubens = "latest"
+marksman = "latest"  # markdown LSP; pi-lens runs it as the primary markdown runner
 node = "latest"
 "npm:@andershoffmann/obsidian-axi" = "latest"  # obsidian-axi; see docs/axi/obsidian-axi.md
 "npm:@earendil-works/pi-coding-agent" = "latest"  # https://github.com/earendil-works
