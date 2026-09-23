@@ -8,6 +8,7 @@ BAMBOO_HR_API_TOKEN = { provider = "bitwarden", value = "bamboohr.com/API" }
 GEMINI_API_KEY = { provider = "bitwarden", value = "Google (Toolsense)/Gemini API Key" }
 OPENCODE_API_KEY = { provider = "bitwarden", value = "Opencode/API Key" }
 TYPESAFE_API_KEY = { provider = "bitwarden", value = "Typesafe AI/API Key" }
+XAI_API_KEY = { provider = "bitwarden", value = "xAI/API Key (Pi)" }
 SLACK_AXI_TOKEN = { provider = "bitwarden", value = "ToolSense Slack Apps/Slack-axi OAuth Token" }
 # gcx (Grafana CLI) is NOT here: it stores its Grafana service-account tokens in the OS
 # keyring under named contexts, not as shell env vars. `mise run setup-gcx` authenticates
