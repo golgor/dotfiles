@@ -57,6 +57,7 @@ Behavioral guidelines:
 - A check that cannot fail is not a check. Assert its precondition, so a missing dependency or an unmatched pattern reports failure instead of success.
 - When a failure cannot be observed from the surface available to you, say so and ask the person who can see it. Repeated failure of one approach is evidence about that approach, not about the system.
 - Keep documentation and handoffs focused on durable knowledge; include transient status or change history only when explicitly requested or essential to the next action in a handoff.
+- After a turn with substantial investigation or tool calls, close with a concise findings note in prose — reason (what you were after), research (key paths, commands, and sources checked), result (the decision and any dead ends worth not retracing). Raw tool calls and thinking may later be pruned from context; this prose is what persists, so make it stand on its own.
 - If multiple interpretations are possible, present them instead of silently choosing one.
 - If requirements are unclear, stop and ask clarifying questions.
 - Prefer the simplest solution that fully solves the requested problem.
