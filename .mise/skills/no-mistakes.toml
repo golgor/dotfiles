@@ -1,0 +1,21 @@
+# Skill vendored from https://github.com/kunchenguid/no-mistakes (skills/no-mistakes) into skills/.
+#
+# Edit the selection list by hand, then run `mise run update-skills no-mistakes`. The
+# task rewrites only the tag/commit lines under [release]; everything else here is yours.
+# Vendored skill directories are immutable snapshots of the recorded release.
+#
+# Keep this release in step with the binary (`github:kunchenguid/no-mistakes` in
+# .config/mise/config.toml; both track the latest stable release). `no-mistakes init`
+# rewrites ~/.claude/skills/no-mistakes/SKILL.md and ~/.agents/skills/no-mistakes/SKILL.md
+# through the deployed symlinks, i.e. into skills/common/no-mistakes/. Same version: no
+# diff. Newer binary: the snapshot drifts and update-skills refuses; revert the file,
+# then run `mise run update-skills no-mistakes`.
+
+repo = "kunchenguid/no-mistakes"
+
+[release]
+tag = "v1.79.0"
+commit = "fc540aca86bd1ab35daad31c2a2fb20b652f82ab"
+
+[scopes]
+common = ["no-mistakes"]
