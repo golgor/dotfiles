@@ -3,7 +3,7 @@
 # Authenticate gcx to the self-hosted IoT Grafana instances (prod + dev) on this
 # machine, pulling the service-account tokens from Bitwarden via rbw. gcx stores
 # each token in the OS keyring under a named context, so a fresh machine gets
-# working `gcx --context prod|dev` without a manual login flow.
+# working `gcx --context iot-prod|iot-dev` without a manual login flow.
 #
 # Idempotent: re-running re-authenticates the existing contexts.
 #
@@ -18,12 +18,12 @@ set -euo pipefail
 # context | Bitwarden item | server URL   (field is always "Token", org-id always 1)
 # Pipe-delimited because the server URL contains colons.
 CONTEXTS=(
-  "prod|Grafana Robert (IoT-Prod)|https://grafana.iot.toolsense.io"
-  "dev|Grafana Robert (IoT-Dev)|https://grafana.iot.toolsense.dev"
+  "iot-prod|Grafana Robert (IoT-Prod)|https://grafana.iot.toolsense.io"
+  "iot-dev|Grafana Robert (IoT-Dev)|https://grafana.iot.toolsense.dev"
 )
 BW_FIELD="Token"
 ORG_ID=1
-DEFAULT_CONTEXT="prod"
+DEFAULT_CONTEXT="iot-prod"
 
 usage() {
   cat <<'USAGE'
@@ -35,7 +35,7 @@ What this does:
   - verifies gcx and rbw are installed
   - unlocks Bitwarden (rbw unlock)
   - for each context, runs: gcx login <ctx> --server <url> --token <rbw> --org-id 1 --yes
-  - sets the default context to prod
+  - sets the default context to iot-prod
   - health-checks each context (gcx --context <ctx> config check)
 
 The tokens come from the Bitwarden items "Grafana Robert (IoT-Prod)" and
@@ -86,4 +86,4 @@ done
 echo
 echo "Done. Usage:"
 echo "  gcx dashboards list                 # $DEFAULT_CONTEXT (default context)"
-echo "  gcx --context dev dashboards list   # dev"
+echo "  gcx --context iot-dev dashboards list  # dev"
