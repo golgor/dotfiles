@@ -1,0 +1,17 @@
+# Skills vendored from https://github.com/humanlayer/skills into skills/.
+#
+# Edit the selection lists by hand, then run `mise run update-skills humanlayer`.
+# The task rewrites only the commit line under [release]; everything else in
+# this file is yours. Vendored skill directories are immutable snapshots: to
+# customise one, copy it to a new name outside these lists.
+#
+# Upstream publishes no releases or tags, so this tracks the default branch.
+
+repo = "humanlayer/skills"
+branch = "main"
+
+[release]
+commit = "ca7c8088db69e315a8b2deea43820270457f8f3c"
+
+[scopes]
+common = ["visual-pr"]
