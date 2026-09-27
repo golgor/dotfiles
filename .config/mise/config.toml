@@ -40,6 +40,7 @@ node = "latest"
 "npm:lavish-axi" = "latest"  # see docs/axi/lavish-axi.md
 "npm:notion-axi" = "latest"  # see docs/axi/notion-axi.md
 "npm:ntn" = "latest"  # official Notion CLI; notion-axi wraps it
+"npm:omo-ai" = "latest"  # omo; https://github.com/code-yeongyu/oh-my-openagent
 "npm:pg-axi" = "latest"  # see docs/axi/pg-axi.md
 "npm:quota-axi" = "latest"  # see docs/axi/quota-axi.md
 "npm:slack-axi" = "latest"  # see docs/axi/slack-axi.md
