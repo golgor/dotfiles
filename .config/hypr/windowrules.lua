@@ -24,3 +24,7 @@ hl.window_rule({
 	match = { class = "^(slack)$" },
 	animation = "slide",
 })
+
+o.window("^com\\.jankeesvw\\.OmarchyMeetingRecorder$", { float = true })
+o.window("^com\\.jankeesvw\\.OmarchyMeetingRecorder$", { size = { 480, 700 } })
+o.window("^com\\.jankeesvw\\.OmarchyMeetingRecorder$", { center = true })
