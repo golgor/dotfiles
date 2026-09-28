@@ -33,6 +33,7 @@ The global mise config is tracked: `.config/mise/config.toml` is linked to `~/.c
 - kubectl, kubectx, kubens
 - bun, go, node, python
 - claude, codex, `npm:@earendil-works/pi-coding-agent`
+- `npm:backpass` + `npm:acpx`: tunes `AGENTS.md` and skills from past sessions; see [docs/tools/backpass.md](docs/tools/backpass.md)
 
 This repo's own `mise.toml` has no `[tools]` table. Its tasks run after bootstrap has finished, so they use the global `uv`; a project pin inside `~/.dotfiles` would only shadow the global version there.
 
