@@ -3,9 +3,9 @@
 from automation.omarchy_plugins.manifest import Plugin
 from automation.omarchy_plugins.plan import Plan, plan
 
-SHARED = Plugin("vt.sun", "https://x/sun.git", (), None)
-LAPTOP = Plugin("acme.trackpad", "https://x/trackpad.git", ("golgor-framework",), None)
-PC = Plugin("acme.gpu", "https://x/gpu.git", ("golgor-pc",), None)
+SHARED = Plugin("vt.sun", "https://x/sun.git", ())
+LAPTOP = Plugin("acme.trackpad", "https://x/trackpad.git", ("golgor-framework",))
+PC = Plugin("acme.gpu", "https://x/gpu.git", ("golgor-pc",))
 
 
 def test_missing_plugins_for_this_host_are_installed() -> None:

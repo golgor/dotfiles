@@ -1,6 +1,5 @@
-# One [[plugin]] per entry. Omit hosts for both golgor-pc and golgor-framework;
-# section (left|center|right) is optional and used only at first enable. The id
-# must match manifest.json. Run `mise run sync-omarchy-plugins` to sync.
+# One [[plugin]] per entry. Omit hosts for both golgor-pc and golgor-framework.
+# The id must match manifest.json. Run `mise run sync-omarchy-plugins`.
 
 [[plugin]]
 id = "37signals.hey"

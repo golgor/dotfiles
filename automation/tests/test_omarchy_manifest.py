@@ -26,19 +26,18 @@ git = "https://github.com/vitally/omarchy-solar-times.git"
 id = "acme.trackpad"
 git = "git@github.com:acme/trackpad.git"
 hosts = ["golgor-framework"]
-section = "right"
 """,
     )
 
     assert load_plugins(path) == [
-        Plugin("vt.sun", "https://github.com/vitally/omarchy-solar-times.git", (), None),
-        Plugin("acme.trackpad", "git@github.com:acme/trackpad.git", ("golgor-framework",), "right"),
+        Plugin("vt.sun", "https://github.com/vitally/omarchy-solar-times.git", ()),
+        Plugin("acme.trackpad", "git@github.com:acme/trackpad.git", ("golgor-framework",)),
     ]
 
 
 def test_plugin_without_hosts_applies_everywhere() -> None:
-    shared = Plugin("a.b", "https://x/a.git", (), None)
-    laptop = Plugin("c.d", "https://x/c.git", ("golgor-framework",), None)
+    shared = Plugin("a.b", "https://x/a.git", ())
+    laptop = Plugin("c.d", "https://x/c.git", ("golgor-framework",))
     assert shared.for_host("golgor-pc")
     assert laptop.for_host("golgor-framework")
     assert not laptop.for_host("golgor-pc")
@@ -54,7 +53,7 @@ def test_empty_manifest_is_no_plugins(tmp_path: Path) -> None:
         ('id = "-rf"\ngit = "https://x/a.git"', "id must"),
         ('id = "a.b"\ngit = "--upload-pack=evil"', "git must"),
         ('id = "a.b"\ngit = "file:///tmp/x"', "git must"),
-        ('id = "a.b"\ngit = "https://x/a.git"\nsection = "middle"', "section must"),
+        ('id = "a.b"\ngit = "https://x/a.git"\nsection = "right"', "unknown key"),
         ('id = "a.b"\ngit = "https://x/a.git"\nhost = ["pc"]', "unknown key"),
         ('id = "a.b"\ngit = "https://x/a.git"\nhosts = "pc"', "hosts must"),
         ('git = "https://x/a.git"', "id must be a string"),

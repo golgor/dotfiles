@@ -14,7 +14,7 @@ Python-implemented mise tasks for this repo: one uv project, one package (`autom
 
 | module | role | prints? |
 | --- | --- | --- |
-| `manifest.py` | parses and validates `../omarchy/plugins.toml` into plugin IDs, git URLs, optional hosts and bar section | no |
+| `manifest.py` | parses and validates `../omarchy/plugins.toml` into plugin IDs, git URLs and optional hosts | no |
 | `plan.py` | plans install/present/unmanaged states from the manifest and installed plugin directories | no |
 | `host.py` | `PluginHost` protocol and Omarchy adapter for plugin add/enable commands | no |
 | `cli.py` | `omarchy-plugins sync [--dry-run]`; executes the plan and reports outcomes | yes |

@@ -50,5 +50,3 @@ class OmarchyHost:
                 f"cloned {plugin.git} but no {plugin.id}/ appeared; "
                 "the id in plugins.toml must match the plugin's manifest.json id"
             )
-        if plugin.section:
-            run("omarchy-plugin-enable", plugin.id, "--section", plugin.section)

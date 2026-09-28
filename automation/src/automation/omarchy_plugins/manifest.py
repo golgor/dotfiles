@@ -1,22 +1,18 @@
-"""The tracked plugin list: git source, target hosts, and optional bar section per plugin."""
+"""The tracked plugin list: git source and target hosts per plugin."""
 
 import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
 
 from automation import AutomationError
 
-Section = Literal["left", "center", "right"]
-SECTIONS: tuple[Section, ...] = ("left", "center", "right")
-
 MANIFEST = Path("omarchy/plugins.toml")
 
-# id and git reach argv (omarchy-plugin-add/enable); both shapes rule out option-like values.
+# git reaches omarchy-plugin-add argv, id names a plugin dir; both rule out option-like values.
 _ID = re.compile(r"^[A-Za-z0-9][\w.-]*$")
 _GIT = re.compile(r"^(https://|git@)\S+$")
-_KEYS = {"id", "git", "hosts", "section"}
+_KEYS = {"id", "git", "hosts"}
 
 
 @dataclass(frozen=True)
@@ -24,7 +20,6 @@ class Plugin:
     id: str
     git: str
     hosts: tuple[str, ...]  # empty = every host
-    section: Section | None
 
     def for_host(self, host: str) -> bool:
         return not self.hosts or host in self.hosts
@@ -34,15 +29,6 @@ def _string(value: object, where: str) -> str:
     if not isinstance(value, str):
         raise AutomationError(f"plugins manifest: {where} must be a string")
     return value
-
-
-def _section(value: object, where: str) -> Section | None:
-    if value is None:
-        return None
-    for section in SECTIONS:
-        if value == section:
-            return section
-    raise AutomationError(f"plugins manifest: {where}.section must be one of {', '.join(SECTIONS)}")
 
 
 def _plugin(entry: object, index: int) -> Plugin:
@@ -69,7 +55,6 @@ def _plugin(entry: object, index: int) -> Plugin:
         id=plugin_id,
         git=git,
         hosts=tuple(_string(h, f"{where}.hosts") for h in hosts),
-        section=_section(entry.get("section"), where),
     )
 
 
