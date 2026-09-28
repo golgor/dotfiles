@@ -100,6 +100,14 @@ this file carries the *why* and the *words*.
 - **`theme.lua` is untracked.** Omarchy owns the current-theme state inside the
   otherwise-tracked Neovim config; tracking it would fight Omarchy's theme
   switching.
+- **Omarchy plugins are tracked as a manifest, not runtime config.**
+  `omarchy/plugins.toml` records plugin IDs, git URLs, and optional hosts;
+  `sync-omarchy-plugins` installs and enables each missing plugin once. Omarchy
+  has no install registry (the plugin folder means installed) and keeps enabled
+  state and bar layout in `~/.config/omarchy/shell.json`. That file stays
+  untracked: Omarchy saves it by temp-file rename, which breaks symlinks, and it
+  is per-machine. `hancore.shibumi.*`, `jankeesvw.meeting-recorder`, and
+  first-party `omarchy.*` plugins are out of scope.
 - **Manual tasks stay out of bootstrap.** `setup-gws-axi`,
   `setup-kube-contexts`, and `setup-notion-routes` need Bitwarden/gcloud
   interaction and create machine-local secret/config material; `update-skills`

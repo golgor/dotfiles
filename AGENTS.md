@@ -109,7 +109,7 @@ The global mise config is tracked: `.config/mise/config.toml` → `~/.config/mis
 - **atuin**: `config.toml` only. The encryption key and session live under `~/.local/share/atuin/`, never here.
 - **Neovim**: runtime/plugin state lives under `~/.local/share/nvim/`, `~/.local/state/nvim/`, and `~/.cache/nvim/`. `~/.config/nvim/lua/plugins/theme.lua` is Omarchy-managed current-theme state and is intentionally not tracked.
 
-`~/.config/hypr` is tracked as a whole directory. After Hyprland config changes, validate with `hyprctl reload` and `hyprctl configerrors`.
+Omarchy `~/.config/omarchy/shell.json` is runtime state and stays untracked; plugin intent lives in `omarchy/plugins.toml`. `~/.config/hypr` is tracked as a whole directory. After Hyprland config changes, validate with `hyprctl reload` and `hyprctl configerrors`.
 
 `~/.bashrc` is tracked and public. Keep its guard convention: every `eval "$(tool ...)"` is wrapped in `command -v tool`, so a fresh machine mid-bootstrap still gets a working shell. Curl-pipe installers that append to `.bashrc` write through the symlink and show up as a repo diff — review and fold or drop the addition. The fnox block is tracked content that no setup step rewrites.
 
