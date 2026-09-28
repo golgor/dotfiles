@@ -21,9 +21,11 @@ backpass --version
 
 ## Models
 
-`~/.config/backpass/config.json` is tracked, so both machines use the same models. It replaces backpass's default model order with Claude Opus via `claude` first, then `gpt-6-sol` via `pi` (as `openai-codex/gpt-6-sol`), then `gpt-6-sol` via `codex`, with medium effort for analysis and high for synthesis. backpass tries each entry in order and uses the first that works. If an entry fails mid-run (auth, quota, model rejected), it moves to the next and says so.
+`~/.config/backpass/config.json` is tracked, so both machines use the same models. It replaces backpass's default model order with `anthropic/claude-opus-5-5` via `pi` first, then `gpt-6-sol` via `pi` (as `openai-codex/gpt-6-sol`), then `gpt-6-sol` via `codex`, with medium effort for analysis and high for synthesis. backpass tries each entry in order and uses the first that works. If an entry fails mid-run (auth, quota, model rejected), it moves to the next and says so.
 
 Project scope reads the top-level keys; user scope reads only the `user` block. That is why the same settings appear twice; change both. Do not set `analysis.agent` / `synthesis.agent` in this file: an agent set there fixes that pass to one agent and skips the fallback. Use the `--analysis-agent` / `--synthesis-agent` flags for a one-off run instead.
+
+Claude runs through pi, not acpx's `claude` agent. acpx pins its Claude ACP adapter per release, and that adapter bundles its own, older Claude Code, which can reject new models ("Claude Code 2.1.257 does not support this model"). backpass also refuses model and effort settings when `~/.acpx/config.json` overrides a built-in agent, so swapping the adapter is not a fix. Pi's `anthropic` provider uses the subscription-bound token in `~/.pi/agent/auth.json`.
 
 ## Project scope (default)
 
