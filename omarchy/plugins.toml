@@ -1,0 +1,50 @@
+# One [[plugin]] per entry. Omit hosts for both golgor-pc and golgor-framework.
+# The id must match manifest.json. Run `mise run sync-omarchy-plugins`.
+
+[[plugin]]
+id = "37signals.hey"
+git = "https://github.com/basecamp/omarchy-hey-plugin.git"
+
+[[plugin]]
+id = "crmne.hyprmoncfg"
+git = "https://github.com/crmne/omarchy-hyprmoncfg.git"
+
+[[plugin]]
+id = "crmne.mpris"
+git = "https://github.com/crmne/omarchy-mpris.git"
+
+[[plugin]]
+id = "io.github.dougfour.grok-usage"
+git = "https://github.com/dougfour/omarchy-grok-usage.git"
+
+[[plugin]]
+id = "io.github.golgor.cloud-sql-tracker"
+git = "https://github.com/golgor/cloud-sql-tracker-oma-plugin.git"
+
+[[plugin]]
+id = "io.github.sahzudin.ominder"
+git = "https://github.com/sahzudin/ominder.git"
+
+[[plugin]]
+id = "io.github.weedwhitesandwine.omazone"
+git = "https://github.com/weedwhitesandwine/omazone.git"
+
+[[plugin]]
+id = "omarchy-multi-output"
+git = "https://github.com/MADS0LADEN/omarchy-multi-output.git"
+
+[[plugin]]
+id = "shavanced.notification-center"
+git = "https://github.com/Shavanced/omarchy-notification-center-plugin.git"
+
+[[plugin]]
+id = "shmall.lock"
+git = "https://github.com/shmall03/omarchy-shmall.lock-plugin.git"
+
+[[plugin]]
+id = "vt.sun"
+git = "https://github.com/vitally/omarchy-solar-times.git"
+
+[[plugin]]
+id = "wian47.removable-drives"
+git = "https://github.com/Wian47/omarchy-removable-drives.git"

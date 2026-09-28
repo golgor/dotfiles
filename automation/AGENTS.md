@@ -8,6 +8,16 @@ Python-implemented mise tasks for this repo: one uv project, one package (`autom
 | --- | --- | --- | --- |
 | `skills` | `skills update [manifest]` | `update-skills` (append a manifest name to update just one) | vendors selected skills from upstream manifests in `../.mise/skills/*.toml` into `../skills/{common,claude}/`, records tag/commit, deploys skill symlinks |
 | `skills` | `skills deploy` | `deploy-skills` | projects one directory symlink per skill from `../skills/{common,claude}/` into `~/.agents/skills`, `~/.claude/skills`, `~/.codex/skills` |
+| `omarchy_plugins` | `omarchy-plugins sync [--dry-run]` | `sync-omarchy-plugins` | installs and enables missing plugins from `../omarchy/plugins.toml` for this host |
+
+### `omarchy_plugins` module map
+
+| module | role | prints? |
+| --- | --- | --- |
+| `manifest.py` | parses and validates `../omarchy/plugins.toml` into plugin IDs, git URLs and optional hosts | no |
+| `plan.py` | plans install/present/unmanaged states from the manifest and installed plugin directories | no |
+| `host.py` | `PluginHost` protocol and Omarchy adapter for plugin add/enable commands | no |
+| `cli.py` | `omarchy-plugins sync [--dry-run]`; executes the plan and reports outcomes | yes |
 
 ### `skills` module map
 
@@ -47,3 +57,7 @@ Shared: `process.py` (`run`, `git_root`) is the **only** module that calls `subp
 ## Verifying `deploy-skills` for real
 
 Run `mise run deploy-skills` twice; the second run must report every link already up to date. Confirm the deployed entries are symlinks, not directories: `ls -la ~/.codex/skills`. A real directory there is the old `symlink-each` shape, which Codex silently ignores — that shape is the entire reason this module exists. Confirm discovery for real: `codex exec "list every skill you have available whose name contains tdd"` must name `tdd`.
+
+## Verifying `sync-omarchy-plugins` for real
+
+Run `mise run sync-omarchy-plugins --dry-run` to review missing and already-present plugins, then `mise run sync-omarchy-plugins` to install and enable missing plugins. A second dry-run must report `Nothing to install.`

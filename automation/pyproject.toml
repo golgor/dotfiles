@@ -12,6 +12,7 @@ dependencies = []
 [project.scripts]
 # One console script per automation subpackage; mise.toml [tasks] call these.
 skills = "automation.skills.cli:main"
+omarchy-plugins = "automation.omarchy_plugins.cli:main"
 
 [dependency-groups]
 dev = ["pytest>=9.1", "ruff>=0.16", "ty>=0.0.78"]

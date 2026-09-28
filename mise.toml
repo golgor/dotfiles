@@ -48,6 +48,10 @@ run = "uv run --project automation --no-dev skills update"
 description = "Project skill directory symlinks into Pi, Claude Code, and Codex"
 run = "uv run --project automation --no-dev skills deploy"
 
+[tasks.sync-omarchy-plugins]
+description = "Install and enable Omarchy plugins listed for this host in omarchy/plugins.toml (append --dry-run to preview)"
+run = "uv run --project automation --no-dev omarchy-plugins sync"
+
 [tasks.check]
 description = "Lint, format-check, type-check, and test automation/"
 dir = "automation"
@@ -110,6 +114,7 @@ dotfiles.default_mode = "symlink"
 "~/.config/nvim/plugin/after" = { mode = "symlink" }
 "~/.config/nvim/stylua.toml" = { mode = "symlink" }
 "~/.config/obsidian-axi/config.json" = { mode = "symlink" }
+"~/.config/omarchy/shell.toml" = { mode = "symlink" }
 # rbw's declarative account config; device_id + vault live in ~/.local/share/rbw.
 "~/.config/rbw/config.json" = { mode = "symlink" }
 "~/.config/starship.toml" = { mode = "symlink" }
