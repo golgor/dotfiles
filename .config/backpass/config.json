@@ -3,12 +3,12 @@
   "synthesis": { "effort": "high" },
   "ladders": {
     "analysis": [
-      { "model": "claude-opus-5-5", "agents": ["claude"] },
+      { "model": "anthropic/claude-opus-5-5", "agents": ["pi"] },
       { "model": "openai-codex/gpt-6-sol", "agents": ["pi"] },
       { "model": "gpt-6-sol", "agents": ["codex"] }
     ],
     "synthesis": [
-      { "model": "claude-opus-5-5", "agents": ["claude"] },
+      { "model": "anthropic/claude-opus-5-5", "agents": ["pi"] },
       { "model": "openai-codex/gpt-6-sol", "agents": ["pi"] },
       { "model": "gpt-6-sol", "agents": ["codex"] }
     ]
@@ -18,12 +18,12 @@
     "synthesis": { "effort": "high" },
     "ladders": {
       "analysis": [
-        { "model": "claude-opus-5-5", "agents": ["claude"] },
+        { "model": "anthropic/claude-opus-5-5", "agents": ["pi"] },
         { "model": "openai-codex/gpt-6-sol", "agents": ["pi"] },
         { "model": "gpt-6-sol", "agents": ["codex"] }
       ],
       "synthesis": [
-        { "model": "claude-opus-5-5", "agents": ["claude"] },
+        { "model": "anthropic/claude-opus-5-5", "agents": ["pi"] },
         { "model": "openai-codex/gpt-6-sol", "agents": ["pi"] },
         { "model": "gpt-6-sol", "agents": ["codex"] }
       ]
