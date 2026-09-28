@@ -19,6 +19,12 @@ mise install        # or: mup
 backpass --version
 ```
 
+## Models
+
+`~/.config/backpass/config.json` is tracked, so both machines use the same models. It replaces backpass's default model order with Claude Opus via `claude` first, then `gpt-6-sol` via `pi` (as `openai-codex/gpt-6-sol`), then `gpt-6-sol` via `codex`, with medium effort for analysis and high for synthesis. backpass tries each entry in order and uses the first that works. If an entry fails mid-run (auth, quota, model rejected), it moves to the next and says so.
+
+Project scope reads the top-level keys; user scope reads only the `user` block. That is why the same settings appear twice; change both. Do not set `analysis.agent` / `synthesis.agent` in this file: an agent set there fixes that pass to one agent and skips the fallback. Use the `--analysis-agent` / `--synthesis-agent` flags for a one-off run instead.
+
 ## Project scope (default)
 
 Run inside a repo to tune that repo's `AGENTS.md` and skills:
