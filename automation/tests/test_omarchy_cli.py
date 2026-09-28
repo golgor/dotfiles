@@ -1,11 +1,14 @@
 """`omarchy-plugins sync` through run_sync() with a fake host, plus OmarchyHost on real dirs."""
 
 import io
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import pytest
+
 from automation import AutomationError
-from automation.omarchy_plugins.cli import run_sync
+from automation.omarchy_plugins.cli import main, run_sync
 from automation.omarchy_plugins.host import OmarchyHost
 from automation.omarchy_plugins.manifest import MANIFEST, Plugin
 from tests.helpers import git
@@ -81,6 +84,24 @@ def test_up_to_date_host_succeeds(tmp_path: Path) -> None:
     ok, out, _ = sync(tmp_path, FakeHost(ids={"vt.sun", "acme.broken"}))
     assert ok
     assert "Nothing to install." in out
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root can read mode-000 files")
+def test_manifest_permission_error_exits_cleanly(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    git("init", "-q", cwd=tmp_path)
+    manifest = tmp_path / MANIFEST
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text('[[plugin]]\nid = "vt.sun"\ngit = "https://x/sun.git"\n')
+    manifest.chmod(0o000)
+
+    try:
+        monkeypatch.chdir(tmp_path)
+        assert main(["sync", "--dry-run"]) == 1
+        assert "Permission denied" in capsys.readouterr().err
+    finally:
+        manifest.chmod(0o644)
 
 
 def test_omarchy_host_lists_plugin_dirs_and_git_origins(tmp_path: Path) -> None:

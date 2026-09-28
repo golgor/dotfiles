@@ -78,7 +78,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         ok = run_sync(git_root(), socket.gethostname(), OmarchyHost(), dry_run=args.dry_run)
-    except AutomationError as e:
+    except (AutomationError, OSError) as e:
         print(f"omarchy-plugins {args.command}: {e}", file=sys.stderr)
         return 1
     return 0 if ok else 1
