@@ -1,0 +1,7 @@
+{
+  "version": "1",
+  "defaultWorkspaceIds": {
+    "prod": "2ac289f9-621a-4c42-9436-d93293748ca6"
+  },
+  "keyring": false
+}
