@@ -130,22 +130,19 @@ dotfiles.default_mode = "symlink"
 # Pi and OMP agent files: one source each, linked into both harnesses' own
 # discovery directories (~/.omp here, ~/.pi below). See docs/tools/omp.md.
 #
-# MCP: one server list for both. Pi also auto-discovers ~/.config/mcp/mcp.json,
-# but projecting there as well would make Pi read the same servers from two
-# sources, so each harness gets one explicit link instead. OMP needs
-# "type": "http" on remote servers (a bare url is read as stdio and rejected);
-# Pi accepts that shape too. Tokens come from fnox's exported environment via
-# ${VAR}, expanded by both harnesses. "auth": false is Pi-only and ignored by
-# OMP: it keeps the unauthenticated local server out of /mcp-auth. Pi's link is
-# mcp-adapter.json: pi-mcp-adapter 3.2.0 left ~/.pi/agent/mcp.json to Pi's
-# built-in MCP support so the two never start the same servers.
+# MCP: one server list for both, linked into each harness's own mcp.json. Pi
+# uses its built-in MCP support (0.99+); do not install pi-mcp-adapter, which
+# registers /mcp and silently disables the built-in. OMP needs "type": "http"
+# on remote servers (a bare url is read as stdio and rejected); Pi accepts that
+# shape too. Tokens come from fnox's exported environment via ${VAR}, expanded
+# by both harnesses.
 "~/.omp/agent/APPEND_SYSTEM.md" = { source = ".pi/agent/APPEND_SYSTEM.md", mode = "symlink" }
-"~/.omp/agent/mcp.json" = { source = ".config/mcp/mcp.json", mode = "symlink" }
+"~/.omp/agent/mcp.json" = { source = ".pi/agent/mcp.json", mode = "symlink" }
 "~/.omp/agent/prompts/agent-review.md" = { source = ".pi/agent/prompts/agent-review.md", mode = "symlink" }
 "~/.omp/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
 
 "~/.pi/agent/APPEND_SYSTEM.md" = { source = ".pi/agent/APPEND_SYSTEM.md", mode = "symlink" }
-"~/.pi/agent/mcp-adapter.json" = { source = ".config/mcp/mcp.json", mode = "symlink" }
+"~/.pi/agent/mcp.json" = { source = ".pi/agent/mcp.json", mode = "symlink" }
 "~/.pi/agent/prompts/agent-review.md" = { source = ".pi/agent/prompts/agent-review.md", mode = "symlink" }
 "~/.pi/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
 
