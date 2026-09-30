@@ -2,21 +2,22 @@
   "mcpServers": {
     "basic-memory": {
       "type": "http",
-      "url": "http://127.0.0.1:8000/mcp",
-      "auth": false
+      "url": "http://127.0.0.1:8000/mcp"
     },
     "toolsense-docs": {
       "type": "http",
       "url": "https://api.iot.toolsense.io/mcp/documentation",
       "oauth": {
-        "clientId": "toolsense-mcp"
+        "clientId": "toolsense-mcp",
+        "callbackUrl": "http://127.0.0.1/mcp/oauth/callback"
       }
     },
     "toolsense-erpnext": {
       "type": "http",
       "url": "https://api.iot.toolsense.io/mcp/erpnext",
       "oauth": {
-        "clientId": "toolsense-mcp"
+        "clientId": "toolsense-mcp",
+        "callbackUrl": "http://127.0.0.1/mcp/oauth/callback"
       }
     },
     "backstage": {
