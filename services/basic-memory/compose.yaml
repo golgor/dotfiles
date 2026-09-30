@@ -23,7 +23,7 @@ services:
       - --port
       - "8000"
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:22196:8000"
     volumes:
       - basic-memory-state:/home/appuser/.basic-memory
       - ./config.json:/home/appuser/.basic-memory/config.json
