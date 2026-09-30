@@ -9,7 +9,7 @@ docker compose up -d
 docker compose exec basic-memory basic-memory status --wait
 ```
 
-MCP endpoint: `http://127.0.0.1:8000/mcp`. Wired globally into `.pi/agent/mcp.json` (linked to `~/.pi/agent/mcp.json` and `~/.omp/agent/mcp.json`)
+MCP endpoint: `http://127.0.0.1:22196/mcp`. Wired globally into `.pi/agent/mcp.json` (linked to `~/.pi/agent/mcp.json` and `~/.omp/agent/mcp.json`)
 via dotfiles.
 
 ## Layout
