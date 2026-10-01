@@ -112,6 +112,22 @@ function y() {
 	return "$status"
 }
 
+pi() {
+  # Look upwards for the firstmate workspace anchor
+  local dir="$PWD"
+  while [ "$dir" != "/" ]; do
+    if [ -f "$dir/bin/fm-send.sh" ]; then
+      echo "⚓ Firstmate workspace: Binding FM_HOME=$dir"
+      FM_HOME="$dir" command pi "$@"
+      return $?
+    fi
+    dir="$(dirname "$dir")"
+  done
+
+  # Fallback: We aren't in a firstmate repo, run the global path binary cleanly
+  command pi "$@"
+}
+
 # Bash completions
 if [ -d ~/.bash_completions.d ]; then
 	for file in ~/.bash_completions.d/*; do
