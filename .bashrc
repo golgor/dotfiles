@@ -4,6 +4,7 @@
 
 # All the default Omarchy aliases and functions
 # (don't mess with these directly, just overwrite them here!)
+# shellcheck source=/dev/null
 source /usr/share/omarchy/default/bash/rc
 
 # ── mise: shim-first PATH for agent-launched harnesses only ────────────────
@@ -34,7 +35,7 @@ source /usr/share/omarchy/default/bash/rc
 # bin/fm-send.sh), _mise_agent_run also exports FM_HOME=<that dir> to all three
 # agents (claude/pi/codex), with a one-line notice on stderr.
 _mise_agent_path() {
-	local p= d
+	local p='' d
 	local IFS=:
 	for d in $PATH; do
 		[[ $d == *"/.local/share/mise/installs/"* ]] || p+="${p:+:}$d"
@@ -94,7 +95,7 @@ export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
 export GOOGLE_CLOUD_PROJECT="toolsense"
 
 # Set up GOPRIVATE to enable installing from toolsense repos
-export GOPRIVATE="go.iot.toolsense.dev/*","go.iot.toolsense.io/*"
+export GOPRIVATE="go.iot.toolsense.dev/*,go.iot.toolsense.io/*"
 
 # Obsidian notes directory
 export NOTES_DIR="$HOME/Documents/ToolSense/Notes"
@@ -133,6 +134,7 @@ function y() {
 # Bash completions
 if [ -d ~/.bash_completions.d ]; then
 	for file in ~/.bash_completions.d/*; do
+		# shellcheck source=/dev/null
 		[ -f "$file" ] && source "$file"
 	done
 fi
@@ -144,6 +146,8 @@ fi
 if command -v fnox &>/dev/null; then
 	# fnox activate bakes its resolved versioned path, which mise deletes on
 	# upgrade, breaking every open shell. Rewrite to the stable 'latest' symlink.
+	# sed, not ${var//}: glob patterns can't express the [^/]* version segment.
+	# shellcheck disable=SC2001
 	if fnox_activation="$(fnox activate bash)" &&
 		fnox_activation="$(sed 's|/mise/installs/fnox/[^/]*/fnox|/mise/installs/fnox/latest/fnox|g' <<<"$fnox_activation")"; then
 		eval "$fnox_activation"
