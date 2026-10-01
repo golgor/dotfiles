@@ -29,6 +29,10 @@ source /usr/share/omarchy/default/bash/rc
 # absolute binary first (`mise which`) and exec that directly — never let the
 # agent's own name go through PATH lookup. Only safe for native-binary CLIs
 # (verified: claude, pi, codex are all ELF binaries, not shebang scripts).
+#
+# Second job: launched under a Firstmate workspace (nearest ancestor holding
+# bin/fm-send.sh), _mise_agent_run also exports FM_HOME=<that dir> to all three
+# agents (claude/pi/codex), with a one-line notice on stderr.
 _mise_agent_path() {
 	local p= d
 	local IFS=:
@@ -54,14 +58,14 @@ _firstmate_home() {
 _mise_agent_run() {
 	local name=$1
 	shift
-	local bin fm
+	local bin fm_home
 	bin=$(mise which "$name" 2>/dev/null) || bin=$(type -P "$name")
 	[ -x "$bin" ] || {
 		printf '%s: not found\n' "$name" >&2
 		return 127
 	}
-	fm=$(_firstmate_home) && printf '⚓ Firstmate workspace: FM_HOME=%s\n' "$fm" >&2
-	env ${fm:+"FM_HOME=$fm"} PATH="$(_mise_agent_path)" "$bin" "$@"
+	fm_home=$(_firstmate_home) && printf '⚓ Firstmate workspace: FM_HOME=%s\n' "$fm_home" >&2
+	env ${fm_home:+"FM_HOME=$fm_home"} PATH="$(_mise_agent_path)" "$bin" "$@"
 }
 
 claude() { _mise_agent_run claude "$@"; }
