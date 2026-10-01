@@ -38,16 +38,30 @@ _mise_agent_path() {
 	printf '%s:%s' "$HOME/.local/share/mise/shims" "$p"
 }
 
+# Nearest ancestor holding the firstmate anchor bin/fm-send.sh, if any.
+_firstmate_home() {
+	local dir=$PWD
+	while [ "$dir" != / ]; do
+		[ -f "$dir/bin/fm-send.sh" ] && {
+			printf '%s' "$dir"
+			return 0
+		}
+		dir=$(dirname "$dir")
+	done
+	return 1
+}
+
 _mise_agent_run() {
 	local name=$1
 	shift
-	local bin
+	local bin fm
 	bin=$(mise which "$name" 2>/dev/null) || bin=$(type -P "$name")
 	[ -x "$bin" ] || {
 		printf '%s: not found\n' "$name" >&2
 		return 127
 	}
-	env PATH="$(_mise_agent_path)" "$bin" "$@"
+	fm=$(_firstmate_home) && printf '⚓ Firstmate workspace: FM_HOME=%s\n' "$fm" >&2
+	env ${fm:+"FM_HOME=$fm"} PATH="$(_mise_agent_path)" "$bin" "$@"
 }
 
 claude() { _mise_agent_run claude "$@"; }
@@ -110,22 +124,6 @@ function y() {
 
 	rm -f -- "$tmp" || status=$?
 	return "$status"
-}
-
-pi() {
-  # Look upwards for the firstmate workspace anchor
-  local dir="$PWD"
-  while [ "$dir" != "/" ]; do
-    if [ -f "$dir/bin/fm-send.sh" ]; then
-      echo "⚓ Firstmate workspace: Binding FM_HOME=$dir"
-      FM_HOME="$dir" command pi "$@"
-      return $?
-    fi
-    dir="$(dirname "$dir")"
-  done
-
-  # Fallback: We aren't in a firstmate repo, run the global path binary cleanly
-  command pi "$@"
 }
 
 # Bash completions
