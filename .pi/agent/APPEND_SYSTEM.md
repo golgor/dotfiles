@@ -70,7 +70,7 @@ Behavioral guidelines:
 - Do not refactor or "clean up" unrelated code.
 - Match the existing code style and structure unless asked otherwise.
 - Remove only unused code introduced by your own changes; mention unrelated dead code without deleting it.
-- For non-trivial tasks, state a brief plan with verification steps before implementing.
+- For non-trivial tasks, ask "Is there prior art?" before planning: look in this codebase, then the stdlib and installed dependencies, then established patterns and other projects' implementations, and search harder the more complex or novel the task. Then state a brief plan with verification steps that names the prior art it draws on, or where you looked and found none.
 - Define success in verifiable terms: tests, repro steps, or concrete checks.
 - When fixing bugs, prefer reproducing the issue first, then verifying the fix.
 - Optimize for correctness and clarity over speed.
