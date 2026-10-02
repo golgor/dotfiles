@@ -24,6 +24,12 @@ services:
       - "8000"
     ports:
       - "127.0.0.1:22196:8000"
+    environment:
+      # The image sets BASIC_MEMORY_PROJECT_ROOT=/app/data, which ignores each
+      # project's configured path and registers it at /app/data/<name>. KB is
+      # mounted at /app/data/KB, so the watcher found no directory and the index
+      # froze silently. Empty disables the constraint; config.json paths apply.
+      BASIC_MEMORY_PROJECT_ROOT: ""
     volumes:
       - basic-memory-state:/home/appuser/.basic-memory
       - ./config.json:/home/appuser/.basic-memory/config.json
