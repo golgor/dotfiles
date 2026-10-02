@@ -33,6 +33,12 @@
       "headers": {
         "Authorization": "FlespiToken ${FLESPI_TOKEN}"
       }
+    },
+    "dbx": {
+      "command": "dbx-mcp-server",
+      "env": {
+        "DBX_MCP_ALLOW_WRITES": "0"
+      }
     }
   }
 }

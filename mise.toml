@@ -14,6 +14,8 @@
 "aur:cloud-sql-proxy-bin" = "latest"
 # Hyprland monitor profile manager + daemon.
 "aur:hyprmoncfg-bin" = "latest"
+# DBX desktop: owns the connections and the MCP policy that dbx-mcp-server reads.
+"aur:dbx-bin" = "latest"
 # fnox prerequisites.
 "pacman:rbw" = "latest"
 # rbw silent-unlock via keyring: rbw-pinentry-keyring reads the master password

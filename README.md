@@ -47,6 +47,7 @@ This repo's own `mise.toml` has no `[tools]` table. Its tasks run after bootstra
 - `google-cloud-cli-component-gke-gcloud-auth-plugin`
 - `cloud-sql-proxy-bin`
 - `hyprmoncfg-bin`
+- `dbx-bin`
 - `rbw`
 - `rbw-pinentry-keyring`
 - `libsecret`
