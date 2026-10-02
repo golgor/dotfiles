@@ -7,7 +7,6 @@
 # dropped once a package clears the threshold on its own.
 allowedUnpopularPackages = [
   "notion-axi",
-  "pg-axi",
   "quota-axi",
   "gws-axi",
   "slack-axi",
