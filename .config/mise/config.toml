@@ -28,6 +28,7 @@ go = "latest"
 "github:can1357/oh-my-pi" = "latest"  # omp (Oh My Pi)
 "github:grafana/gcx" = "latest"  # gcx, Grafana CLI; auth via `mise run setup-gcx` (keyring contexts)
 "github:kunchenguid/no-mistakes" = "latest"  # AI validation gate for git push; upgrade via `mise up`, not `no-mistakes update`, then `no-mistakes daemon restart`
+"github:kunchenguid/treehouse" = "latest"  # git worktree manager; required by Firstmate
 kubectl = "latest"
 kubectx = "latest"
 kubens = "latest"
