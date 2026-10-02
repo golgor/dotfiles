@@ -1,3 +1,5 @@
+[settings]
+trusted_config_paths = ["/home/golgor/.no-mistakes/worktrees"]
 # Global mise config, tracked by ~/.dotfiles and linked to ~/.config/mise/config.toml.
 #
 # Policy: every global tool is "latest"; a project that needs a specific version
