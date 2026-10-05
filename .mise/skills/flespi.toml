@@ -11,7 +11,7 @@ repo = "flespi-software/skills"
 branch = "master"
 
 [release]
-commit = "8460f4eefd5fa9be00221cbae5404a13fa32cc3a"
+commit = "bbb6508cd8d35f9f6c9ded9a7013c315a224bed4"
 
 [scopes]
 common = ["flespi"]
