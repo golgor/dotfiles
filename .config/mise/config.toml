@@ -41,6 +41,7 @@ node = "latest"
 "npm:@earendil-works/pi-coding-agent" = "latest"  # https://github.com/earendil-works
 "npm:acpx" = "latest"  # ACP client; backpass routes model calls through it
 "npm:backpass" = "latest"  # https://github.com/kunchenguid/backpass; needs acpx
+"npm:chrome-devtools-axi" = "latest"  # see docs/axi/chrome-devtools-axi.md
 "npm:gh-axi" = "latest"  # see docs/axi/gh-axi.md
 "npm:gws-axi" = "latest"  # see docs/axi/gws-axi.md
 "npm:lavish-axi" = "latest"  # see docs/axi/lavish-axi.md
