@@ -59,6 +59,7 @@ other tool.
 
 | Tool | Package | mise-tracked | External setup | Doc |
 | --- | --- | --- | --- | --- |
+| chrome-devtools-axi | `chrome-devtools-axi` | yes | none (drives a local headless Chrome) | [chrome-devtools-axi.md](chrome-devtools-axi.md) |
 | gh-axi | `gh-axi` | yes | `gh` (already in mise), `gh auth login` | [gh-axi.md](gh-axi.md) |
 | obsidian-axi | `@andershoffmann/obsidian-axi` | yes | none (reads vault folder) | [obsidian-axi.md](obsidian-axi.md) |
 | notion-axi | `notion-axi` | yes | `ntn` CLI + `ntn login` | [notion-axi.md](notion-axi.md) |
@@ -84,6 +85,7 @@ per machine). Restart the agent session after installing.
 
 | Tool | Hook command | Injects at session start |
 | --- | --- | --- |
+| chrome-devtools-axi | `chrome-devtools-axi setup hooks` | current browser session + usage guidance |
 | gh-axi | `gh-axi setup hooks` | current repo's open issues + PRs |
 | notion-axi | `notion-axi setup hooks` | compact Notion workspace view (recent pages/dbs) |
 | obsidian-axi | `obsidian-axi setup hooks` | vault dashboard (needs a global install) |
