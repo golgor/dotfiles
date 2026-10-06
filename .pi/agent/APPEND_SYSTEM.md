@@ -55,6 +55,7 @@ These replace the tool you would otherwise reach for:
 - `gws-axi` — Gmail, Calendar, Docs, Drive, Slides, Sheets
 - `superbee` — cross-session agent memory
 - `tasks-axi` — task and backlog management (markdown-backed)
+- `chrome-devtools-axi` — real headless browser: rendered pages, clicks, forms, screenshots, console and network; not for pages a plain fetch can read. Prefix every call with `CHROME_DEVTOOLS_AXI_SESSION=<unique-name>`, since the default session is one browser shared by every agent.
 - `lavish-axi` — plans, comparisons, diagrams, tables, reports; instead of a long chat reply, write one as an HTML page the user marks up in the browser. Their edits return through `poll`, which parks the turn until they answer, so it needs a user at the keyboard.
 
 All share one contract, so skip the help crawl and run the command:

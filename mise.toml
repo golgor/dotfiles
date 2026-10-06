@@ -22,6 +22,9 @@
 # from the GNOME keyring; libsecret provides secret-tool.
 "aur:rbw-pinentry-keyring" = "latest"
 "pacman:libsecret" = "latest"
+# chrome-devtools-axi launches the stable Chrome channel; Omarchy's Chromium is
+# not detected. Ships in the omarchy pacman repo. See docs/axi/chrome-devtools-axi.md.
+"pacman:google-chrome" = "latest"
 
 # systemd user oneshot that unlocks the rbw vault at login, before the first
 # terminal's fnox hook resolves secrets. Without it the first shell after a cold

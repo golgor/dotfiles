@@ -35,13 +35,14 @@ typosquatting, and in a non-interactive shell (bootstrap, CI, an agent) aube
 **fails the install** with `ERR_AUBE_LOW_DOWNLOAD_PACKAGE` / `user aborted`
 instead of prompting.
 
-Most axi tools are niche and trip this gate (only `gh-axi` and `ntn` clear it).
+Most axi tools are niche and trip this gate (only `gh-axi`, `ntn`, and
+`chrome-devtools-axi` clear it).
 The fix is aube's own allowlist, tracked at `~/.config/aube/config.toml`
 (`../../.config/aube/config.toml`):
 
 ```toml
 allowedUnpopularPackages = [
-  "notion-axi", "quota-axi", "gws-axi", "slack-axi", "superbee",
+  "notion-axi", "quota-axi", "gws-axi", "slack-axi", "superbee", "tasks-axi",
   "@andershoffmann/obsidian-axi",
 ]
 ```
@@ -59,7 +60,7 @@ other tool.
 
 | Tool | Package | mise-tracked | External setup | Doc |
 | --- | --- | --- | --- | --- |
-| chrome-devtools-axi | `chrome-devtools-axi` | yes | none (drives a local headless Chrome) | [chrome-devtools-axi.md](chrome-devtools-axi.md) |
+| chrome-devtools-axi | `chrome-devtools-axi` | yes | Google Chrome stable (`pacman:google-chrome`); Chromium not detected | [chrome-devtools-axi.md](chrome-devtools-axi.md) |
 | gh-axi | `gh-axi` | yes | `gh` (already in mise), `gh auth login` | [gh-axi.md](gh-axi.md) |
 | obsidian-axi | `@andershoffmann/obsidian-axi` | yes | none (reads vault folder) | [obsidian-axi.md](obsidian-axi.md) |
 | notion-axi | `notion-axi` | yes | `ntn` CLI + `ntn login` | [notion-axi.md](notion-axi.md) |

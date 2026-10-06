@@ -15,7 +15,10 @@ checking how a rendered HTML page looks.
 ## Requirements
 
 - Node 20+ (package `engines`).
-- A local Chrome/Chromium that chrome-devtools-mcp can launch headless.
+- Google Chrome, stable channel (`/opt/google/chrome/chrome`), tracked as the
+  host package `pacman:google-chrome` in `mise.toml`. chrome-devtools-mcp
+  launches that channel by default and does not detect Omarchy's Chromium; on a
+  Chromium-only machine every command fails with `BRIDGE_NOT_READY`.
 - No auth, no account, no token.
 
 ## Install
@@ -50,3 +53,15 @@ Restart the agent session afterwards.
 
 The CLI talks to a persistent local bridge on `localhost:9224`, which keeps one
 chrome-devtools-mcp session alive across invocations.
+
+That default session is shared: two agents running multi-step flows at once
+drive the same browser and act on each other's page state. Give each concurrent
+agent its own session:
+
+```sh
+CHROME_DEVTOOLS_AXI_SESSION=<unique-name> chrome-devtools-axi open <url>
+```
+
+Each name gets its own bridge, port, and headless Chrome. Do not export
+`CHROME_DEVTOOLS_AXI_PORT` globally: it forces every session onto one port and
+the second bridge fails to start.
