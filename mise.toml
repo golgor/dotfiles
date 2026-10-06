@@ -150,6 +150,9 @@ dotfiles.default_mode = "symlink"
 "~/.pi/agent/mcp.json" = { source = ".pi/agent/mcp.json", mode = "symlink" }
 "~/.pi/agent/prompts/agent-review.md" = { source = ".pi/agent/prompts/agent-review.md", mode = "symlink" }
 "~/.pi/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
+# Pi rewrites settings.json in place (writeFileSync, lock beside the link), so
+# /settings changes and upgrades (lastChangelogVersion) land as repo diffs.
+"~/.pi/agent/settings.json" = { mode = "symlink" }
 
 # Agent skills are not projected by mise: `mise run deploy-skills` (the Python automation)
 # owns those symlinks so it can give Codex the directory symlinks its loader requires.
