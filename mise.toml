@@ -43,6 +43,14 @@ after = ["graphical-session.target"]
 wanted_by = ["graphical-session.target"]
 start = true
 
+# Start dockerd at boot, not on first socket use. Omarchy enables only
+# docker.socket, so `restart: unless-stopped` containers under services/
+# (basic-memory, crawl4ai) stayed down after a reboot until something touched
+# the socket. System scope: apply prompts for sudo when a change is needed.
+[bootstrap.services.docker]
+state = "running"
+enabled = true
+
 # Python-backed tasks; see automation/pyproject.toml. Bash-native ones live as files under .mise/tasks/.
 # Takes an optional manifest name: `mise run update-skills mattpocock` updates only that one.
 [tasks.update-skills]
