@@ -1,0 +1,7 @@
+{
+  "crawl4aiBaseUrl": "http://localhost:11235",
+  "fetchRouting": {
+    "providers": ["http", "crawl4ai", "jina"],
+    "allowRemoteHostedProviders": true
+  }
+}
