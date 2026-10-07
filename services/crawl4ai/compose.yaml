@@ -1,0 +1,15 @@
+name: crawl4ai
+
+services:
+  crawl4ai:
+    image: unclecode/crawl4ai:0.9.4
+    ports:
+      - "127.0.0.1:11235:11235"
+    # Chromium needs more than Docker's 64 MB default /dev/shm or tabs crash.
+    shm_size: 1g
+    environment:
+      # Since 0.9 the server binds loopback inside the container when no token
+      # is set, so the published port answers "connection reset" while the
+      # container reports healthy. Fail at compose time instead.
+      CRAWL4AI_API_TOKEN: ${CRAWL4AI_API_TOKEN:?CRAWL4AI_API_TOKEN unset; it comes from fnox}
+    restart: unless-stopped

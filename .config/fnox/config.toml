@@ -9,6 +9,7 @@ GEMINI_API_KEY = { provider = "bitwarden", value = "Google (Toolsense)/Gemini AP
 OPENCODE_API_KEY = { provider = "bitwarden", value = "Opencode/API Key" }
 TYPESAFE_API_KEY = { provider = "bitwarden", value = "Typesafe AI/API Key" }
 XAI_API_KEY = { provider = "bitwarden", value = "xAI/API Key (Pi)" }
+CRAWL4AI_API_TOKEN = { provider = "bitwarden", value = "Crawl4AI/password" }
 SLACK_AXI_TOKEN = { provider = "bitwarden", value = "ToolSense Slack Apps/Slack-axi OAuth Token" }
 CLAUDE_CODE_OAUTH_TOKEN = { provider = "bitwarden", value = "Claude Code/Claude Code Token" }
 # gcx (Grafana CLI) is NOT here: it stores its Grafana service-account tokens in the OS
