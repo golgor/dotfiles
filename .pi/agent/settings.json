@@ -1,20 +1,45 @@
 {
+  "lastChangelogVersion": "1.0.4",
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-opus-5-5",
+  "defaultThinkingLevel": "medium",
   "defaultTools": [
     "+codemode"
   ],
-  "defaultModel": "claude-opus-5-5",
-  "defaultProvider": "anthropic",
-  "defaultThinkingLevel": "medium",
+  "codemode": {
+    "mode": "on"
+  },
+  "packages": [
+    "npm:pi-prompt-template-model",
+    "npm:pi-subagents",
+    "npm:pi-teams",
+    "npm:pi-web-access",
+    "npm:@plannotator/pi-extension",
+    "npm:@gotgenes/pi-anthropic-auth",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@dietrichgebert/ponytail",
+    "npm:@juicesharp/rpiv-btw",
+    "npm:pi-lens",
+    "npm:pi-smart-compact",
+    "npm:pi-caveman",
+    "git:github.com/stnly/pi-grok@v0.6.0"
+  ],
   "enabledModels": [
+    "anthropic/claude-sonnet-4-6",
+    "anthropic/claude-haiku-4-5",
+    "anthropic/claude-opus-4-8",
+    "anthropic/claude-sonnet-5",
+    "google/gemini-3.5-flash-lite",
+    "anthropic/claude-opus-5",
+    "google/gemini-3.8-flash",
+    "anthropic/claude-fable-5-1",
+    "google/gemini-3.7-flash",
+    "anthropic/claude-opus-5-5",
+    "anthropic/claude-sonnet-5-5",
+    "opencode/gpt-6-sol",
     "xai/grok-4.7",
     "xai/grok-4.6",
     "google/gemini-3.1-pro-preview",
-    "google/gemini-3.7-flash",
-    "google/gemini-3.8-flash",
-    "anthropic/claude-fable-5-1",
-    "anthropic/claude-opus-4-8",
-    "anthropic/claude-opus-5-5",
-    "anthropic/claude-sonnet-5",
     "openai-codex/gpt-5.6-luna",
     "openai-codex/gpt-5.6-sol",
     "openai-codex/gpt-5.6-terra",
@@ -22,27 +47,12 @@
     "openai-codex/gpt-6-luna",
     "openai-codex/gpt-6-sol"
   ],
-  "lastChangelogVersion": "1.0.4",
-  "packages": [
-    "npm:pi-subagents",
-    "npm:pi-prompt-template-model",
-    "npm:@gotgenes/pi-anthropic-auth",
-    "npm:pi-web-access",
-    "npm:@plannotator/pi-extension",
-    "git:github.com/stnly/pi-grok@v0.6.0",
-    "npm:pi-caveman",
-    "git:github.com/DietrichGebert/ponytail"
-  ],
-  "theme": "dark",
+  "theme": "omarchy-system",
+  "hideThinkingBlock": false,
   "extensions": [
     "~/Code/Personal/pi-extensions/fs-guard/index.ts",
-    "~/Code/Personal/pi-extensions/jev-prune/index.ts",
-    "~/Code/Personal/pi-extensions/wayfinder-map/index.ts"
+    "~/Code/Personal/pi-extensions/wayfinder-map/index.ts",
+    "~/Code/Personal/pi-extensions/jev-prune/index.ts"
   ],
-  "tuiMode": "regular",
-  "outputPad": 0,
-  "hideThinkingBlock": false,
-  "modelThinkingLevels": {
-    "github-copilot/claude-opus-5": "medium"
-  }
+  "treeFilterMode": "default"
 }
