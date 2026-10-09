@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "1.0.4",
+  "lastChangelogVersion": "1.1.0",
   "defaultProvider": "anthropic",
   "defaultModel": "claude-opus-5-5",
   "defaultThinkingLevel": "medium",
@@ -47,7 +47,7 @@
     "openai-codex/gpt-6-luna",
     "openai-codex/gpt-6-sol"
   ],
-  "theme": "omarchy-system",
+  "theme": "dark",
   "hideThinkingBlock": false,
   "extensions": [
     "~/Code/Personal/pi-extensions/fs-guard/index.ts",
