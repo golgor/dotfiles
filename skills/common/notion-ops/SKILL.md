@@ -19,6 +19,7 @@ If `routes.toml` is missing, run `mise -C ~/.dotfiles run setup-notion-routes` t
 The file defines table sections for each supported route:
 - `[projects]`: contains `database_id`, `data_source_id`, `template_id`, `template_name`
 - `[tasks]`: contains `database_id`, `data_source_id`, `template_id`, `template_name`
+- `[people.<name>]`: contains `name`, `user_id`, optional `email`. Use `user_id` for people properties such as Assignee; Notion rejects names. If a person is missing, read their ID from a page they are assigned to and propose adding them.
 
 ### Projects
 
