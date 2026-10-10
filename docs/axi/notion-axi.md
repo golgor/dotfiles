@@ -56,7 +56,10 @@ notion-axi          # recently edited pages & databases
 
 ## Routes
 
-`notion-ops` reads database and template routes from `~/.config/notion-axi/routes.toml`.
+`notion-manager` loads its private `notion-ops` skill from
+`~/.pi/agent/capsules/notion-manager/skills/notion-ops/SKILL.md` for every task.
+That skill reads database and template routes from `~/.config/notion-axi/routes.toml`;
+the routes and IDs remain external machine-local configuration.
 Restore routes from Bitwarden (`Notion` item Notes field):
 
 ```sh

@@ -73,4 +73,9 @@ All share one contract, so skip the help crawl and run the command:
 - For PR descriptions or explicitly requested PR publication, delegate to `pr-writer`. Pass repo and task mode: `draft` (body only), `local` (edited files → new PR), `branch` (committed branch → new PR), or `update` (existing PR). Include optional paths/base/PR; let agent discover changed files. Modes are task text, not native tool arguments. Private capsule owns workflow and `gh-axi` guidance.
 - For database schema inspection or bounded read-only queries, delegate to `db-scout`; pass database target, entity filter, and time window when known.
 
+### Specialist routing
+
+- `kb-curator` — Basic Memory KB lookup, capture, maintenance, and reflection. Parent passes mode, source handoff, and scope. Default is proposal-only; `approved-to-apply` must name the human-approved scope. KB access stays in Basic Memory MCP.
+- `notion-manager` — Notion record reads, drafts, and explicitly approved applies through `notion-axi`. Default is draft; parent must pass target plus approved properties/body/relations before apply. No backlog strategy or schema/template changes by inference.
+
 `model_verification_failed` with a dated snapshot id (for example `claude-haiku-4-5-20251001` for `anthropic/claude-haiku-4-5`) is expected, not a pi-subagents bug: follow the error's `modelResponseAliases` fix.
