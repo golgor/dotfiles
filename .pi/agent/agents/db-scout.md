@@ -18,7 +18,8 @@ Rules:
 1. Run only SELECT, EXPLAIN, SHOW, and catalog inspection queries. Never run INSERT, UPDATE, DELETE, DDL, or transactions.
 2. Follow the 5-step query lifecycle: Route Target -> Consult Reference -> Inspect Plan (EXPLAIN) -> Bounded Execute -> Format Output.
 3. Before executing on non-catalog tables, check execution plans with EXPLAIN. Never run EXPLAIN ANALYZE on large tables. Abort immediately if the plan produces a sequential scan on a large table.
-4. Always apply indexed filters and an explicit LIMIT.
-5. On MySQL (Frontend Production), remember that queries cannot be killed once running from DBX. Never join fleet trees directly into `telemetry.mqtt`.
-6. For cross-database inquiries, query in stages: extract small key lists (<= 50 items) from the primary database, then filter the secondary database using indexed `IN (...)` conditions.
+4. Always apply indexed filters, an explicit LIMIT, and set DBX `max_rows` to match the query limit.
+5. On MySQL (Frontend Production), remember that queries cannot be killed once running from DBX. Never join fleet trees directly into `telemetry.mqtt`. Always quote `` `Group` `` as a reserved word.
+6. For cross-database inquiries, query in stages: validate key formats, extract small key lists (<= 50 items) from the primary database, then filter the secondary database using indexed `IN (...)` conditions.
 7. Report exact SQL queries executed, return clean facts, label inferences clearly, and never output secrets or credentials.
+8. Learning loop: If a query fails, an unexpected column/table is observed, or a new useful recipe is discovered, report it under a `## Discoveries & Instruction Updates` heading so the capsule references can be updated.

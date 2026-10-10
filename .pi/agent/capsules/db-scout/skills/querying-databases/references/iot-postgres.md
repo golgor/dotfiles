@@ -27,23 +27,45 @@ Maps hardware IMEIs to physical SIMs and carriers, and tracks data consumption.
 SELECT
   m.imei,
   m.iccid,
-  m.carrier,
-  m.active,
-  m.updated_at
+  m.provider,
+  m.source,
+  m.valid_from,
+  m.valid_to
 FROM sim_fleet_iccidimeimapping m
-WHERE m.imei IN ('123456789012345', '123456789012346');
+WHERE m.imei IN ('123456789012345', '123456789012346')
+ORDER BY m.discovered_at DESC
+LIMIT 50;
 ```
 
-#### Check Carrier State for an ICCID (e.g. 1NCE / Onomondo)
+#### Check Carrier State for a 1NCE SIM
 ```sql
 -- database: iot_sim_governance
 SELECT
   iccid,
-  status,
-  imsi,
-  quota_status
+  imei,
+  sim_status,
+  renewal_intent,
+  data_allowance_kb,
+  remaining_data_kb,
+  contract_end
 FROM provider_1nce_simstate
-WHERE iccid = '8988303000000000000';
+WHERE iccid = '8988303000000000000'
+ORDER BY snapshot_date DESC
+LIMIT 1;
+```
+
+#### Check Carrier State for an Onomondo SIM
+```sql
+-- database: iot_sim_governance
+SELECT
+  iccid,
+  imei,
+  sim_status,
+  snapshot_date
+FROM provider_onomondo_simstate
+WHERE iccid = '8988303000000000001'
+ORDER BY snapshot_date DESC
+LIMIT 1;
 ```
 
 ### 2. Firmware Updates (`iot_fota`)
@@ -55,11 +77,13 @@ Manages firmware releases, target device compatibility, and tenant rollout rules
 SELECT
   pl.name AS product_line,
   fr.version AS firmware_version,
-  fr.release_channel,
+  fr.status AS release_status,
+  fr.is_globally_eligible,
   fr.created_at
 FROM firmware_releases fr
 JOIN product_lines pl
   ON pl.id = fr.product_line_id
+WHERE pl.name ILIKE 'phoenix%'
 ORDER BY fr.created_at DESC
 LIMIT 50;
 ```
@@ -70,13 +94,16 @@ LIMIT 50;
 SELECT
   t.name AS tenant_name,
   fr.version AS firmware_version,
-  fet.status
+  fr.status AS release_status,
+  fr.is_globally_eligible
 FROM firmware_eligible_tenants fet
 JOIN tenants t
   ON t.id = fet.tenant_id
 JOIN firmware_releases fr
   ON fr.id = fet.firmware_release_id
-WHERE t.name ILIKE '%Numatic%';
+WHERE t.name ILIKE '%Numatic%'
+ORDER BY fr.created_at DESC
+LIMIT 50;
 ```
 
 ### 3. IoT Configurator (`iot_configurations`)
@@ -91,7 +118,8 @@ SELECT
   dc.status,
   dc.updated_at
 FROM device_configurations dc
-WHERE dc.device_id = '123456789012345';
+WHERE dc.device_id = '123456789012345'
+LIMIT 1;
 ```
 
 ## Invariants & Gotchas

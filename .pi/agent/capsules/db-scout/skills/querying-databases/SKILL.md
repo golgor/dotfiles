@@ -17,13 +17,13 @@ Before querying, match the entity or question to its database connection and ope
 
 | Topic / Entity | Connection | Database / Schema | Reference |
 |---|---|---|---|
-| Customer groups, hierarchy, tree roots | `Frontend Production` | `api` | [references/frontend-mysql.md](references/frontend-mysql.md) |
+| Customer groups, hierarchy, tree roots | `Frontend Production` | `api` (quote `` `Group` ``) | [references/frontend-mysql.md](references/frontend-mysql.md) |
 | Assets, machine models, digital twins | `Frontend Production` | `api` | [references/frontend-mysql.md](references/frontend-mysql.md) |
 | Hardware modules, active asset mappings, IMEIs | `Frontend Production` | `api` | [references/frontend-mysql.md](references/frontend-mysql.md) |
 | Latest asset telemetry state (single row) | `Frontend Production` | `api` (`LatestAssetData`) | [references/frontend-mysql.md](references/frontend-mysql.md) |
 | Raw sensor messages & telemetry history | `Frontend Production` | `telemetry` (`mqtt`) | [references/frontend-mysql.md](references/frontend-mysql.md) |
 | Phoenix dynamic config, parameters, overrides | `Backend Production` | `backend.public` | [references/backend-postgres.md](references/backend-postgres.md) |
-| Phoenix OTA desired vs current versions | `Backend Production` | `backend.public` (`ota_*`) | [references/backend-postgres.md](references/backend-postgres.md) |
+| Phoenix OTA published firmware catalog | `Backend Production` | `backend.public` (`ota_publishedversion`) | [references/backend-postgres.md](references/backend-postgres.md) |
 | SIM cards, ICCID-to-IMEI mapping, carrier state | `IoT Production` | `iot_sim_governance` | [references/iot-postgres.md](references/iot-postgres.md) |
 | Firmware releases, tenant eligibility, FOTA | `IoT Production` | `iot_fota` | [references/iot-postgres.md](references/iot-postgres.md) |
 | Non-Phoenix device configurations & sync tasks | `IoT Production` | `iot_configurations` | [references/iot-postgres.md](references/iot-postgres.md) |
@@ -40,7 +40,7 @@ Execute queries in five strict stages:
 Identify the connection and exact database/schema using the routing table above.
 
 ### 2. Consult Reference
-Read the specific reference file in `references/` for verified indexes, table sizes, and golden queries before touching DBX.
+Read the specific reference file in `references/` for verified indexes, table sizes, resolution logic, and golden queries before touching DBX.
 
 ### 3. Inspect Plan (`EXPLAIN`)
 On non-catalog tables, run `EXPLAIN` on the proposed query.
@@ -50,8 +50,9 @@ On non-catalog tables, run `EXPLAIN` on the proposed query.
 
 ### 4. Bounded Execution
 - Always include an explicit indexed filter (`WHERE ...`).
-- Always specify an explicit `LIMIT` (default 50, maximum 500).
-- If filtering by time on telemetry, bound both lower and upper bounds where possible (`datetime >= NOW() - INTERVAL 7 DAY`).
+- Always specify an explicit `LIMIT` (default 50, maximum 100).
+- If filtering by time on telemetry, bound both lower and upper bounds (`datetime >= NOW() - INTERVAL 7 DAY`).
+- **DBX Tool `max_rows`:** DBX defaults to returning at most 100 rows. Always pass `max_rows` matching the query `LIMIT`, and report if the output reached the row limit.
 
 ### 5. Format Output
 Report findings to the supervisor/caller:
@@ -66,9 +67,29 @@ Report findings to the supervisor/caller:
 
 When a question spans multiple databases (e.g. *"Find firmware status for Numatic devices"*):
 1. **Never perform cross-database Cartesian joins.**
-2. **Stage 1 (Extract keys):** Query the primary database (e.g. Frontend MySQL) to retrieve a bounded list of target IDs or IMEIs (maximum 50–100 items).
-3. **Stage 2 (Filter target):** Switch to the secondary database (e.g. IoT Postgres) and pass the retrieved keys in an indexed `IN ('<key1>', '<key2>', ...)` clause.
-4. **Attribution:** Clearly document which database provided which part of the response.
+2. **Stage 1 (Extract keys):** Query the primary database (e.g. Frontend MySQL) to retrieve a bounded list of target IDs or IMEIs (maximum 50 items).
+3. **Key Validation:** Validate extracted keys against strict formats before interpolation:
+   - IMEIs: validate regex `^[0-9]{15}$`.
+   - IDs / Root Group IDs: validate positive integers.
+   - Abort if any key contains unexpected non-numeric characters or quotes.
+4. **Stage 2 (Filter target):** Switch to the secondary database (e.g. IoT Postgres) and pass the validated keys in an indexed `IN ('<key1>', '<key2>', ...)` clause with an explicit `LIMIT`.
+5. **Attribution:** Clearly document which database provided which part of the response.
+
+---
+
+## Self-Improvement & Learning Loop
+
+`db-scout` should actively contribute to maintaining its instructions:
+- When a query errors due to a schema change, missing column, or stale table: do not hide the error.
+- When a new high-value query pattern ("recipe") is discovered or an undocumented quirk is encountered:
+  Include a dedicated section at the end of the report:
+  ```markdown
+  ## Discoveries & Instruction Updates
+  - Table / Database: <name>
+  - Issue / Discovery: <what was observed vs documented>
+  - Proposed Update: <suggested exact change for references/*.md>
+  ```
+The main agent or captain can then review and apply the improvement to the capsule.
 
 ---
 
