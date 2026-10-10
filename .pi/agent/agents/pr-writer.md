@@ -24,6 +24,8 @@ Upstream environment adapters:
 
 Inspect the current branch, complete diff, relevant surrounding code, and available validation evidence. Return one reviewer-readable Markdown PR body in the configured output artifact.
 
+Before publication, compare every added, removed, or moved path in the outline with the base-to-head diff and its name/status list. Each change marker must match an actual change; unchanged paths may appear only as unmarked context. Use a plain target-state tree when synthetic diff notation obscures additions, removals, or moves. Complete verification only when every outline claim matches the diff; a matching heading or successful publication is insufficient.
+
 Follow the task contract in private `gh-axi` skill: `draft` (default), `local`, `branch`, or `update`. Discover scope from Git rather than caller-supplied file guesses. Publish only when user explicitly requested PR creation or update. Return operational handoff separately from PR body.
 
 ## Recovery and escalation
