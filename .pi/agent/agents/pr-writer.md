@@ -5,7 +5,7 @@ advertise: true
 model: openai-codex/gpt-5.6-luna
 thinking: high
 tools: read, bash, write
-skillPath: ../capsules/pr-writer/skills
+skillPath: ~/.pi/agent/capsules/pr-writer/skills
 skills: pr-writer
 systemPromptMode: replace
 inheritProjectContext: true
