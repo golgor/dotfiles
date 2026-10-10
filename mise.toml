@@ -65,6 +65,10 @@ run = "uv run --project automation --no-dev skills deploy"
 description = "Install and enable Omarchy plugins listed for this host in omarchy/plugins.toml (append --dry-run to preview)"
 run = "uv run --project automation --no-dev omarchy-plugins sync"
 
+[tasks.refresh-gh-axi-reference]
+description = "Refresh private gh-axi skill reference from installed documented help"
+run = "uv run --project automation --no-dev refresh-gh-axi-reference"
+
 [tasks.check]
 description = "Lint, format-check, type-check, and test automation/"
 dir = "automation"
