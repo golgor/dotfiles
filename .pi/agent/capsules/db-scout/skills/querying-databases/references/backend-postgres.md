@@ -38,8 +38,8 @@ Holds configuration profiles and assignments for Phoenix devices (R4/R5 hardware
 
 ## Golden Query Patterns
 
-### 1. Inspect Dynamic Configuration Assigned to an IMEI
-Check both direct module mapping and configuration data:
+### 1. Inspect Dynamic Configuration Assigned to an IMEI [Production Pattern]
+Check direct module mapping and retrieve the latest active configuration version:
 ```sql
 SELECT
   mm.imei,
@@ -58,7 +58,7 @@ WHERE mm.imei = '123456789012345'
 LIMIT 1;
 ```
 
-### 2. Check Configuration Assigned to an Asset Type
+### 2. Check Configuration Assigned to an Asset Type [Production Pattern]
 When an IMEI has no module override, its config comes from its machine asset type:
 ```sql
 SELECT
@@ -77,8 +77,8 @@ WHERE atm.asset_type_id = 1234
 LIMIT 1;
 ```
 
-### 3. Find Configurations with a Specific Parameter
-Search inside the `toolsconfig` JSONB section:
+### 3. Search Dynamic Configuration Content [Discovery Pattern - Catalog Scan]
+To search for configurations defining a specific key inside `toolsconfig`, query the configuration catalog with explicit bounds:
 ```sql
 SELECT
   config_name,
@@ -90,7 +90,7 @@ ORDER BY id DESC
 LIMIT 50;
 ```
 
-### 4. Check Published Firmware Versions
+### 4. Check Published Firmware Versions [Production Pattern]
 Query the active OTA published catalog:
 ```sql
 SELECT

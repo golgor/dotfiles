@@ -26,6 +26,7 @@ Schemas: **`api`** (platform data), **`telemetry`** (raw device messages)
 4. **`Asset.moduleId` is mostly empty:** Do not rely on `Asset.moduleId`. Always resolve modules via `AssetModuleMapping` where `activeFlag = 1 AND deleted IS NULL`.
 5. **Translation table scanning:** Never filter `api.Translation` on text or language columns. Look up translations strictly by primary key (`id = AssetType.nameId`).
 6. **Soft deletes & active mappings:** Always filter `deleted IS NULL` on `` `Group` ``, `Asset`, and `AssetModuleMapping`. There is only one active module per asset at a given time (`activeFlag = 1 AND deleted IS NULL`).
+7. **IMEI De-duplication:** If an IMEI was reassigned between assets, select the asset with the newest `LatestAssetData.datetime` using `ROW_NUMBER()`.
 
 ## Core Relationships
 
@@ -47,8 +48,8 @@ api.Asset (groupId)
 
 ## Golden Query Patterns
 
-### 1. Customer Root Group Discovery
-Find the customer's root group by name (discovery query with explicit limit):
+### 1. Customer Root Group Discovery [Discovery Pattern]
+Discover the customer's root group ID by name. Uses indexed filter on `isRoot` with string search:
 ```sql
 SELECT id, name, treeRootId
 FROM api.`Group`
@@ -56,16 +57,48 @@ WHERE isRoot = 1 AND deleted IS NULL AND name LIKE '%Numatic%'
 LIMIT 10;
 ```
 
-### 2. Customer Fleet IMEIs & Pagination
-Given customer `treeRootId = 149`, retrieve assets with deterministic ordering.
-For large fleets, use cursor pagination on `a.id`:
+### 2. Customer Fleet IMEIs with De-duplication & Pagination [Production Pattern]
+Given customer `treeRootId = 149`, retrieve unique active IMEIs. De-duplicates any reassigned modules by keeping the mapping with the latest telemetry timestamp, and applies deterministic ordering for pagination:
 ```sql
+WITH ranked_mappings AS (
+  SELECT
+    a.id AS asset_id,
+    a.name AS asset_name,
+    m.imei,
+    m.moduleRevision,
+    g.name AS group_name,
+    lad.datetime AS latest_telemetry_datetime,
+    ROW_NUMBER() OVER (
+      PARTITION BY m.imei
+      ORDER BY lad.datetime DESC, a.id DESC
+    ) AS rn
+  FROM api.`Group` g
+  JOIN api.Asset a
+    ON a.groupId = g.id AND a.deleted IS NULL
+  JOIN api.AssetModuleMapping amm
+    ON amm.assetId = a.id AND amm.activeFlag = 1 AND amm.deleted IS NULL
+  JOIN api.Module m
+    ON m.id = amm.moduleId
+  LEFT JOIN api.LatestAssetData lad
+    ON lad.assetId = a.id
+  WHERE g.treeRootId = 149 AND g.deleted IS NULL
+)
 SELECT
-  a.id AS asset_id,
-  a.name AS asset_name,
-  m.imei,
-  m.moduleRevision,
-  g.name AS group_name
+  asset_id,
+  asset_name,
+  imei,
+  moduleRevision,
+  group_name,
+  latest_telemetry_datetime
+FROM ranked_mappings
+WHERE rn = 1
+ORDER BY asset_id ASC
+LIMIT 50;
+```
+
+To get the total count for the customer fleet first:
+```sql
+SELECT COUNT(DISTINCT m.imei) AS total_active_modules
 FROM api.`Group` g
 JOIN api.Asset a
   ON a.groupId = g.id AND a.deleted IS NULL
@@ -74,23 +107,10 @@ JOIN api.AssetModuleMapping amm
 JOIN api.Module m
   ON m.id = amm.moduleId
 WHERE g.treeRootId = 149 AND g.deleted IS NULL
-  -- AND a.id > :last_seen_asset_id (for subsequent pages)
-ORDER BY a.id ASC
-LIMIT 50;
+LIMIT 1;
 ```
 
-To get the total count for the customer fleet first:
-```sql
-SELECT COUNT(DISTINCT a.id) AS total_assets
-FROM api.`Group` g
-JOIN api.Asset a
-  ON a.groupId = g.id AND a.deleted IS NULL
-JOIN api.AssetModuleMapping amm
-  ON amm.assetId = a.id AND amm.activeFlag = 1 AND amm.deleted IS NULL
-WHERE g.treeRootId = 149 AND g.deleted IS NULL;
-```
-
-### 3. Read Latest Telemetry for Assets
+### 3. Read Latest Telemetry for Assets [Production Pattern]
 Use `LatestAssetData` for fast single-row latest state:
 ```sql
 SELECT
@@ -103,7 +123,7 @@ WHERE assetId IN (1001, 1002, 1003)
 LIMIT 50;
 ```
 
-### 4. Query Raw Message History for IMEIs
+### 4. Query Raw Message History for IMEIs [Production Pattern]
 Always pass explicit IMEIs and a bounded datetime filter:
 ```sql
 SELECT
@@ -121,5 +141,4 @@ LIMIT 50;
 ## Hardware & Data Quirks
 
 - `Module.moduleRevision`: Identifies hardware generation (`TSIOT-KITR4P` = Phoenix, `R5` = Phoenix+, `R3` = older). `ModuleType` (`HUMMINGBIRD`, `STANDARD`, `GOLDFINCH`) is a legacy classification; do not use it to filter modern models.
-- De-duplication: If aggregating across time where an IMEI moved between assets, de-duplicate on `m.imei` and select the asset with the newest `LatestAssetData.datetime`.
 - Firmware test builds: Devices running test firmware report `ver = '0.0.0'`. If querying test fleets, include `(ver LIKE '0.2.%' OR ver = '0.0.0')`.

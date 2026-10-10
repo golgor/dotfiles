@@ -21,7 +21,7 @@ Architecture: **One database per service** (always specify `database` parameter 
 ### 1. SIM Governance (`iot_sim_governance`)
 Maps hardware IMEIs to physical SIMs and carriers, and tracks data consumption.
 
-#### Find SIM & Carrier Details by IMEI
+#### Find SIM & Carrier Details by IMEI [Production Pattern]
 ```sql
 -- database: iot_sim_governance
 SELECT
@@ -37,7 +37,7 @@ ORDER BY m.discovered_at DESC
 LIMIT 50;
 ```
 
-#### Check Carrier State for a 1NCE SIM
+#### Check Carrier State for a 1NCE SIM [Production Pattern]
 ```sql
 -- database: iot_sim_governance
 SELECT
@@ -54,7 +54,7 @@ ORDER BY snapshot_date DESC
 LIMIT 1;
 ```
 
-#### Check Carrier State for an Onomondo SIM
+#### Check Carrier State for an Onomondo SIM [Production Pattern]
 ```sql
 -- database: iot_sim_governance
 SELECT
@@ -71,7 +71,18 @@ LIMIT 1;
 ### 2. Firmware Updates (`iot_fota`)
 Manages firmware releases, target device compatibility, and tenant rollout rules.
 
-#### Check Firmware Releases for a Product Line
+#### Product Line Discovery [Discovery Pattern]
+Find the product line UUID:
+```sql
+-- database: iot_fota
+SELECT id, name
+FROM product_lines
+WHERE name ILIKE 'phoenix%'
+LIMIT 5;
+```
+
+#### Check Firmware Releases for a Product Line [Production Pattern]
+Use the discovered product line ID or exact name:
 ```sql
 -- database: iot_fota
 SELECT
@@ -83,12 +94,23 @@ SELECT
 FROM firmware_releases fr
 JOIN product_lines pl
   ON pl.id = fr.product_line_id
-WHERE pl.name ILIKE 'phoenix%'
+WHERE pl.name = 'phoenix'
 ORDER BY fr.created_at DESC
 LIMIT 50;
 ```
 
-#### Check Firmware Eligibility for a Tenant
+#### Tenant Discovery [Discovery Pattern]
+Find the tenant UUID by name:
+```sql
+-- database: iot_fota
+SELECT id, name
+FROM tenants
+WHERE name ILIKE '%Numatic%'
+LIMIT 5;
+```
+
+#### Check Firmware Eligibility for a Tenant [Production Pattern]
+Use the discovered tenant UUID:
 ```sql
 -- database: iot_fota
 SELECT
@@ -101,7 +123,7 @@ JOIN tenants t
   ON t.id = fet.tenant_id
 JOIN firmware_releases fr
   ON fr.id = fet.firmware_release_id
-WHERE t.name ILIKE '%Numatic%'
+WHERE fet.tenant_id = '00000000-0000-0000-0000-000000000000'
 ORDER BY fr.created_at DESC
 LIMIT 50;
 ```
@@ -109,7 +131,7 @@ LIMIT 50;
 ### 3. IoT Configurator (`iot_configurations`)
 Manages configuration sets and delivery sync tasks for IoT devices.
 
-#### Check Device Configuration & Sync Status
+#### Check Device Configuration & Sync Status [Production Pattern]
 ```sql
 -- database: iot_configurations
 SELECT
