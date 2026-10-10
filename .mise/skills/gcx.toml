@@ -13,8 +13,8 @@
 repo = "grafana/gcx"
 
 [release]
-tag = "v1.4.0"
-commit = "dafd4d1468749c3521c0e2fcef40193dd5289607"
+tag = "v1.5.0"
+commit = "acc8f146b45b8f032c01a204773fdc6e38970c87"
 
 [scopes]
 common = ["gcx"]
