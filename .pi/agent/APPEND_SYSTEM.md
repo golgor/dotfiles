@@ -68,9 +68,20 @@ All share one contract, so skip the help crawl and run the command:
 
 `lavish-axi` wraps two steps around that contract. Before writing HTML, read `lavish-axi design` and every playbook whose `use_when` matches — a plan carrying a table, a diagram, and a decision form matches four, and reading one is the usual failure. `playbook` takes a single id and drops extra ones with exit 0, so loop it: `for p in plan comparison table input; do lavish-axi playbook $p; done`. Write the artifact under `./.lavish/`, gitignore that directory, and keep `lavish-axi poll <file>` in the foreground of the turn that opened the session.
 
-### Subagents
+### Subagents (Pi only)
+
+These delegation routes use Pi's `subagent` tool and agent definitions deployed under `~/.pi/agent/agents`. Apply them only in Pi; OMP's task agents have a separate discovery and configuration contract.
 
 - For PR descriptions or explicitly requested PR publication, delegate to `pr-writer`. Pass repo and task mode: `draft` (body only), `local` (edited files → new PR), `branch` (committed branch → new PR), or `update` (existing PR). Include optional paths/base/PR; let agent discover changed files. Modes are task text, not native tool arguments. Private capsule owns workflow and `gh-axi` guidance.
 - For database schema inspection or bounded read-only queries, delegate to `db-scout`; pass database target, entity filter, and time window when known.
+
+### Specialist routing (Pi only)
+
+- `kb-curator` — Basic Memory KB lookup, capture, maintenance, and reflection. Parent passes mode, source handoff, and scope. Default is proposal-only; `approved-to-apply` must name the human-approved scope. KB access stays in Basic Memory MCP.
+- `notion-manager` — Notion record reads, drafts, and explicitly approved applies through `notion-axi`. Default is draft; parent must pass target plus approved properties/body/relations before apply. No backlog strategy or schema/template changes by inference.
+
+### OMP Notion fallback
+
+For Notion work in OMP, read `~/.pi/agent/capsules/notion-manager/skills/notion-ops/SKILL.md` and its routing reference, then use `notion-axi` directly. Preserve the guide's proposal, approval, and verification gates. If the guide or restored route configuration is unavailable, report the setup action instead of delegating to an undeployed specialist.
 
 `model_verification_failed` with a dated snapshot id (for example `claude-haiku-4-5-20251001` for `anthropic/claude-haiku-4-5`) is expected, not a pi-subagents bug: follow the error's `modelResponseAliases` fix.

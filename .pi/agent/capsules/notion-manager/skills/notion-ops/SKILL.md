@@ -13,32 +13,7 @@ Check rendering conventions against the current command documentation and the re
 
 ## Routes
 
-Read `~/.config/notion-axi/routes.toml` for canonical database and template IDs.
-If `routes.toml` is missing, run `mise -C ~/.dotfiles run setup-notion-routes` to restore it from Bitwarden.
-
-The file defines table sections for each supported route:
-- `[projects]`: contains `database_id`, `data_source_id`, `template_id`, `template_name`
-- `[tasks]`: contains `database_id`, `data_source_id`, `template_id`, `template_name`
-- `[people.<name>]`: contains `name`, `user_id`, optional `email`. Use `user_id` for people properties such as Assignee; Notion rejects names. If a person is missing, read their ID from a page they are assigned to and propose adding them.
-
-### Projects
-
-Use the `database_id` and `data_source_id` under `[projects]`.
-Native template: `template_id` (named by `template_name`).
-Use for project records across discovery and delivery, including customer work, infrastructure, and internal tools.
-
-### Tasks
-
-Use the `database_id` and `data_source_id` under `[tasks]`.
-Native template: `template_id` (named by `template_name`).
-
-Link project work through **Parent project** on the task, paired with **Tasks** on the project.
-Standalone tasks may have no project. Ask when the intended project is unclear.
-Relations contain project page IDs, not database or template IDs.
-Execution work belongs in the Tasks database, not duplicate project-page checklists.
-
-For other Notion content, use the supplied page URL or confirm a target through search.
-These two routes do not select destinations for meetings, catalogs, or standalone decision records.
+Before resolving any record destination, template, or assignee, read [Notion routes](references/routes.md). That reference owns routing rules and the lookup/setup path for private configuration.
 
 ## Read and draft
 
