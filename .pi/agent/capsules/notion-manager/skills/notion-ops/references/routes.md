@@ -2,11 +2,12 @@
 
 ## Source of truth
 
-Read `~/.config/notion-axi/routes.toml` for canonical database, data-source, native-template, and people IDs. The configuration is restored from the Notes field of the Bitwarden item `Notion`; keep actual values there, outside this reference and public dotfiles.
+Read sibling `routes.toml` at `~/.pi/agent/capsules/notion-manager/skills/notion-ops/references/routes.toml` for canonical database, data-source, native-template, and people IDs. The configuration is restored from the Notes field of the Bitwarden item `Notion`; keep actual values there, outside this reference and public dotfiles.
 
-If the file is missing, return this setup action to the parent:
+If the file is missing, ensure the `notion-manager` capsule is checked out, then return these setup actions to the parent:
 
 ```sh
+mise bootstrap dotfiles apply
 mise -C ~/.dotfiles run setup-notion-routes
 ```
 

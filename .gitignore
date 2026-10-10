@@ -17,3 +17,7 @@ __pycache__/
 
 # Local Lavish review artifacts
 .lavish/
+
+# Bitwarden-restored Notion routes; keep routing guide tracked.
+/.pi/agent/capsules/notion-manager/skills/notion-ops/references/routes.toml
+/.pi/agent/capsules/notion-manager/skills/notion-ops/references/routes.toml.tmp.*
