@@ -1,6 +1,6 @@
 # gh-axi command reference
 
-> Generated from installed `gh-axi` version and help output.
+> Static snapshot of installed `gh-axi` version and help output. Update manually when needed.
 > Documented help, not an exhaustive machine-readable schema.
 > Version: `0.1.37`
 

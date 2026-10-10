@@ -12,7 +12,7 @@ Use `gh-axi` for every GitHub operation. Never substitute raw `gh`, browser auto
 
 At task start, run `gh-axi --version` and compare it with the version in [`references/commands.md`](references/commands.md). For a matching version, use the relevant documented group section. For a mismatch, or when needed syntax is absent, run live specific help (`gh-axi <group> --help`) and follow that output.
 
-The installed CLI is the source of truth. Do not copy command flags from memory or this skill. The generated file is documented help, not an exhaustive machine-readable schema:
+The installed CLI is the source of truth. The reference is a static help snapshot maintained manually when needed, not an exhaustive machine-readable schema. Take flags from the matching command section or live help:
 
 ```bash
 gh-axi --version
