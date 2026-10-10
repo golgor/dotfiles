@@ -54,5 +54,33 @@
     "~/Code/Personal/pi-extensions/wayfinder-map/index.ts",
     "~/Code/Personal/pi-extensions/jev-prune/index.ts"
   ],
-  "treeFilterMode": "default"
+  "treeFilterMode": "default",
+  "subagents": {
+    "agentOverrides": {
+      "claude-code": {
+        "disabled": true
+      },
+      "claude-code-writer": {
+        "disabled": true
+      },
+      "codex-exec": {
+        "disabled": true
+      },
+      "codex-exec-writer": {
+        "disabled": true
+      },
+      "cursor-agent": {
+        "disabled": true
+      },
+      "cursor-agent-writer": {
+        "disabled": true
+      },
+      "oracle": {
+        "disabled": true
+      },
+      "evidence-auditor": {
+        "disabled": true
+      }
+    }
+  }
 }
