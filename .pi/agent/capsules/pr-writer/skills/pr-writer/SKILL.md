@@ -23,7 +23,7 @@ Read before writing:
 3. Ticket, task, plan, or decision record when available.
 4. Validation output that actually ran.
 
-Use `gh-axi` only for read-only PR metadata when a current PR exists. Never publish or change Git state.
+Use private `gh-axi` skill for mode selection, scope discovery, and authorized publishing. This skill governs PR body content.
 
 If evidence is absent, write `Not run` or `Not available`. Never infer success from changed code.
 
@@ -79,7 +79,9 @@ Before returning:
 - Keep `Why the change` to one sentence.
 - Do not repeat diff details in prose and structural view.
 - Distinguish observed evidence from assumptions.
-- Make unknowns visible in Evidence or Special things to note.
+- Make change-relevant unknowns visible in Evidence or Special things to note.
+- Apply the reviewer test to every note: does it change how someone reviews, merges, operates, or rolls back this change? Keep it only if yes.
+- Keep unrelated files, excluded paths, staging/worktree state, and agent bookkeeping in the operational handoff, outside the PR body. An unrelated `docs/retro/**` directory is not a deliberate omission from the change.
 - State merge danger as an operational fact, not generic reassurance.
 
 ## Sources
