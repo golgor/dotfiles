@@ -10,13 +10,27 @@ user-invocable: false
 
 Use `gh-axi` for every GitHub operation. Never substitute raw `gh`, browser automation, or direct GitHub API calls.
 
-The installed CLI is the source of truth. Do not copy command flags from memory or this skill:
+At task start, run `gh-axi --version` and compare it with the version in [`references/commands.md`](references/commands.md). For a matching version, use the relevant documented group section. For a mismatch, or when needed syntax is absent, run live specific help (`gh-axi <group> --help`) and follow that output.
+
+The installed CLI is the source of truth. The reference is a static help snapshot maintained manually when needed, not an exhaustive machine-readable schema. Take flags from the matching command section or live help:
 
 ```bash
-gh-axi
+gh-axi --version
 gh-axi --help
 gh-axi <command> --help
 ```
+
+## Focused examples
+
+Use exact subcommand sections for flags:
+
+- Discovery: `gh-axi pr list --state open --limit 30`; `gh-axi pr view 42`
+- Create: `gh-axi pr create --title "Fix login" --body-file body.md`
+- Edit: `gh-axi pr edit 42 --title "Fix login" --body-file body.md`
+- Diff: `gh-axi pr diff 42 --full`
+- Checks: `gh-axi pr checks 42 --failed`
+
+`--fields` is supported by list commands such as `pr list`, not `pr diff`. For local file lists, use `git diff --name-only` (and `git diff --cached --name-only` for staged changes), not PR diff flags.
 
 ## Task contract
 
