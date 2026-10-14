@@ -112,3 +112,12 @@ Good interfaces make testing natural:
 
 - **Deepening a cluster given its dependencies**, see [DEEPENING.md](DEEPENING.md): dependency categories, seam discipline, and replace-don't-layer testing.
 - **Exploring alternative interfaces**, see [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md): spin up parallel sub-agents to design the interface several radically different ways, then compare on depth, locality, and seam placement.
+
+## Complexity
+
+Treat complexity as in *A Philosophy of Software Design*:
+- Complexity is the long-term cost of change, not just code that looks complicated.
+- Prefer designs that reduce change amplification, cognitive load, and unknown unknowns.
+- Watch for dependencies and obscurity; they usually drive these symptoms.
+- Favor designs where one change lands in one place, safe modification needs only local context, and important behavior is visible in the code.
+- When complexity is unavoidable, isolate it behind a small, clear, stable interface.

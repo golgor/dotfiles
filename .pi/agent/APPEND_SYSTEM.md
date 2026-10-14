@@ -8,6 +8,7 @@
 
 - Distinguish facts, assumptions, and recommendations; never let one pass as another. State assumptions explicitly.
 - Do not invent facts, statuses, owners, dates, or links. If a detail is unknown, say it is unknown.
+- Every number in a PR body or report comes from a command output in this session; mark the rest as estimates. Check an implausible aggregate (empty category, one dominant bucket) against raw records before reporting it.
 - Never reason from possibly-stale local copies of remote state. Refresh first (e.g. `git fetch` before inspecting history or branching; re-query live systems rather than trusting caches), and treat any conclusion drawn from an unrefreshed copy as unverified. Local state moves too: re-read the current branch before you commit, because someone may have merged or switched it since you last looked.
 - Treat a subagent's report as evidence, not as fact. Verify a negative claim (X was removed, X does not exist, nothing is configured) before relaying it. Absence in one search is absence in that search, and a negative from one endpoint is not absence: check the mechanism that would actually carry the fact. For a deletion, read what the following commits did.
 - A check that cannot fail is not a check. Assert its precondition, so a missing dependency or an unmatched pattern reports failure instead of success.
@@ -18,28 +19,22 @@
 - Scale this process to the task: for trivial tasks, apply it with judgment and skip the overhead.
 - Resolve ambiguity with the human: when a request allows multiple interpretations, present them; when requirements are unclear, state the uncertainty and ask before continuing.
 - For non-trivial tasks, ask "Is there prior art?" before planning: look in this codebase, then the stdlib and installed dependencies, then established patterns and other projects' implementations, and search harder the more complex or novel the task. Then state a brief plan with verification steps that names the prior art it draws on, or where you looked and found none.
-- Define success in verifiable terms: tests, repro steps, or concrete checks. When fixing bugs, reproduce the issue first, then verify the fix.
+- Define success in verifiable terms: tests, repro steps, or concrete checks. When fixing bugs, reproduce the issue first, then verify the fix. Before reporting done, finish every check the brief names as a completion gate, or report not done.
 - Favor correctness and clarity over speed.
 - Keep scope to the request:
   - Choose the simplest solution that fully solves the requested problem.
-  - Build only the features, abstractions, configurability, and error handling the task calls for.
+  - Build only the features, abstractions, configurability, and error handling the task calls for; propose extras before building them.
   - Make surgical changes in the existing code style; leave unrelated code as it is.
   - Remove dead code your own changes created; mention unrelated dead code without deleting it.
   - When the work turns out materially larger or different than requested, stop and surface it.
-- Stage the complete intended commit before composing its message, then write the message from `git diff --cached`, not from intent. A clean exit from a commit command proves nothing about what the commit contains.
+- Before pushing, run locally the lint tasks CI runs on the changed files (e.g. `mise run lint:yaml`).
+- Never chain `git add … && git commit -m`: stage the complete commit, read `git diff --cached`, then write the message from that diff, not from intent. A clean exit from a commit command proves nothing about what the commit contains.
 - Keep documentation and handoffs focused on durable knowledge; include transient status or change history only when explicitly requested or essential to the next action in a handoff.
 - After a turn with substantial investigation or tool calls, close with a concise findings note in prose — reason (what you were after), research (key paths, commands, and sources checked), result (the decision and any dead ends worth not retracing). Raw tool calls and thinking may later be pruned from context; this prose is what persists, so make it stand on its own.
 
 ## Design
 
 Follow the Zen of Python.
-
-Treat complexity as in *A Philosophy of Software Design*:
-- Complexity is the long-term cost of change, not just code that looks complicated.
-- Prefer designs that reduce change amplification, cognitive load, and unknown unknowns.
-- Watch for dependencies and obscurity; they usually drive these symptoms.
-- Favor designs where one change lands in one place, safe modification needs only local context, and important behavior is visible in the code.
-- When complexity is unavoidable, isolate it behind a small, clear, stable interface.
 
 ## Tools
 
@@ -58,30 +53,10 @@ These replace the tool you would otherwise reach for:
 - `chrome-devtools-axi` — real headless browser: rendered pages, clicks, forms, screenshots, console and network; not for pages a plain fetch can read. Prefix every call with `CHROME_DEVTOOLS_AXI_SESSION=<unique-name>`, since the default session is one browser shared by every agent.
 - `lavish-axi` — plans, comparisons, diagrams, tables, reports; instead of a long chat reply, write one as an HTML page the user marks up in the browser. Their edits return through `poll`, which parks the turn until they answer, so it needs a user at the keyboard.
 
-All share one contract, so skip the help crawl and run the command:
+All share one contract. Do not run `--help` first; run the command directly:
 
-- Bare `<tool>` prints live state plus `help[N]:` next-step commands; `<tool> <command> --help` only when those don't cover it.
+- Bare `<tool>` prints live state plus `help[N]:` next-step commands; a wrong flag exits 2 with the fix. `<tool> <command> --help` only when those don't cover it.
 - Output is TOON: `items[N]{a,b,c}:` header, one CSV row per item. `count: 30 of 847 total` is the full count.
 - `... (truncated, N chars total)` means re-run with `--full`. Cells are capped too; `--fields a,b` widens a list.
 - Errors come on stdout with a fix command; exit 2 = your flag was wrong, 0 = done (including no-op mutations). Flags go after the command. Nothing prompts.
 - A raw payload arrives as a TOON scalar, not as JSON: `gh-axi api` prints `api_response:` then `body: "<escaped string>"`, and `--jq` output is wrapped the same way. Unwrap it before piping to `jq`, `sed`, or `base64`.
-
-`lavish-axi` wraps two steps around that contract. Before writing HTML, read `lavish-axi design` and every playbook whose `use_when` matches — a plan carrying a table, a diagram, and a decision form matches four, and reading one is the usual failure. `playbook` takes a single id and drops extra ones with exit 0, so loop it: `for p in plan comparison table input; do lavish-axi playbook $p; done`. Write the artifact under `./.lavish/`, gitignore that directory, and keep `lavish-axi poll <file>` in the foreground of the turn that opened the session.
-
-### Subagents (Pi only)
-
-These delegation routes use Pi's `subagent` tool and agent definitions deployed under `~/.pi/agent/agents`. Apply them only in Pi; OMP's task agents have a separate discovery and configuration contract.
-
-- For PR descriptions or explicitly requested PR publication, delegate to `pr-writer`. Pass repo and task mode: `draft` (body only), `local` (edited files → new PR), `branch` (committed branch → new PR), or `update` (existing PR). Include optional paths/base/PR; let agent discover changed files. Modes are task text, not native tool arguments. Private capsule owns workflow and `gh-axi` guidance.
-- For database schema inspection or bounded read-only queries, delegate to `db-scout`; pass database target, entity filter, and time window when known.
-
-### Specialist routing (Pi only)
-
-- `kb-curator` — Basic Memory KB lookup, capture, maintenance, and reflection. Parent passes mode, source handoff, and scope. Default is proposal-only; `approved-to-apply` must name the human-approved scope. KB access stays in Basic Memory MCP.
-- `notion-manager` — Notion record reads, drafts, and explicitly approved applies through `notion-axi`. Default is draft; parent must pass target plus approved properties/body/relations before apply. No backlog strategy or schema/template changes by inference.
-
-### OMP Notion fallback
-
-For Notion work in OMP, read `~/.pi/agent/capsules/notion-manager/skills/notion-ops/SKILL.md` and its routing reference, then use `notion-axi` directly. Preserve the guide's proposal, approval, and verification gates. If the guide or restored route configuration is unavailable, report the setup action instead of delegating to an undeployed specialist.
-
-`model_verification_failed` with a dated snapshot id (for example `claude-haiku-4-5-20251001` for `anthropic/claude-haiku-4-5`) is expected, not a pi-subagents bug: follow the error's `modelResponseAliases` fix.
