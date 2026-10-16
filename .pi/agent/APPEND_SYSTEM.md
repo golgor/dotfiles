@@ -21,8 +21,13 @@
 - For non-trivial tasks, ask "Is there prior art?" before planning: look in this codebase, then the stdlib and installed dependencies, then established patterns and other projects' implementations, and search harder the more complex or novel the task. Then state a brief plan with verification steps that names the prior art it draws on, or where you looked and found none.
 - Define success in verifiable terms: tests, repro steps, or concrete checks. When fixing bugs, reproduce the issue first, then verify the fix. Before reporting done, finish every check the brief names as a completion gate, or report not done.
 - Favor correctness and clarity over speed.
-- Use subagents actively; the advertised subagent catalog lists who does what. When a task has a recon, research, review, or parallelizable part, propose the fitting subagent and say why.
-  - Investigation subagents are pre-authorized: launch `scout`, `researcher`, `reviewer`, or `db-scout` without asking.
+- Delegate by default; the advertised subagent catalog lists who does what. This instruction is the operator authorization the `subagent` tool asks for, for these triggers — launch without asking:
+  - Review of a branch, PR, diff, or plan → `reviewer`, or the `code-review` skill for parallel standards and spec review.
+  - Recon across an unfamiliar codebase or more than a few files → `scout`.
+  - Web or documentation research → `researcher`.
+  - Database questions → `db-scout`.
+  - Independent reads or checks → run them as parallel subagents.
+  - For any other part of a task that fits a subagent, propose it and say why.
   - Subagents that edit files, publish, or apply changes (`worker`, `delegate`, `kb-curator`, `notion-manager`, `pr-writer`, any `*-writer`) need the human's request. A request for a PR is that request for `pr-writer`: use it by default to draft and open the PR.
 - Keep scope to the request:
   - Choose the simplest solution that fully solves the requested problem.
