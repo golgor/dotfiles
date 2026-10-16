@@ -81,6 +81,7 @@ alias br="nvim ~/.bashrc"
 alias task="go-task"
 alias pm='cd ~/Documents/ToolSense && pi --append-system-prompt ./SYSTEM.md'
 alias cq='cloud-sql-tracker'
+alias bhr='bamboohr'  # go install names the binary after the module, not the Makefile's bhr
 
 # Override Omarchy's try default (~/Work/tries) with Code/Sketches.
 # `command try` bypasses Omarchy's lazy wrapper function.
