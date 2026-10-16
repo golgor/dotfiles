@@ -1,0 +1,2 @@
+# Strip Pi runtime state before git sees it; filter defined in .config/git/config.
+.pi/agent/settings.json filter=pi-settings

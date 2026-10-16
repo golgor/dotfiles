@@ -29,6 +29,11 @@
 [rerere]
 	enabled = true           # Record and reuse conflict resolutions
 	autoupdate = true        # Apply stored conflict resolutions automatically
+[filter "pi-settings"]
+	# Strip Pi runtime state from ~/.pi/agent/settings.json; mapped in ~/.dotfiles/.gitattributes
+	clean = jq 'del(.lastChangelogVersion)'
+	smudge = cat
+	required = true          # Fail loudly if this filter is missing, never commit unfiltered
 [user]
 	name = Robert Nyström
 	email = golgafrincham@gmail.com
