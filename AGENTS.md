@@ -107,6 +107,7 @@ The global mise config is tracked: `.config/mise/config.toml` → `~/.config/mis
 
 - **herdr**: everything except `config.toml`. `plugins.json` hardcodes absolute, content-hashed plugin paths; `.sock` / `.log` / `.lock` / `session.json` / `plugins/` are per-machine state.
 - **atuin**: `config.toml` only. The encryption key and session live under `~/.local/share/atuin/`, never here.
+- **Pi**: `settings.json` is tracked, but Pi writes runtime keys into it. A git clean filter strips them from what git sees, while the live file keeps them. The mapping is in `.gitattributes` (`filter=pi-settings`). The `jq 'del(...)'` command is in `.config/git/config`, because git never runs filter commands that come from repo content. To strip another key, extend the `del(...)` there, then `git add --renormalize .pi/agent/settings.json`.
 - **Neovim**: runtime/plugin state lives under `~/.local/share/nvim/`, `~/.local/state/nvim/`, and `~/.cache/nvim/`. `~/.config/nvim/lua/plugins/theme.lua` is Omarchy-managed current-theme state and is intentionally not tracked.
 
 Omarchy `~/.config/omarchy/shell.json` is runtime state and stays untracked; plugin intent lives in `omarchy/plugins.toml`. `~/.config/hypr` is tracked as a whole directory. After Hyprland config changes, validate with `hyprctl reload` and `hyprctl configerrors`.
