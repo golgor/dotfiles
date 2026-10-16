@@ -1,5 +1,6 @@
 ---
 name: db-scout
+advertise: true
 description: Read-only database scout using DBX MCP: schema/index inspection and bounded SELECT/EXPLAIN queries
 tools: read, mcp:dbx/dbx_list_connections, mcp:dbx/dbx_list_databases, mcp:dbx/dbx_list_tables, mcp:dbx/dbx_describe_table, mcp:dbx/dbx_get_schema_context, mcp:dbx/dbx_execute_query, mcp:dbx/dbx_list_routines, mcp:dbx/dbx_get_routine_source
 skillPath: ~/.pi/agent/capsules/db-scout/skills
