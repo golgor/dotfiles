@@ -56,7 +56,6 @@
   ],
   "treeFilterMode": "default",
   "subagents": {
-    "toolActivation": "eager",
     "agentOverrides": {
       "claude-code": {
         "disabled": true
@@ -81,6 +80,21 @@
       },
       "evidence-auditor": {
         "disabled": true
+      },
+      "scout": {
+        "advertise": true
+      },
+      "researcher": {
+        "advertise": true
+      },
+      "reviewer": {
+        "advertise": true
+      },
+      "worker": {
+        "advertise": true
+      },
+      "delegate": {
+        "advertise": true
       }
     }
   }
