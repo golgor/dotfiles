@@ -52,7 +52,8 @@
   "extensions": [
     "~/Code/Personal/pi-extensions/fs-guard/index.ts",
     "~/Code/Personal/pi-extensions/wayfinder-map/index.ts",
-    "~/Code/Personal/pi-extensions/jev-prune/index.ts"
+    "~/Code/Personal/pi-extensions/jev-prune/index.ts",
+    "~/Code/Personal/pi-extensions/references/index.ts"
   ],
   "treeFilterMode": "default",
   "subagents": {
