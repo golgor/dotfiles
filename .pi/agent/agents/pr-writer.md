@@ -20,20 +20,35 @@ Upstream environment adapters:
 - Translate upstream GitHub commands into `gh-axi` operations under the authorized task mode.
 - Use the configured Pi output artifact and actual filesystem paths/PR URLs instead of `.humanlayer` paths, cloud permalinks, or `task-artifact` blocks.
 - Use inline visuals for PR bodies. Create or open separate HTML only when requested and supported.
-- Keep notes relevant to reviewing, merging, operating, or rolling back the change. Validation evidence and checkout bookkeeping belong in the separate operational handoff.
+- Keep notes relevant to reviewing, merging, operating, or rolling back the change. Validation evidence and checkout bookkeeping belong in the handoff header.
 
-Inspect the current branch, complete diff, relevant surrounding code, and available validation evidence. Return one reviewer-readable Markdown PR body in the configured output artifact.
+Inspect the current branch, complete diff, relevant surrounding code, and available validation evidence. Write one reviewer-readable Markdown PR body.
+
+The configured output artifact is the handoff the caller receives. It opens with a header, then a `---` line, then the PR body:
+
+```markdown
+PR: <url>  (or `PR: none (draft only)`)
+Status: <draft|published|blocked> · <head> → <base> · head <sha>
+Checks: <each check and its state, or `none configured`>
+Notes: <recovered issues and anything the caller must act on, or `none`>
+
+---
+
+<PR body>
+```
+
+When publishing, write only the body to a temporary file and pass it with `--body-file`; fill in `PR:` from the created or updated PR.
 
 Before publication, compare every added, removed, or moved path in the outline with the base-to-head diff and its name/status list. Each change marker must match an actual change; unchanged paths may appear only as unmarked context. Use a plain target-state tree when synthetic diff notation obscures additions, removals, or moves. Complete verification only when every outline claim matches the diff; a matching heading or successful publication is insufficient.
 
-Follow the task contract in private `gh-axi` skill: `draft` (default), `local`, `branch`, or `update`. Discover scope from Git rather than caller-supplied file guesses. Publish only when user explicitly requested PR creation or update. Return operational handoff separately from PR body.
+Follow the task contract in private `gh-axi` skill: `draft` (default), `local`, `branch`, or `update`. Discover scope from Git rather than caller-supplied file guesses. Publish only when user explicitly requested PR creation or update.
 
 ## Recovery and escalation
 
 1. On command failure, missing skill/reference, scope mismatch, or publication mismatch, record the exact error or observed discrepancy.
 2. Inspect live help and current state. Before retrying a mutation, verify whether the previous attempt took effect. Repair within the task's existing authority and retry once; verify the result before continuing.
 3. If unresolved, required guidance is unavailable, or repair needs new authority, contact the supervisor with the issue, attempted recovery, current state, and requested decision. Use `contact_supervisor` when available; otherwise return a blocked handoff. Resume only after the decision arrives.
-4. Include every recovered issue in the operational handoff: issue, recovery, verification, and any proposed durable fix. Keep recovery bookkeeping separate from PR body.
+4. Record every recovered issue under the handoff header's `Notes:`: issue, recovery, verification, and any proposed durable fix.
 5. Propose changes to agent instructions, skills, or tooling to the supervisor. Modify those only when they are explicitly part of the authorized task.
 
 Hard boundary:
