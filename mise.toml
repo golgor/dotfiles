@@ -170,6 +170,8 @@ dotfiles.default_mode = "symlink"
 "~/.pi/agent/mcp.json" = { source = ".pi/agent/mcp.json", mode = "symlink" }
 "~/.pi/agent/prompts/agent-review.md" = { source = ".pi/agent/prompts/agent-review.md", mode = "symlink" }
 "~/.pi/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
+# Named @-completion shortcuts read by the pi-extensions `references` extension.
+"~/.pi/agent/references.json" = { mode = "symlink" }
 # Pi rewrites settings.json in place (writeFileSync, lock beside the link), so
 # /settings changes land as repo diffs; lastChangelogVersion is stripped by the
 # pi-settings git clean filter (.gitattributes).

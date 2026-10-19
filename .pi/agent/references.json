@@ -1,0 +1,22 @@
+{
+  "dotfiles": {
+    "path": "~/.dotfiles",
+    "description": "Personal dotfiles repository"
+  },
+  "config": {
+    "path": "~/.config",
+    "description": "User-level application configuration"
+  },
+  "root": {
+    "path": "~",
+    "description": "Home directory"
+  },
+  "personal": {
+    "path": "~/Code/Personal",
+    "description": "Personal code projects"
+  },
+  "work": {
+    "path": "~/Code/Work",
+    "description": "Work code projects"
+  }
+}
