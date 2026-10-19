@@ -12,12 +12,16 @@ Tracked globally via mise in `.config/mise/config.toml`:
 opencode = { version = "latest", allow_builds = ["@opencode/cli"] }
 ```
 
-`opencode` ships as a single self-contained binary that bundles the server, so there is no separate daemon to
-install. To install or update:
+`opencode` ships as a single self-contained binary that bundles the server, so there is no separate server to
+install. The CLI does start that server as a long-running background service (`opencode serve --service`), and the
+service keeps running the version it was started from. To install or update:
 
 ```sh
 mise install        # or: mise upgrade opencode
+opencode service restart   # after an upgrade, so the background server runs the new version too
 ```
+
+Skipping the restart leaves a new CLI talking to the old server until the service next restarts.
 
 Verify:
 
@@ -126,6 +130,7 @@ with a message about the key having expired.
 
 ```sh
 opencode service status              # background service health
+opencode service restart             # restart it, e.g. after an upgrade
 opencode api get /api/config         # resolved config as the server sees it
 opencode api get /api/agent          # agents and their effective permissions
 opencode api get /api/mcp            # MCP server connection state
