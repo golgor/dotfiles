@@ -56,3 +56,4 @@ node = "latest"
 python = "latest"
 ruff = "latest"
 uv = "latest"
+opencode = { version = "latest", allow_builds = ["@opencode/cli"] }
