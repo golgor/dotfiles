@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "update": "disable",
+  "references": {
+    "dotfiles": {
+      "path": "~/.dotfiles",
+      "description": "Personal dotfiles repository. Read for machine setup, mise tasks, and environment conventions."
+    },
+    "config": {
+      "path": "~/.config",
+      "description": "User-level application configuration for installed tools."
+    }
+  },
+  "mcp": {
+    "servers": {
+      "iot-mcp-erpnext": {
+        "type": "remote",
+        "url": "https://api.iot.toolsense.io/mcp/erpnext",
+        "oauth": {
+          "client_id": "mcp-native-client"
+        }
+      }
+    }
+  }
+}
