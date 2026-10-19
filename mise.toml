@@ -155,22 +155,24 @@ dotfiles.default_mode = "symlink"
 "~/.omp/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
 
 "~/.pi/agent/APPEND_SYSTEM.md" = { source = ".pi/agent/APPEND_SYSTEM.md", mode = "symlink" }
-"~/.pi/agent/mcp.json" = { source = ".pi/agent/mcp.json", mode = "symlink" }
-# pi-web-access config. Saved in place (writeFileSync), so curator UI changes
-# land as repo diffs. Holds no secrets; see services/crawl4ai/README.md.
-"~/.pi/agent/web-search.json" = { source = ".pi/agent/web-search.json", mode = "symlink" }
-"~/.pi/agent/prompts/agent-review.md" = { source = ".pi/agent/prompts/agent-review.md", mode = "symlink" }
-"~/.pi/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
 # Custom Pi subagents and their private skill capsules are versioned here.
 "~/.pi/agent/agents" = { source = ".pi/agent/agents", mode = "symlink" }
 "~/.pi/agent/capsules" = { source = ".pi/agent/capsules", mode = "symlink" }
+# pi-subagents config (toolActivation etc.); distinct from settings.json's
+# "subagents" block, which this extension does not read for these keys.
+"~/.pi/agent/extensions/subagent/config.json" = { source = ".pi/agent/extensions/subagent/config.json", mode = "symlink" }
+"~/.pi/agent/mcp.json" = { source = ".pi/agent/mcp.json", mode = "symlink" }
+"~/.pi/agent/prompts/agent-review.md" = { source = ".pi/agent/prompts/agent-review.md", mode = "symlink" }
+"~/.pi/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
+# Named @-completion shortcuts read by the pi-extensions `references` extension.
+"~/.pi/agent/references.json" = { mode = "symlink" }
 # Pi rewrites settings.json in place (writeFileSync, lock beside the link), so
 # /settings changes land as repo diffs; lastChangelogVersion is stripped by the
 # pi-settings git clean filter (.gitattributes).
 "~/.pi/agent/settings.json" = { mode = "symlink" }
-# pi-subagents config (toolActivation etc.); distinct from settings.json's
-# "subagents" block, which this extension does not read for these keys.
-"~/.pi/agent/extensions/subagent/config.json" = { source = ".pi/agent/extensions/subagent/config.json", mode = "symlink" }
+# pi-web-access config. Saved in place (writeFileSync), so curator UI changes
+# land as repo diffs. Holds no secrets; see services/crawl4ai/README.md.
+"~/.pi/agent/web-search.json" = { source = ".pi/agent/web-search.json", mode = "symlink" }
 
 # Agent skills are not projected by mise: `mise run deploy-skills` (the Python automation)
 # owns those symlinks so it can give Codex the directory symlinks its loader requires.
