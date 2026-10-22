@@ -128,7 +128,8 @@ this file carries the *why* and the *words*.
   stack as directory symlinks, prunes stale managed links, and repoints moved
   same-name links. It does not fetch or overwrite skill content. The Matt stack
   contains the adopted skills from `https://github.com/mattpocock/skills`; the
-  pstack stack currently contains only adopted `no-comments`.
+  pstack stack contains the adopted 57-skill primary pack. Optional upstream
+  automations such as benny are not activated.
 - **Common skills are always-on; stacks are selectable.** `mise run
   deploy-skills` defaults to Matt on every invocation and bootstrap, while
   `mise run deploy-skills -- --stack pstack` selects pstack for that run. The
