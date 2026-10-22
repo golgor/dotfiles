@@ -54,15 +54,11 @@ this file carries the *why* and the *words*.
 - **manual task** — a mise task that is deliberately *not* part of
   `mise bootstrap` because it needs interactive auth, network access to a
   third party, or mutates machine-local state: `setup-gws-axi`,
-  `setup-kube-contexts`, `setup-notion-routes`, `update-skills`.
+  `setup-kube-contexts`, `setup-notion-routes`.
 - **automation** — a Python-implemented task: a subpackage of the `automation/`
   uv project with a `cli.py`, exposed as a console script and called from a
   `[tasks]` entry in `mise.toml`. Contrast: bash file tasks under
   `.mise/tasks/`, which glue host CLIs together without logic worth testing.
-- **release source** — the seam in the skills automation between "where
-  releases come from" and everything else. GitHub (`gh api` + `git clone`) in
-  production; a local tagged git repo in tests. The only network-touching
-  part, so tests never need it.
 - **skill** — a directory containing `SKILL.md` with `name`/`description`
   frontmatter, the cross-harness Agent Skills format. Pi, Claude Code, and
   Codex all discover them from per-harness directories.
@@ -75,12 +71,9 @@ this file carries the *why* and the *words*.
   `~/.pi/agent/skills` (Pi only). `mise run deploy-skills` projects the repo's
   scope directories into the first three; the fourth stays unmanaged for
   Pi-local and external links.
-- **vendored skill** — a skill copied verbatim from an upstream repository at the
-  release tag or commit recorded in `.mise/skills/*.toml`. An immutable snapshot:
-  a local edit is a *fork*, which gets a new name outside the manifest.
-- **skills manifest** — a file in `.mise/skills/*.toml`: the upstream repo,
-  optional branch, selected skill names per scope, and the locked release tag/commit.
-  `update-skills` reads the selection and rewrites only the release lines.
+- **adopted skill** — a locally maintained skill based on third-party material.
+  Its `SOURCE.md` records the upstream repository, source path, adopted commit,
+  and license. Required license notices stay with the skill.
 
 ## Decisions
 
@@ -110,9 +103,8 @@ this file carries the *why* and the *words*.
   first-party `omarchy.*` plugins are out of scope.
 - **Manual tasks stay out of bootstrap.** `setup-gws-axi`,
   `setup-kube-contexts`, and `setup-notion-routes` need Bitwarden/gcloud
-  interaction and create machine-local secret/config material; `update-skills`
-  needs GitHub and rewrites tracked files. They must be run knowingly, not as
-  a bootstrap side effect.
+  interaction and create machine-local secret/config material. They must be
+  run knowingly, not as a bootstrap side effect.
 - **fnox config is tracked; only rbw's vault is machine-local.** Dropping the
   age sync cache — redundant beside rbw's own encrypted offline vault — made the
   fnox manifest fully machine-agnostic, so `~/.config/fnox/config.toml` and rbw's
@@ -124,15 +116,11 @@ this file carries the *why* and the *words*.
   GitHub Copilot CLI agent duplicated shell access without adding a needed
   capability, while the MCP extension required a plaintext PAT in settings.
   Keep them absent unless a concrete use-case emerges.
-- **Skills are vendored into the repo and projected by the automation, not
-  installed by `npx skills`.** The upstream CLI owns its own install locations
-  and lock state, which conflicts with reviewing skill changes as ordinary
-  PRs. Updates follow upstream releases or branch commits, and run only on
-  explicit `mise run update-skills`. Projection moved out of mise's
-  `symlink-each` into `automation/src/automation/skills/deploy.py` so the
-  `automation.skills` package owns the whole lifecycle (vendoring, projection,
-  stale-link pruning) instead of splitting projection into declarative
-  `mise.toml` entries.
+- **Skills are locally maintained, not synced upstream snapshots.** Edit
+  adopted skills in place to fit this environment; retain origin and license
+  in each skill's `SOURCE.md` and license notices. Upstream changes are reviewed
+  by hand. The automation only projects directory symlinks and prunes stale
+  managed links. It does not fetch or overwrite skill content.
 - **Codex gets its own discovery directory, `~/.pi/agent/skills` stays
   unmanaged.** Codex CLI only scans `$CODEX_HOME/skills` (`~/.codex/skills`),
   never `~/.agents/skills`, and its loader ignores a skill folder whose
@@ -152,10 +140,8 @@ this file carries the *why* and the *words*.
   rolling Python is not a dependency; ty runs with every rule as an error.
 - **Automation runtime is stdlib-only; no pydantic yet.** Stdlib-only is what
   lets `uv run --no-dev` work on a fresh machine offline (verified with an
-  empty uv cache). The skills manifest is five hand-edited fields, so
-  hand-narrowing `tomllib`'s output costs twenty lines. Add pydantic or
-  msgspec when an automation parses external or deeply nested data, and
-  retire the offline claim in the same change.
+  empty uv cache). Add pydantic or msgspec when an automation needs it, and
+  retire the offline claim if a runtime dependency makes it untrue.
 - **Pi and OMP share one append prompt.** `.pi/agent/APPEND_SYSTEM.md` is the
   tracked source symlinked to both harnesses by mise; static prompt deployment
   stays declarative rather than extending the automation. OMP applies it as the

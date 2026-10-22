@@ -1,32 +1,22 @@
 # skills/
 
-The one tracked copy of the agent skills deployed to Pi, Codex, and Claude Code. Root `AGENTS.md` has the ownership model; this file is what to check before touching anything in here.
+Locally maintained agent skills. Edit skills in place and review changes as ordinary repo diffs. Upstream material is a starting point, not an immutable snapshot.
 
-## Is this skill vendored?
+## Scope and deployment
 
-Look it up in the manifests under `../.mise/skills/*.toml`. If the name is in a `scopes` list in any manifest, the directory is a **verbatim, immutable snapshot** of the recorded upstream release or branch commit. Do not edit it, not even a typo: `mise run update-skills` compares every vendored directory against its locked commit and refuses to run while one differs, so a local edit blocks all future updates. The `writing-for-agents` skill applies to skills you author, never to vendored ones.
+| directory | reaches |
+| --- | --- |
+| `common/<name>/` | Pi, Claude Code, Codex |
+| `claude/<name>/` | Claude Code only |
 
-To change a vendored skill, fork it: copy the directory to a new name that is not in any manifest, edit the copy, and leave the original. A directory in `common/` or `claude/` whose name is not in any manifest is yours; the updater ignores it.
+`mise run deploy-skills` projects one directory symlink per skill into the harness discovery directories. Run it after adding, removing, or moving a skill. Content edits are live immediately. Root `AGENTS.md` explains why directory symlinks are required and which neighbours belong to other tools.
 
-To add, drop, or move a vendored skill, edit the manifest's `scopes` lists and run `mise run update-skills`. It syncs the selection, reports upstream skills you have not selected, and warns about directories a dropped or moved name leaves behind — delete those by hand.
+Deployment is content-blind: it links every directory in a scope without reading `SKILL.md`. `disable-model-invocation: true` affects discovery in harnesses that support it, not deployment.
 
-To add a new upstream source, create a new manifest file `../.mise/skills/<source>.toml` with `repo`, optional `branch = "..."` (if tracking a branch instead of release tags), `[release]`, and `[scopes]`. Then run `mise run update-skills`. The updater enforces that no two manifests claim the same skill name.
+## Authoring and adopting
 
-## Scope is the directory
+Use a directory containing `SKILL.md` with frontmatter `name` matching the directory and a non-empty `description`. Keep reference files beside it. Read the `writing-for-agents` skill when changing skill instructions.
 
-| directory | reaches | deployment |
-| --- | --- | --- |
-| `common/<name>/` | Pi (`~/.agents/skills`), Claude Code (`~/.claude/skills`), Codex (`~/.codex/skills`) | automatic: `mise run deploy-skills` (`skills deploy`) |
-| `claude/<name>/` | Claude Code only | automatic: `mise run deploy-skills` (`skills deploy`) |
+When adopting third-party material, add `SOURCE.md` in that skill directory with its upstream repository, source path, adopted commit, and license. Preserve required license and copyright notices alongside it. Keep this provenance when adapting the skill. Review upstream changes by hand; there is no upstream sync task or lock manifest.
 
-There is no `pi/` or `codex/` scope directory: Codex sees everything in `common/`, just through its own discovery directory (`~/.codex/skills`) rather than `~/.agents/skills`, so a separate scope would only produce duplicate-name warnings.
-
-## Deployment is content-blind
-
-`deploy-skills` never reads `SKILL.md`; it links every directory in a scope regardless of what's inside (`_skill_dirs` in `automation/src/automation/skills/deploy.py`). A skill with `disable-model-invocation: true` is still deployed and still reachable by typing its name — the flag only keeps it out of the model-facing skill list. "Deployed but not listed" is that flag, not a broken deploy.
-
-## Authoring a skill of your own
-
-Follow the Agent Skills format the updater validates for vendored ones: a `<name>/SKILL.md` whose frontmatter `name` equals the directory and has a non-empty `description`; sidecars (`agents/openai.yaml`, reference files) sit beside it. After creating or removing a skill directory, run `mise run deploy-skills` — the *set* of skills changed, so the symlinks must be re-projected. Content edits inside an existing skill are live immediately.
-
-Every file here is public. Skills must not carry machine paths, tokens, or anything from a harness's runtime state.
+Every file here is public. Skills must not contain machine paths, tokens, or credentials.

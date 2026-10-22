@@ -130,19 +130,13 @@ device_id and encrypted vault under `~/.local/share/rbw/`.
 
 **One-time migration on a machine that already ran the old `symlink-each` setup:** `mise bootstrap dotfiles apply` does not prune links for entries removed from `mise.toml`, so the old `symlink-each` directories under `~/.agents/skills` and `~/.claude/skills` are still sitting there as real directories full of file symlinks into `~/.dotfiles`. `mise run deploy-skills` will refuse to touch them, listing one conflict per leftover skill, until you delete those directories by hand. You can tell them apart from the harness-owned neighbours that must be kept (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system/`, Claude's `synced/`): the leftovers are real directories whose contents are all symlinks pointing into `~/.dotfiles/skills`, while the kept ones are either real content owned by another tool or symlinks pointing elsewhere. Delete the leftovers, then rerun `mise run deploy-skills`.
 
-Vendored skills are listed in manifests under `.mise/skills/*.toml` (such as `mattpocock.toml`). When upstream updates land:
+Skills are locally maintained. Edit them in place and review changes through a PR. Adopted skills carry a `SOURCE.md` with their upstream repository, source path, adopted commit, and license, plus the required license notices. Upstream updates are reviewed and adapted by hand, not synced by automation.
 
-```sh
-mise run update-skills             # updates all manifests in .mise/skills/*.toml; never commits
-mise run update-skills mattpocock  # updates only that manifest
-git diff                      # review, then commit on a branch and open a PR
-```
-
-Vendored skills are immutable snapshots: the task refuses to overwrite one that has been edited locally. To customise a skill, copy it to a new name outside all manifests and leave the original vendored. To add or drop an upstream skill, edit the manifest's selection lists and rerun the task; dropping one leaves its directory behind for you to delete. To add a new upstream source, create `.mise/skills/<source>.toml` and run `mise run update-skills`.
+After adding, removing, or moving a skill directory, run `mise run deploy-skills`. Content edits need no deployment step. See [skills/AGENTS.md](skills/AGENTS.md) for authoring and provenance rules.
 
 ## Python automation
 
-Tasks with real logic are Python, in the `automation/` [uv](https://docs.astral.sh/uv/) project (one package, one subpackage per automation); bash file tasks under `.mise/tasks/` are kept for plain CLI glue. `update-skills` is the first: `mise.toml` runs `skills update` from that project.
+Tasks with real logic are Python, in the `automation/` [uv](https://docs.astral.sh/uv/) project (one package, one subpackage per automation); bash file tasks under `.mise/tasks/` are kept for plain CLI glue. `deploy-skills` projects the local skills into each harness's discovery directory.
 
 ```sh
 mise run check                 # ruff, ruff format --check, ty (strict), pytest — all offline
