@@ -11,7 +11,9 @@ real directories or symlinks pointing into `root/skills`, so they are left alone
 only entries recognised as our own managed links are ever re-pointed or removed.
 """
 
+import fcntl
 import os
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
@@ -198,25 +200,49 @@ def _execute(plan: _Plan) -> Deployment:
     return Deployment(linked=linked, pruned=pruned, unchanged=plan.unchanged)
 
 
+@contextmanager
+def _deployment_lock(home: Path):
+    """Serialize planning and execution for deployments targeting one home.
+
+    The lock file is deliberately stable and outside all harness discovery directories;
+    creating its parent and the lock file are the only home mutations before planning.
+    This coordinates cooperating deployers; it does not make filesystem operations
+    transactional or roll them back after an interruption or runtime error.
+    """
+    lock_path = home / ".local/state/automation/skills-deploy.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
 def deploy_skills(root: Path, home: Path, stack: str = "matt") -> Deployment:
     """Converge every harness discovery directory to one directory symlink per skill.
 
-    Creates missing links, re-points managed links whose target moved, prunes managed
-    links whose skill no longer exists, and leaves everything else untouched. Plans
-    across every harness first; if any desired link path is occupied by something that
-    is not a managed symlink, raises AutomationError listing every conflict before
-    writing anything, so a run that hits one conflict leaves every harness untouched.
+    A home-scoped lock serializes planning, conflict checking, and execution across
+    stack selections and checkout roots targeting this home. Creates missing links,
+    re-points managed links whose target moved, prunes managed links whose skill no
+    longer exists, and leaves everything else untouched. Plans across every harness
+    first; if any desired link path is occupied by something that is not a managed
+    symlink, raises AutomationError listing every conflict before changing any harness
+    discovery link. The lock parent and file persist even when preflight rejects the
+    deployment. That preflight safety is not transactional execution: runtime errors or
+    interruptions can leave partial work, and rerunning the desired stack converges.
     """
-    plan = _plan(root, home, stack)
+    with _deployment_lock(home):
+        plan = _plan(root, home, stack)
 
-    if plan.conflicts:
-        lines = [
-            f"path occupied by something other than a managed skill link: {p}"
-            for p in plan.conflicts
-        ]
-        raise AutomationError(
-            "refusing to deploy skill links. Remove or move the conflicting path(s) by "
-            "hand, then rerun\n  " + "\n  ".join(lines)
-        )
+        if plan.conflicts:
+            lines = [
+                f"path occupied by something other than a managed skill link: {p}"
+                for p in plan.conflicts
+            ]
+            raise AutomationError(
+                "refusing to deploy skill links. Remove or move the conflicting path(s) by "
+                "hand, then rerun\n  " + "\n  ".join(lines)
+            )
 
-    return _execute(plan)
+        return _execute(plan)

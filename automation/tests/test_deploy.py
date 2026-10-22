@@ -1,7 +1,12 @@
 """`deploy_skills`: project directory symlinks into every harness discovery directory."""
 
+import fcntl
+import multiprocessing
 import os
 import shutil
+from collections.abc import Iterator
+from multiprocessing.queues import Queue
+from multiprocessing.synchronize import Event
 from pathlib import Path
 
 import pytest
@@ -17,6 +22,155 @@ def make_root(tmp_path: Path) -> Path:
     root.mkdir()
     (root / "skills/matt").mkdir(parents=True)
     return root
+
+
+def _deploy_while_paused(
+    root: Path,
+    home: Path,
+    acquired: Event,
+    paused: Event,
+    release: Event,
+    results: Queue[str],
+) -> None:
+    real_flock = deploy.fcntl.flock
+    original_iterdir = Path.iterdir
+    enumerated = False
+
+    def flock(fd: int, operation: int) -> None:
+        real_flock(fd, operation)
+        if operation == fcntl.LOCK_EX:
+            acquired.set()
+
+    def iterdir(self: Path) -> Iterator[Path]:
+        nonlocal enumerated
+        if not enumerated:
+            enumerated = True
+            paused.set()
+            if not release.wait(timeout=10):
+                raise RuntimeError("timed out waiting for test release")
+        yield from original_iterdir(self)
+
+    patch = pytest.MonkeyPatch()
+    patch.setattr(deploy.fcntl, "flock", flock)
+    patch.setattr(Path, "iterdir", iterdir)
+    try:
+        deploy.deploy_skills(root, home)
+        results.put("ok")
+    except Exception as exc:  # pragma: no cover - surfaced by parent assertion
+        results.put(f"{type(exc).__name__}: {exc}")
+    finally:
+        patch.undo()
+
+
+def _deploy_after_probe(
+    root: Path,
+    home: Path,
+    contended: Event,
+) -> None:
+    real_flock = deploy.fcntl.flock
+
+    def flock(fd: int, operation: int) -> None:
+        if operation == fcntl.LOCK_EX:
+            try:
+                real_flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                contended.set()
+            else:
+                real_flock(fd, fcntl.LOCK_UN)
+        real_flock(fd, operation)
+
+    patch = pytest.MonkeyPatch()
+    patch.setattr(deploy.fcntl, "flock", flock)
+    try:
+        deploy.deploy_skills(root, home, "pstack")
+    finally:
+        patch.undo()
+
+
+def _reap(process: multiprocessing.Process | None) -> None:
+    if process is None or process.pid is None:
+        return
+    process.join(timeout=2)
+    if process.is_alive():
+        process.terminate()
+        process.join(timeout=2)
+    if process.is_alive():
+        process.kill()
+        process.join(timeout=2)
+
+
+def _run_missing_unknown_and_retry(root: Path, home: Path, results: Queue[str]) -> None:
+    try:
+        write_skill(root / "skills/common/alpha", "alpha")
+        write_skill(root / "skills/matt/teach", "teach")
+        deploy.deploy_skills(root, home)
+        # Establish a real Matt-only link, then leave creates and prunes pending.
+        write_skill(root / "skills/matt/later", "later")
+        shutil.rmtree(root / "skills/matt/teach")
+        before = {
+            harness.directory / name: (home / harness.directory / name).readlink()
+            for harness in HARNESSES
+            for name in ("alpha", "teach")
+            if (home / harness.directory / name).is_symlink()
+        }
+
+        with pytest.raises(AutomationError):
+            deploy.deploy_skills(root, home, stack="pstack")
+        with pytest.raises(AutomationError, match="unknown skill stack"):
+            deploy.deploy_skills(root, home, stack="unknown")
+
+        after = {
+            harness.directory / name: (home / harness.directory / name).readlink()
+            for harness in HARNESSES
+            for name in ("alpha", "teach", "later")
+            if (home / harness.directory / name).is_symlink()
+        }
+        assert after == before
+
+        (root / "skills/pstack").mkdir()
+        deploy.deploy_skills(root, home, stack="pstack")
+        assert (home / ".agents/skills/alpha").is_symlink()
+        results.put("ok")
+    except BaseException as exc:  # pragma: no cover - surfaced by parent assertion
+        results.put(f"{type(exc).__name__}: {exc}")
+
+
+def test_deploy_processes_share_home_lock_across_stack_switches(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/matt/tdd", "tdd")
+    write_skill(root / "skills/matt/teach", "teach")
+    write_skill(root / "skills/pstack/tdd", "tdd")
+    write_skill(root / "skills/pstack/how", "how")
+    acquired = multiprocessing.Event()
+    paused = multiprocessing.Event()
+    release = multiprocessing.Event()
+    contended = multiprocessing.Event()
+    results: multiprocessing.Queue[str] = multiprocessing.Queue()
+    first = multiprocessing.Process(
+        target=_deploy_while_paused, args=(root, home, acquired, paused, release, results)
+    )
+    second = multiprocessing.Process(target=_deploy_after_probe, args=(root, home, contended))
+    try:
+        first.start()
+        assert paused.wait(timeout=5)
+        assert acquired.is_set(), "lock was not acquired before enumeration"
+        second.start()
+        assert contended.wait(timeout=5)
+        assert second.is_alive()
+        assert not (home / ".agents/skills/tdd").exists()
+        release.set()
+        first.join(timeout=5)
+        second.join(timeout=5)
+        assert first.exitcode == 0
+        assert second.exitcode == 0
+        assert results.get(timeout=2) == "ok"
+        assert (home / ".agents/skills/tdd").readlink() == root / "skills/pstack/tdd"
+        assert (home / ".agents/skills/how").is_symlink()
+        assert not (home / ".agents/skills/teach").exists()
+    finally:
+        release.set()
+        _reap(second)
+        _reap(first)
 
 
 def test_deploy_links_every_scope_into_every_harness(tmp_path: Path) -> None:
@@ -82,34 +236,21 @@ def test_switching_stack_repoints_shared_names_and_prunes_inactive_skills(tmp_pa
 
 def test_missing_or_unknown_stack_fails_before_pruning(tmp_path: Path) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
-    write_skill(root / "skills/common/alpha", "alpha")
-    write_skill(root / "skills/matt/teach", "teach")
-    deploy.deploy_skills(root, home)
-    # Establish a real Matt-only link, then leave creates and prunes pending.
-    write_skill(root / "skills/matt/later", "later")
-    shutil.rmtree(root / "skills/matt/teach")
-    before = {
-        harness.directory / name: (home / harness.directory / name).readlink()
-        for harness in HARNESSES
-        for name in ("alpha", "teach")
-        if (home / harness.directory / name).is_symlink()
-    }
-
-    with pytest.raises(AutomationError):
-        deploy.deploy_skills(root, home, stack="pstack")
-    with pytest.raises(AutomationError, match="unknown skill stack"):
-        deploy.deploy_skills(root, home, stack="unknown")
-
-    after = {
-        harness.directory / name: (home / harness.directory / name).readlink()
-        for harness in HARNESSES
-        for name in ("alpha", "teach", "later")
-        if (home / harness.directory / name).is_symlink()
-    }
-    assert after == before
+    results: multiprocessing.Queue[str] = multiprocessing.Queue()
+    process = multiprocessing.Process(
+        target=_run_missing_unknown_and_retry, args=(root, home, results)
+    )
+    try:
+        process.start()
+        process.join(timeout=5)
+        assert not process.is_alive()
+        assert process.exitcode == 0
+        assert results.get(timeout=2) == "ok"
+    finally:
+        _reap(process)
 
 
-def test_duplicate_selected_name_fails_atomically(tmp_path: Path) -> None:
+def test_duplicate_selected_name_fails_during_preflight(tmp_path: Path) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
     write_skill(root / "skills/common/alpha", "alpha")
     write_skill(root / "skills/matt/alpha", "alpha")
@@ -121,18 +262,19 @@ def test_duplicate_selected_name_fails_atomically(tmp_path: Path) -> None:
     assert not (home / ".codex/skills").exists()
 
 
-def test_foreign_collision_blocks_stack_switch_atomically(tmp_path: Path) -> None:
+def test_foreign_collision_blocks_stack_switch_during_preflight(tmp_path: Path) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
     write_skill(root / "skills/matt/tdd", "tdd")
     write_skill(root / "skills/pstack/tdd", "tdd")
     deploy.deploy_skills(root, home)
-    blocker = home / ".agents/skills/tdd"
+    blocker = home / ".codex/skills/tdd"
     blocker.unlink()
     blocker.mkdir()
 
     with pytest.raises(AutomationError, match=str(blocker)):
         deploy.deploy_skills(root, home, stack="pstack")
     assert blocker.is_dir() and not blocker.is_symlink()
+    assert (home / ".agents/skills/tdd").readlink() == root / "skills/matt/tdd"
     assert (home / ".claude/skills/tdd").readlink() == root / "skills/matt/tdd"
 
 
@@ -469,7 +611,7 @@ def test_classify_foreign_for_dangling_link_with_target_outside_skills_root(
     assert deploy._classify(discovery, skills_root) is deploy._Occupancy.FOREIGN
 
 
-# -- atomicity: plan across every harness before writing anything --
+# -- conflict preflight: plan across every harness before writing anything --
 
 
 def test_conflict_in_one_harness_prevents_writes_everywhere(tmp_path: Path) -> None:
@@ -519,6 +661,7 @@ def test_duplicate_skill_name_across_scopes_raises(tmp_path: Path) -> None:
     assert "foo" in message
     assert str(common_foo) in message
     assert str(claude_foo) in message
+    assert not (home / ".agents/skills/foo").exists()
 
 
 # -- discovery path is not a directory --
