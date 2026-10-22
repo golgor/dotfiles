@@ -4,9 +4,15 @@ trusted_config_paths = ["/home/golgor/.no-mistakes/worktrees"]
 #
 # Policy: every global tool is "latest"; a project that needs a specific version
 # pins it in its own mise.toml. `mise up` (Omarchy alias: mup) moves latest
-# forward; nothing upgrades on its own between runs.
+# forward; tools declared here do not upgrade on their own between runs.
 #
-# This is the only place global tools are declared. ~/.dotfiles/mise.toml has no
+# Omarchy's omarchy-settings package declares its default tools (claude, codex,
+# gh, node, oh-my-pi, opencode, pi, ...) in /etc/mise/conf.d/omarchy-tools.toml
+# as lazy, self-updating installs. Do not re-add them here as "latest": a user
+# entry outranks Omarchy's and disables lazy install and auto-update. node is the
+# deliberate exception; it stays here so it is installed eagerly.
+#
+# This is the only place the remaining global tools are declared. ~/.dotfiles/mise.toml has no
 # [tools] table: the repo's tasks run after bootstrap has finished, so they use
 # the global uv from here rather than a project pin.
 #
@@ -17,18 +23,14 @@ trusted_config_paths = ["/home/golgor/.no-mistakes/worktrees"]
 compile = false
 
 [settings.upgrade]
-auto_prune = false
+auto_prune = false  # also set by Omarchy's /etc/mise/conf.d/omarchy.toml; kept explicit
 
 [tools]
 atuin = "latest"
 bun = "latest"
-claude = "latest"
-codex = "latest"
 fnox = "latest"
-gh = "latest"
 go = "latest"
 "go:go.iot.toolsense.io/bamboohr" = "latest"  # bhr, BambooHR CLI; needs GOPRIVATE from .bashrc
-"github:can1357/oh-my-pi" = "latest"  # omp (Oh My Pi)
 "github:grafana/gcx" = "latest"  # gcx, Grafana CLI; auth via `mise run setup-gcx` (keyring contexts)
 "github:kunchenguid/no-mistakes" = "latest"  # AI validation gate for git push; upgrade via `mise up`, not `no-mistakes update`, then `no-mistakes daemon restart`
 "github:kunchenguid/treehouse" = "latest"  # git worktree manager; required by Firstmate
@@ -39,7 +41,6 @@ marksman = "latest"  # markdown LSP; pi-lens runs it as the primary markdown run
 node = "latest"
 "npm:@andershoffmann/obsidian-axi" = "latest"  # obsidian-axi; see docs/axi/obsidian-axi.md
 "npm:@dbx-app/mcp-server" = "latest"  # DBX MCP server for agent DB access; see docs/tools/dbx.md
-"npm:@earendil-works/pi-coding-agent" = "latest"  # https://github.com/earendil-works
 "npm:acpx" = "latest"  # ACP client; backpass routes model calls through it
 "npm:backpass" = "latest"  # https://github.com/kunchenguid/backpass; needs acpx
 "npm:chrome-devtools-axi" = "latest"  # see docs/axi/chrome-devtools-axi.md
@@ -56,4 +57,3 @@ node = "latest"
 python = "latest"
 ruff = "latest"
 uv = "latest"
-opencode = { version = "latest", allow_builds = ["@opencode/cli"] }
