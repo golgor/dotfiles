@@ -51,12 +51,6 @@ start = true
 state = "running"
 enabled = true
 
-# Python-backed tasks; see automation/pyproject.toml. Bash-native ones live as files under .mise/tasks/.
-# Takes an optional manifest name: `mise run update-skills mattpocock` updates only that one.
-[tasks.update-skills]
-description = "Sync vendored skills from upstream manifests in .mise/skills/*.toml"
-run = "uv run --project automation --no-dev skills update"
-
 [tasks.deploy-skills]
 description = "Project skill directory symlinks into Pi, Claude Code, and Codex"
 run = "uv run --project automation --no-dev skills deploy"

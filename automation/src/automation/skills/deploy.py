@@ -15,9 +15,15 @@ import os
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
+from typing import Literal
 
 from automation import AutomationError
-from automation.skills.manifest import SCOPE_DIRS, Scope
+
+Scope = Literal["common", "claude"]
+SCOPE_DIRS: dict[Scope, Path] = {
+    "common": Path("skills/common"),
+    "claude": Path("skills/claude"),
+}
 
 
 @dataclass(frozen=True)
@@ -93,8 +99,7 @@ def _desired_links(root: Path, home: Path, harness: Harness) -> dict[Path, Path]
     """Link path -> target path for every skill this harness should see.
 
     Raises AutomationError if two scopes visible to this harness both contain a skill
-    with the same name: the manifest layer permits that (scopes are keyed independently),
-    but it would silently collapse into one deployed link here.
+    with the same name: it would silently collapse into one deployed link here.
     """
     discovery = home / harness.directory
     desired: dict[Path, Path] = {}

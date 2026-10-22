@@ -3,9 +3,8 @@
 This is the only module that calls `subprocess`. The `nosemgrep` markers record that
 the audit rule was checked, not bypassed. Both helpers take an argv sequence and
 never use `shell=True`, so arguments reach the program verbatim and cannot become
-extra commands. Callers keep program names and flags literal; the few values that come
-from data (manifest `repo`/`commit`, release tags) are validated to shapes that cannot
-be read as options, or are passed after `--` / in `refs/tags/` form.
+extra commands. Callers keep program names and flags literal, and pass data-derived
+arguments in option-proof form where the command supports it.
 """
 
 import subprocess
