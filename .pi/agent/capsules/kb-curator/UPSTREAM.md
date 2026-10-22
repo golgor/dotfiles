@@ -16,4 +16,8 @@ Vendored unchanged:
 - `memory-ingest`
 - `memory-reflect`
 
+Authored locally (not upstream):
+
+- `kb-lifecycle-transitions` — gated move/metadata procedure that supplements `memory-lifecycle`
+
 `memory-defrag` is intentionally excluded. The local `kb-curator` adapter and the live ToolSense vault/Basic Memory contract take precedence over generic upstream guidance.

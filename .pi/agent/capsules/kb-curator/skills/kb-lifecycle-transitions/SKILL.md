@@ -1,3 +1,8 @@
+---
+name: kb-lifecycle-transitions
+description: "Gated procedure for approved Basic Memory note moves and their status changes: prepare a transition record, move and verify, apply metadata and verify, recover partial transitions. Use before any approved lifecycle move; supplements memory-lifecycle."
+---
+
 # Lifecycle transitions
 
 Use this procedure for approved note moves and their associated status changes. It supplements the pinned `memory-lifecycle` skill; that skill's separate move and metadata calls are not a transaction.

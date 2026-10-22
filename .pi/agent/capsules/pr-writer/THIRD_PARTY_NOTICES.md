@@ -7,7 +7,7 @@ Vendored from <https://github.com/humanlayer/skills> at commit `653b6411c1f70c27
 - `plugins/visual-pr/skills/visual-pr/` → `skills/visual-pr/`, including all references.
 - `plugins/show-me/skills/show-me/` → `skills/show-me/`, including agent metadata.
 
-These directories are copied without modification. Claude plugin registration files are not included: Pi discovers the skill directories directly.
+These directories are copied without modification, except that `skills/show-me/SKILL.md` drops `disable-model-invocation: true` so pi-subagents lists it in the pr-writer skill catalog. Claude plugin registration files are not included: Pi discovers the skill directories directly.
 
 Copyright (c) 2026 HumanLayer. Licensed under the MIT License. Full copyright notice and license: [HUMANLAYER_LICENSE](HUMANLAYER_LICENSE).
 
