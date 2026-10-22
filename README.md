@@ -134,6 +134,8 @@ Skills are locally maintained. Edit them in place and review changes through a P
 
 After adding, removing, or moving a skill directory, run `mise run deploy-skills`. Content edits need no deployment step. See [skills/AGENTS.md](skills/AGENTS.md) for authoring and provenance rules.
 
+In Pi, use `/skill:no-comments <files or diff>` to run `comment-sicko` and act on accepted findings. It requires `pi-subagents` and can delete comments; the parent reviews the diff and handles code fixes. The agent body is unchanged from pstack. The skill translates pstack's helper commands for this environment. After deploying a new skill, use `/reload` in Pi to refresh discovery.
+
 ## Python automation
 
 Tasks with real logic are Python, in the `automation/` [uv](https://docs.astral.sh/uv/) project (one package, one subpackage per automation); bash file tasks under `.mise/tasks/` are kept for plain CLI glue. `deploy-skills` projects the local skills into each harness's discovery directory.
