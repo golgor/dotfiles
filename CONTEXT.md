@@ -63,9 +63,10 @@ this file carries the *why* and the *words*.
   frontmatter, the cross-harness Agent Skills format. Pi, Claude Code, and
   Codex all discover them from per-harness directories.
 - **skill scope** — which harnesses see a skill, encoded as the source
-  directory: `skills/common/` reaches every harness; `skills/claude/` reaches
-  Claude Code only. Scope is declared by placement, never inferred from which
-  links happen to exist on a machine.
+  directory: `skills/common/` and the selected `skills/matt/` or
+  `skills/pstack/` reach every harness; `skills/claude/` reaches Claude Code
+  only. Scope is declared by placement, never inferred from which links happen
+  to exist on a machine.
 - **discovery directory** — where a harness looks for skills: `~/.agents/skills`
   (Pi), `~/.claude/skills` (Claude Code), `~/.codex/skills` (Codex),
   `~/.pi/agent/skills` (Pi only). `mise run deploy-skills` projects the repo's
@@ -74,6 +75,9 @@ this file carries the *why* and the *words*.
 - **adopted skill** — a locally maintained skill based on third-party material.
   Its `SOURCE.md` records the upstream repository, source path, adopted commit,
   and license. Required license notices stay with the skill.
+- **skill stack** — the mutually exclusive selected family under `skills/matt/`
+  or `skills/pstack/`. Common skills are always included; Matt is the default
+  for every plain deployment and bootstrap, and selection is never remembered.
 
 ## Decisions
 
@@ -112,15 +116,26 @@ this file carries the *why* and the *words*.
   its config from every directory, the old `~/fnox.toml` symlink and its
   parent-directory walk are gone, which structurally closes #29. Only rbw's
   device_id and vault under `~/.local/share/rbw/` stay per-machine.
-- **GitHub access for agents goes through `gh`.** The Zed GitHub MCP server and
-  GitHub Copilot CLI agent duplicated shell access without adding a needed
-  capability, while the MCP extension required a plaintext PAT in settings.
-  Keep them absent unless a concrete use-case emerges.
+- **GitHub access for agents goes through authenticated `gh` via `gh-axi`.** The
+  Zed GitHub MCP server and GitHub Copilot CLI agent duplicated shell access
+  without adding a needed capability, while the MCP extension required a
+  plaintext PAT in settings. Keep them absent unless a concrete use-case
+  emerges.
 - **Skills are locally maintained, not synced upstream snapshots.** Edit
   adopted skills in place to fit this environment; retain origin and license
   in each skill's `SOURCE.md` and license notices. Upstream changes are reviewed
-  by hand. The automation only projects directory symlinks and prunes stale
-  managed links. It does not fetch or overwrite skill content.
+  by hand. The automation only projects common plus the selected directory
+  stack as directory symlinks, prunes stale managed links, and repoints moved
+  same-name links. It does not fetch or overwrite skill content. The Matt stack
+  contains the adopted skills from `https://github.com/mattpocock/skills`; the
+  pstack stack currently contains only adopted `no-comments`.
+- **Common skills are always-on; stacks are selectable.** `mise run
+  deploy-skills` defaults to Matt on every invocation and bootstrap, while
+  `mise run deploy-skills -- --stack pstack` selects pstack for that run. The
+  selection has no persistent state. Claude-only skills remain in
+  `skills/claude/`, and common/Claude extras are preserved when switching.
+  Deployment does not provide harness adapters or autonomy; `comment-sicko`
+  remains independently installed.
 - **Codex gets its own discovery directory, `~/.pi/agent/skills` stays
   unmanaged.** Codex CLI only scans `$CODEX_HOME/skills` (`~/.codex/skills`),
   never `~/.agents/skills`, and its loader ignores a skill folder whose
@@ -129,8 +144,10 @@ this file carries the *why* and the *words*.
   as a directory symlink instead. `~/.pi/agent/skills` still isn't a shared
   target: it holds Pi-local and external links, and Pi already sees the
   shared skills via `~/.agents/skills`.
-- **`setup-matt-pocock-skills` is not selected.** It exists to run the
-  upstream installer, which this repo replaces.
+- **`setup-matt-pocock-skills` prepares target repositories.** Invoke it
+  explicitly when configuring a repository for the engineering skills; this
+  repo's own stack and deployment remain the source of installed skills, and
+  bootstrap does not run the setup flow.
 - **Logic-bearing tasks are Python in one uv project; glue stays bash.** A
   340-line untyped, untested shell-launched script was the tipping point.
   One package with subpackages rather than a uv workspace: uv scopes

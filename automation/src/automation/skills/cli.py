@@ -11,9 +11,10 @@ from automation.process import git_root
 from automation.skills.deploy import Deployment, deploy_skills
 
 
-def default_deploy(root: Path, out: TextIO = sys.stdout) -> None:
-    """Project skill directory symlinks into every harness and print what changed."""
-    print_deployment(deploy_skills(root, Path.home()), out)
+def default_deploy(root: Path, out: TextIO = sys.stdout, stack: str = "matt") -> None:
+    """Project the selected skill stack into every harness and print what changed."""
+    print(f"Deploying {stack} skill stack.", file=out)
+    print_deployment(deploy_skills(root, Path.home(), stack=stack), out)
 
 
 def print_deployment(deployment: Deployment, out: TextIO = sys.stdout) -> None:
@@ -37,12 +38,18 @@ def build_parser() -> argparse.ArgumentParser:
         "deploy",
         help="project skill directory symlinks into Pi, Claude Code, and Codex",
         description=(
-            "Project one directory symlink per skill from skills/common/ and skills/claude/ "
-            "into ~/.agents/skills (Pi), ~/.claude/skills (Claude Code), and ~/.codex/skills "
-            "(Codex). Creates missing links, re-points moved ones, and prunes links whose "
-            "skill no longer exists. Leaves harness-owned neighbours untouched and refuses "
-            "to overwrite any path that is not already a symlink pointing into skills/."
+            "Project one directory symlink per skill from skills/common/, the selected stack, "
+            "and skills/claude/ into the harness discovery directories. Creates missing links, "
+            "re-points moved ones, and prunes inactive stack links. Leaves harness-owned "
+            "neighbours untouched and refuses to overwrite any path that is not already a "
+            "symlink pointing into skills/."
         ),
+    )
+    sub.choices["deploy"].add_argument(
+        "--stack",
+        choices=("matt", "pstack"),
+        default="matt",
+        help="stack-specific skills to deploy (default: matt)",
     )
     return parser
 
@@ -55,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
         root = git_root()
         if not (root / "mise.toml").is_file():
             raise AutomationError(f"{root} does not look like the dotfiles repository")
-        default_deploy(root)
+        default_deploy(root, stack=args.stack)
     except AutomationError as e:
         print(f"skills {args.command}: {e}", file=sys.stderr)
         return 1

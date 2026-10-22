@@ -23,7 +23,7 @@ This repo is tuned to my machines and preferences, not built for reuse — but f
 | `.config/fnox/config.toml` | `~/.config/fnox/config.toml` | symlink |
 | `.config/rbw/config.json` | `~/.config/rbw/config.json` | symlink |
 | `.bash_completions.d/` | `~/.bash_completions.d/` | symlink-each |
-| `skills/common/`, `skills/claude/` | `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/` | one directory symlink per skill, via `mise run deploy-skills` (not a mise `[dotfiles]` entry) |
+| `skills/common/`, selected `skills/matt/` or `skills/pstack/`, `skills/claude/` | `~/.agents/skills/`, `~/.claude/skills/`, `~/.codex/skills/` | one directory symlink per skill, via `mise run deploy-skills` (not a mise `[dotfiles]` entry) |
 
 ### Mise tools
 
@@ -77,7 +77,9 @@ mise bootstrap packages status --missing
 mise bootstrap packages apply
 mise bootstrap
 mise bootstrap dotfiles status
-mise run deploy-skills
+mise run deploy-skills                 # common + matt (default)
+# Alternative selection for this invocation:
+# mise run deploy-skills -- --stack pstack
 ```
 
 If real files already exist where symlinks should go, mise refuses to clobber them. Prefer:
@@ -126,7 +128,7 @@ device_id and encrypted vault under `~/.local/share/rbw/`.
 
 ## Agent skills
 
-`skills/common/` holds the skills shared by Pi, Codex, and Claude Code; `skills/claude/` holds Claude-only ones. `mise run deploy-skills` links each skill directory into `~/.agents/skills` (Pi), `~/.codex/skills` (Codex), and `~/.claude/skills` (Claude Code, both `common/` and `claude/`). Neighbours the harnesses or other installers own (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system`) stay untouched.
+`skills/common/` holds always-on local skills shared by Pi, Codex, and Claude Code. `skills/matt/` and `skills/pstack/` are mutually exclusive selectable stacks; Matt is the default, while `mise run deploy-skills -- --stack pstack` selects pstack for that invocation. `skills/claude/` remains Claude-only. Deployment links common plus the selected stack into `~/.agents/skills` (Pi), `~/.codex/skills` (Codex), and `~/.claude/skills` (Claude Code), preserving Claude-only extras. Inactive managed links are pruned and moved skills repointed by name; harness-owned neighbours (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system`) stay untouched. Selection is not remembered, and deployment does not supply harness adapters or autonomy.
 
 **One-time migration on a machine that already ran the old `symlink-each` setup:** `mise bootstrap dotfiles apply` does not prune links for entries removed from `mise.toml`, so the old `symlink-each` directories under `~/.agents/skills` and `~/.claude/skills` are still sitting there as real directories full of file symlinks into `~/.dotfiles`. `mise run deploy-skills` will refuse to touch them, listing one conflict per leftover skill, until you delete those directories by hand. You can tell them apart from the harness-owned neighbours that must be kept (`hey`, `omarchy`, `diagnose-crash`, Codex's `.system/`, Claude's `synced/`): the leftovers are real directories whose contents are all symlinks pointing into `~/.dotfiles/skills`, while the kept ones are either real content owned by another tool or symlinks pointing elsewhere. Delete the leftovers, then rerun `mise run deploy-skills`.
 
@@ -134,7 +136,7 @@ Skills are locally maintained. Edit them in place and review changes through a P
 
 After adding, removing, or moving a skill directory, run `mise run deploy-skills`. Content edits need no deployment step. See [skills/AGENTS.md](skills/AGENTS.md) for authoring and provenance rules.
 
-In Pi, use `/skill:no-comments <files or diff>` to run `comment-sicko` and act on accepted findings. It requires `pi-subagents` and can delete comments; the parent reviews the diff and handles code fixes. The agent body is unchanged from pstack. The skill translates pstack's helper commands for this environment. After deploying a new skill, use `/reload` in Pi to refresh discovery.
+In Pi, use `/skill:no-comments <files or diff>` to run `comment-sicko` and act on accepted findings. It requires `pi-subagents` and can delete comments; the parent reviews the diff and handles code fixes. The agent body is unchanged from pstack and remains independently installed. `pstack/no-comments` is the only currently adopted pstack skill; there is no upstream import or refresh. The skill translates pstack's helper commands for this environment. After deploying a new skill, use `/reload` in Pi to refresh discovery.
 
 ## Python automation
 

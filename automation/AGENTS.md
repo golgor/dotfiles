@@ -6,7 +6,7 @@ Python-implemented mise tasks for this repo: one uv project, one package (`autom
 
 | subpackage | console script | mise task | does |
 | --- | --- | --- | --- |
-| `skills` | `skills deploy` | `deploy-skills` | projects one directory symlink per skill from `../skills/{common,claude}/` into `~/.agents/skills`, `~/.claude/skills`, `~/.codex/skills` |
+| `skills` | `skills deploy` | `deploy-skills` | projects common plus the selected `../skills/{matt,pstack}/` stack, and Claude-only skills, as one directory symlink per skill into `~/.agents/skills`, `~/.claude/skills`, `~/.codex/skills` |
 | `omarchy_plugins` | `omarchy-plugins sync [--dry-run]` | `sync-omarchy-plugins` | installs and enables missing plugins from `../omarchy/plugins.toml` for this host |
 
 ### `omarchy_plugins` module map
@@ -31,7 +31,7 @@ Shared: `process.py` (`run`, `git_root`) is the **only** module that calls `subp
 
 - **Implementation must follow TDD, preferably using the `/tdd` skill.** Write failing unit or integration tests first before writing production code. Keep tests offline with temporary directories and local git repositories rather than network calls. Follow red → green → refactor, and run `mise run check` to verify formatting, strict typing (`ty`), and test suite health.
 - **Library code returns findings or raises `AutomationError`; only `cli.py` prints.** Tests then assert on values, not captured stdout.
-- **Exercise filesystem and git for real in temporary directories.** Deployment tests call `deploy_skills(root, home)` with a temporary home so tests leave live harness discovery directories untouched.
+- **Exercise filesystem and git for real in temporary directories.** Deployment tests call `deploy_skills(root, home)` with a temporary home so tests leave live harness discovery directories untouched. Deployments serialize planning and execution with a stable home-scoped lock; conflict preflight prevents harness-link changes (the lock parent/file persist even on rejection), but execution is not transactional and rerunning converges after an interruption or runtime error.
 - **Subprocess safety lives in `process.py`.** Argv sequences, never `shell=True`. Program names and flags are literals at every call site; pass data-derived arguments in option-proof form (`--flag=value` or after `--`) where the command supports it. The `# nosemgrep` markers record that the audit rule was checked — keep them accurate if you add a subprocess call, and add it in `process.py`.
 - **Typing is strict: ty with every rule as an error, over `src` and `tests`.** Narrow `Any` at the boundary instead of annotating it away. No `type: ignore`, no `cast`.
 - **Runtime is stdlib-only; dev tools are the `dev` group.** Tasks call `uv run --no-dev`, which works offline on a fresh machine because uv builds `uv_build` projects natively — as long as the `uv_build` range in `pyproject.toml` contains the uv version pinned in `../mise.toml`. Bump both together. Adding a runtime dependency is a `CONTEXT.md` decision, not a `pyproject.toml` edit.

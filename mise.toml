@@ -42,7 +42,7 @@ enabled = true
 builtin = "history-watch"
 
 [tasks.deploy-skills]
-description = "Project skill directory symlinks into Pi, Claude Code, and Codex"
+description = "Deploy common skills plus the selected matt (default) or pstack stack; use -- --stack pstack"
 run = "uv run --project automation --no-dev skills deploy"
 
 [tasks.sync-omarchy-plugins]
