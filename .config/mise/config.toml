@@ -38,7 +38,6 @@ kubectl = "latest"
 kubectx = "latest"
 kubens = "latest"
 marksman = "latest"  # markdown LSP; pi-lens runs it as the primary markdown runner
-node = "latest"
 "npm:@andershoffmann/obsidian-axi" = "latest"  # obsidian-axi; see docs/axi/obsidian-axi.md
 "npm:@dbx-app/mcp-server" = "latest"  # DBX MCP server for agent DB access; see docs/tools/dbx.md
 "npm:acpx" = "latest"  # ACP client; backpass routes model calls through it
