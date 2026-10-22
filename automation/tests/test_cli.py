@@ -53,6 +53,9 @@ def test_cli_stack_selection_is_persistent_only_for_one_invocation(tmp_path: Pat
         text=True,
     )
     assert "Deploying pstack skill stack." in pstack.stdout
+    assert "pstack: 1 skill linked, 0 already up to date." in pstack.stdout
+    assert "Common/Claude extras: 1 skill linked, 0 already up to date." in pstack.stdout
+    assert "Stale links removed for 0 skills." in pstack.stdout
     assert (home / ".agents/skills/how").is_symlink()
 
     matt = subprocess.run(
@@ -64,6 +67,9 @@ def test_cli_stack_selection_is_persistent_only_for_one_invocation(tmp_path: Pat
         text=True,
     )
     assert "Deploying matt skill stack." in matt.stdout
+    assert "matt: 1 skill linked, 0 already up to date." in matt.stdout
+    assert "Common/Claude extras: 0 skills linked, 1 already up to date." in matt.stdout
+    assert "Stale links removed for 1 skill." in matt.stdout
     assert (home / ".agents/skills/teach").is_symlink()
     assert not (home / ".agents/skills/how").exists()
 
@@ -79,20 +85,48 @@ def test_deploy_help_describes_the_actual_recognition_check() -> None:
     assert "symlink pointing into skills/" in deploy_help
 
 
-def test_print_deployment_says_nothing_to_do_when_all_empty() -> None:
+def test_print_deployment_says_nothing_to_do_when_all_empty(tmp_path: Path) -> None:
     out = io.StringIO()
-    print_deployment(Deployment(linked=[], pruned=[], unchanged=[]), out)
+    print_deployment(
+        Deployment(linked=[], pruned=[], unchanged=[]), out, root=tmp_path, stack="pstack"
+    )
     assert "nothing to do" in out.getvalue().lower()
 
 
-def test_print_deployment_omits_zero_count_line(tmp_path: Path) -> None:
+def test_print_deployment_deduplicates_skill_names_across_harnesses(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    (root / "skills/matt/teach").mkdir(parents=True)
     out = io.StringIO()
-    print_deployment(Deployment(linked=[tmp_path / "linked"], pruned=[], unchanged=[]), out)
-    assert "0 link(s)" not in out.getvalue()
-    assert "link(s) already up to date" not in out.getvalue()
+    print_deployment(
+        Deployment(
+            linked=[tmp_path / "agents/teach", tmp_path / "claude/teach"],
+            pruned=[],
+            unchanged=[tmp_path / "codex/teach"],
+        ),
+        out,
+        root=root,
+        stack="matt",
+    )
+    assert "matt: 1 skill linked, 0 already up to date." in out.getvalue()
+    assert "Common/Claude extras: 0 skills linked, 0 already up to date." in out.getvalue()
+
+
+def test_print_deployment_reports_stale_and_zero_categories(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    (root / "skills/matt/linked").mkdir(parents=True)
+    out = io.StringIO()
+    print_deployment(
+        Deployment(linked=[tmp_path / "linked"], pruned=[tmp_path / "old"], unchanged=[]),
+        out,
+        root=root,
+    )
+    assert "matt: 1 skill linked, 0 already up to date." in out.getvalue()
+    assert "Stale links removed for 1 skill." in out.getvalue()
 
 
 def test_print_deployment_prints_nonzero_unchanged_count(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    (root / "skills/matt/a").mkdir(parents=True)
     out = io.StringIO()
-    print_deployment(Deployment(linked=[], pruned=[], unchanged=[tmp_path / "a"]), out)
-    assert "1 link(s) already up to date." in out.getvalue()
+    print_deployment(Deployment(linked=[], pruned=[], unchanged=[tmp_path / "a"]), out, root=root)
+    assert "matt: 0 skills linked, 1 already up to date." in out.getvalue()
