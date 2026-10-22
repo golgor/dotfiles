@@ -51,6 +51,10 @@ start = true
 state = "running"
 enabled = true
 
+[bootstrap.services.mise-history]
+builtin = "history-watch"
+
+# Python-backed tasks; see automation/pyproject.toml. Bash-native ones live as files under .mise/tasks/.
 [tasks.deploy-skills]
 description = "Project skill directory symlinks into Pi, Claude Code, and Codex"
 run = "uv run --project automation --no-dev skills deploy"
@@ -62,7 +66,12 @@ run = "uv run --project automation --no-dev omarchy-plugins sync"
 [tasks.check]
 description = "Lint, format-check, type-check, and test automation/"
 dir = "automation"
-run = ["uv run ruff check", "uv run ruff format --check", "uv run ty check", "uv run pytest"]
+run = [
+  "uv run ruff check",
+  "uv run ruff format --check",
+  "uv run ty check",
+  "uv run pytest",
+]
 
 # Runs at bootstrap step 17. Enable package-shipped systemd *user* units that Arch
 # presets leave disabled. mise's declarative systemd sections only write their own
