@@ -15,7 +15,7 @@ Common skills are always deployed. `mise run deploy-skills` selects exactly one 
 
 The deployer projects one directory symlink per selected skill into the harness discovery directories. It prunes stale managed links and repoints moved skills with the same name, while refusing conflicts and preserving foreign neighbours. Run it after adding, removing, or moving a skill; content edits are live immediately.
 
-`common/` and the selected stack reach all three harnesses; `claude/` remains Claude-only. Deployment does not provide harness adapters, autonomy, or runtime capabilities. The existing `comment-sicko` agent remains independently installed; `pstack/no-comments` is the only adopted pstack skill here and is not an upstream import/refresh. Common is the shared dependency layer regardless of where a skill originated; `common/codebase-design` intentionally remains there because pstack/no-comments uses it.
+`common/` and the selected stack reach all three harnesses; `claude/` remains Claude-only. The selected pstack stack contains the adopted 57-skill primary pack; optional upstream automations such as benny are not activated. Deployment does not provide harness adapters, autonomy, or runtime capabilities. The existing `comment-sicko` agent remains independently installed. Common is the shared dependency layer regardless of where a skill originated; `common/codebase-design` intentionally remains there.
 
 ## Authoring and adopting
 

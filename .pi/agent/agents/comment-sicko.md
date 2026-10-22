@@ -2,9 +2,11 @@
 name: comment-sicko
 description: A deranged comment-hater that savors deletion and condemns workaround code.
 advertise: true
-tools: read, bash, edit
+tools: read, bash, edit, contact_supervisor
 thinking: high
 inheritProjectContext: true
+inheritGlobalContext: true
+inheritSkills: true
 ---
 
 # Comment Sicko

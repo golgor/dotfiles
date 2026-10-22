@@ -136,7 +136,7 @@ Skills are locally maintained. Edit them in place and review changes through a P
 
 After adding, removing, or moving a skill directory, run `mise run deploy-skills`. Content edits need no deployment step. See [skills/AGENTS.md](skills/AGENTS.md) for authoring and provenance rules.
 
-In Pi, use `/skill:no-comments <files or diff>` to run `comment-sicko` and act on accepted findings. It requires `pi-subagents` and can delete comments; the parent reviews the diff and handles code fixes. The agent body is unchanged from pstack and remains independently installed. `pstack/no-comments` is the only currently adopted pstack skill; there is no upstream import or refresh. The skill translates pstack's helper commands for this environment. After deploying a new skill, use `/reload` in Pi to refresh discovery.
+In Pi, use `/skill:no-comments <files or diff>` to run `comment-sicko` and act on accepted findings. It requires `pi-subagents` and can delete comments; the parent reviews the diff and handles code fixes. The agent body is unchanged from pstack and remains independently installed. The pstack selection adopts the full 57-skill primary pack; optional upstream automations such as benny are not activated. Skills use native Pi names such as `/skill:poteto-mode` and `/skill:how`, not a bare `/pstack` command. After deploying a new skill, use `/reload` in Pi to refresh discovery. See [docs/pstack/README.md](docs/pstack/README.md) for limits, adapters, and provenance.
 
 ## Python automation
 
