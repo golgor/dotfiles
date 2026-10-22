@@ -6,7 +6,7 @@ Python-implemented mise tasks for this repo: one uv project, one package (`autom
 
 | subpackage | console script | mise task | does |
 | --- | --- | --- | --- |
-| `skills` | `skills deploy` | `deploy-skills` | projects one directory symlink per skill from `../skills/{common,claude}/` into `~/.agents/skills`, `~/.claude/skills`, `~/.codex/skills` |
+| `skills` | `skills deploy` | `deploy-skills` | projects common plus the selected `../skills/{matt,pstack}/` stack, and Claude-only skills, as one directory symlink per skill into `~/.agents/skills`, `~/.claude/skills`, `~/.codex/skills` |
 | `omarchy_plugins` | `omarchy-plugins sync [--dry-run]` | `sync-omarchy-plugins` | installs and enables missing plugins from `../omarchy/plugins.toml` for this host |
 
 ### `omarchy_plugins` module map

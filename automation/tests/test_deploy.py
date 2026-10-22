@@ -15,6 +15,7 @@ from tests.helpers import write_skill
 def make_root(tmp_path: Path) -> Path:
     root = tmp_path / "dotfiles"
     root.mkdir()
+    (root / "skills/matt").mkdir(parents=True)
     return root
 
 
@@ -42,6 +43,97 @@ def test_deploy_links_every_scope_into_every_harness(tmp_path: Path) -> None:
     assert set(result.linked) == {pi_link, codex_link, claude_common_link, claude_only_link}
     assert result.pruned == []
     assert result.unchanged == []
+
+
+def test_switching_stack_repoints_shared_names_and_prunes_inactive_skills(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/alpha", "alpha")
+    write_skill(root / "skills/claude/handoff", "handoff")
+    write_skill(root / "skills/matt/tdd", "tdd")
+    write_skill(root / "skills/matt/teach", "teach")
+    write_skill(root / "skills/pstack/tdd", "tdd")
+    write_skill(root / "skills/pstack/how", "how")
+
+    deploy.deploy_skills(root, home)
+    for harness in HARNESSES:
+        discovery = home / harness.directory
+        assert (discovery / "tdd").readlink() == root / "skills/matt/tdd"
+        assert (discovery / "teach").is_symlink()
+        assert not (discovery / "how").is_symlink()
+        (discovery / "hey").mkdir()
+        (discovery / "hey/owned.txt").write_text("keep")
+
+    for stack, active, inactive in [("pstack", "how", "teach"), ("matt", "teach", "how")]:
+        deploy.deploy_skills(root, home, stack=stack)
+        for harness in HARNESSES:
+            discovery = home / harness.directory
+            assert (discovery / "tdd").readlink() == root / f"skills/{stack}/tdd"
+            assert (discovery / active).is_symlink()
+            assert not (discovery / inactive).is_symlink()
+            assert (discovery / "alpha").readlink() == root / "skills/common/alpha"
+            assert (discovery / "hey/owned.txt").read_text() == "keep"
+        assert (home / ".claude/skills/handoff").is_symlink()
+        assert not (home / ".agents/skills/handoff").exists()
+        assert not (home / ".codex/skills/handoff").exists()
+        again = deploy.deploy_skills(root, home, stack=stack)
+        assert again.linked == []
+        assert again.pruned == []
+
+
+def test_missing_or_unknown_stack_fails_before_pruning(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/alpha", "alpha")
+    write_skill(root / "skills/matt/teach", "teach")
+    deploy.deploy_skills(root, home)
+    # Establish a real Matt-only link, then leave creates and prunes pending.
+    write_skill(root / "skills/matt/later", "later")
+    shutil.rmtree(root / "skills/matt/teach")
+    before = {
+        harness.directory / name: (home / harness.directory / name).readlink()
+        for harness in HARNESSES
+        for name in ("alpha", "teach")
+        if (home / harness.directory / name).is_symlink()
+    }
+
+    with pytest.raises(AutomationError):
+        deploy.deploy_skills(root, home, stack="pstack")
+    with pytest.raises(AutomationError, match="unknown skill stack"):
+        deploy.deploy_skills(root, home, stack="unknown")
+
+    after = {
+        harness.directory / name: (home / harness.directory / name).readlink()
+        for harness in HARNESSES
+        for name in ("alpha", "teach", "later")
+        if (home / harness.directory / name).is_symlink()
+    }
+    assert after == before
+
+
+def test_duplicate_selected_name_fails_atomically(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/common/alpha", "alpha")
+    write_skill(root / "skills/matt/alpha", "alpha")
+
+    with pytest.raises(AutomationError, match="alpha"):
+        deploy.deploy_skills(root, home)
+    assert not (home / ".agents/skills").exists()
+    assert not (home / ".claude/skills").exists()
+    assert not (home / ".codex/skills").exists()
+
+
+def test_foreign_collision_blocks_stack_switch_atomically(tmp_path: Path) -> None:
+    root, home = make_root(tmp_path), tmp_path / "home"
+    write_skill(root / "skills/matt/tdd", "tdd")
+    write_skill(root / "skills/pstack/tdd", "tdd")
+    deploy.deploy_skills(root, home)
+    blocker = home / ".agents/skills/tdd"
+    blocker.unlink()
+    blocker.mkdir()
+
+    with pytest.raises(AutomationError, match=str(blocker)):
+        deploy.deploy_skills(root, home, stack="pstack")
+    assert blocker.is_dir() and not blocker.is_symlink()
+    assert (home / ".claude/skills/tdd").readlink() == root / "skills/matt/tdd"
 
 
 def test_created_link_is_a_directory_symlink_readable_through(tmp_path: Path) -> None:
@@ -243,7 +335,7 @@ def test_harnesses_table_shape() -> None:
 
 def test_classify_free_when_nothing_at_path(tmp_path: Path) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
-    (root / "skills").mkdir(parents=True)
+    (root / "skills").mkdir(parents=True, exist_ok=True)
     link_dir = home / ".agents/skills"
     link_dir.mkdir(parents=True)
 
@@ -278,7 +370,7 @@ def test_classify_managed_for_relative_target_into_skills_root(tmp_path: Path) -
 
 def test_classify_managed_for_dangling_link_into_skills_root(tmp_path: Path) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
-    (root / "skills").mkdir(parents=True)
+    (root / "skills").mkdir(parents=True, exist_ok=True)
     link_dir = home / ".agents/skills"
     link_dir.mkdir(parents=True)
     link = link_dir / "gone"
@@ -294,7 +386,7 @@ def test_classify_rejects_target_that_escapes_skills_root_via_dotdot(
     tmp_path: Path,
 ) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
-    (root / "skills").mkdir(parents=True)
+    (root / "skills").mkdir(parents=True, exist_ok=True)
     link_dir = home / ".agents/skills"
     link_dir.mkdir(parents=True)
     link = link_dir / "escaped"
@@ -322,7 +414,7 @@ def test_classify_rejects_sibling_skills_backup_directory(tmp_path: Path) -> Non
 
 def test_classify_foreign_for_link_to_somewhere_unrelated(tmp_path: Path) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
-    (root / "skills").mkdir(parents=True)
+    (root / "skills").mkdir(parents=True, exist_ok=True)
     outside_target = tmp_path / "elsewhere"
     outside_target.mkdir()
     link_dir = home / ".agents/skills"
@@ -336,7 +428,7 @@ def test_classify_foreign_for_link_to_somewhere_unrelated(tmp_path: Path) -> Non
 
 def test_classify_foreign_for_real_file(tmp_path: Path) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
-    (root / "skills").mkdir(parents=True)
+    (root / "skills").mkdir(parents=True, exist_ok=True)
     link_dir = home / ".agents/skills"
     link_dir.mkdir(parents=True)
     path = link_dir / "blocker"
@@ -348,7 +440,7 @@ def test_classify_foreign_for_real_file(tmp_path: Path) -> None:
 
 def test_classify_foreign_for_real_directory(tmp_path: Path) -> None:
     root, home = make_root(tmp_path), tmp_path / "home"
-    (root / "skills").mkdir(parents=True)
+    (root / "skills").mkdir(parents=True, exist_ok=True)
     link_dir = home / ".agents/skills"
     link_dir.mkdir(parents=True)
     path = link_dir / "hey"
@@ -367,7 +459,7 @@ def test_classify_foreign_for_dangling_link_with_target_outside_skills_root(
     path pointed outside skills_root is correctly FOREIGN, not FREE.
     """
     root, home = make_root(tmp_path), tmp_path / "home"
-    (root / "skills").mkdir(parents=True)
+    (root / "skills").mkdir(parents=True, exist_ok=True)
     link_dir = home / ".agents"
     link_dir.mkdir(parents=True)
     discovery = link_dir / "skills"

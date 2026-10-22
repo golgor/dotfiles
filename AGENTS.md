@@ -66,7 +66,7 @@ Treat every committed file, branch, and PR as public. Before adding config, scan
 
 Known sharp edges:
 
-- **Zed**: `settings.json` and `keymap.json` are tracked; extension/runtime data under `~/.local/share/zed/` is not. GitHub access for agents goes through the authenticated `gh` CLI—do not add the GitHub MCP server, Copilot CLI agent, or PAT settings without an explicit new need. Zed canonicalizes its settings path before atomic writes, so saving settings preserves the symlink and updates the repo target.
+- **Zed**: `settings.json` and `keymap.json` are tracked; extension/runtime data under `~/.local/share/zed/` is not. GitHub access for agents goes through authenticated `gh` via `gh-axi`—do not add the GitHub MCP server, Copilot CLI agent, or PAT settings without an explicit new need. Zed canonicalizes its settings path before atomic writes, so saving settings preserves the symlink and updates the repo target.
 - **Kubernetes/GCP** auth belongs in `~/.kube/config`, `~/.config/gcloud/`, and local credential stores, not in this repo. Tasks may set those up, but dotfiles should not track them.
 
 If a portable config genuinely needs secrets, use the fnox model below rather than plaintext exports or committed credentials.
@@ -119,7 +119,7 @@ Before adding any new config, confirm the app does not rewrite it via temp-file-
 
 ## Agent skills: one tracked copy, the automation projects it
 
-`skills/common/` is the single copy of every shared agent skill; `mise run deploy-skills` (the `automation` package's `skills deploy`) projects it as one directory symlink per skill into `~/.agents/skills` (Pi), `~/.claude/skills` (Claude Code), and `~/.codex/skills` (Codex). Codex is a target because its loader only follows directory symlinks and ignores a `SKILL.md` that is itself a file symlink inside a real directory — what mise's old `symlink-each` produced. Skills are locally maintained and editable in place; adopted skills carry their origin and license in a per-skill `SOURCE.md`. Read `skills/AGENTS.md` before changing anything under `skills/`.
+`skills/common/` is the always-on copy of local shared skills. `skills/matt/` and `skills/pstack/` are mutually exclusive selectable stacks; Matt is the default and pstack is selected with `mise run deploy-skills -- --stack pstack`. `skills/claude/` remains Claude-only. The automation projects common plus the selected stack as one directory symlink per skill into `~/.agents/skills` (Pi), `~/.claude/skills` (Claude Code), and `~/.codex/skills` (Codex). Common and Claude extras are preserved, inactive managed links are pruned, and same-name links are repointed after moves. Codex is a target because its loader only follows directory symlinks and ignores a `SKILL.md` that is itself a file symlink inside a real directory — what mise's old `symlink-each` produced. Skills are locally maintained and editable in place; adopted skills carry their origin and license in a per-skill `SOURCE.md`. Read `skills/AGENTS.md` before changing anything under `skills/`.
 
 Other owners keep their directories: `hey` (HEY CLI, marked `.managed-by-hey-cli`), `omarchy` and `diagnose-crash` (symlinks into `/usr/share/omarchy`), `~/.codex/skills/.system` (Codex), Claude's `synced/`, and the external research links left in `~/.pi/agent/skills`. Because each managed link sits one level deep (`<discovery dir>/<name>`), the deployer never has to look inside these neighbours to leave them alone.
 

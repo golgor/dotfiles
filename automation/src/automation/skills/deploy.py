@@ -19,11 +19,15 @@ from typing import Literal
 
 from automation import AutomationError
 
-Scope = Literal["common", "claude"]
+Scope = Literal["common", "claude", "matt", "pstack"]
+Stack = Literal["matt", "pstack"]
 SCOPE_DIRS: dict[Scope, Path] = {
     "common": Path("skills/common"),
     "claude": Path("skills/claude"),
+    "matt": Path("skills/matt"),
+    "pstack": Path("skills/pstack"),
 }
+STACKS: tuple[Stack, ...] = ("matt", "pstack")
 
 
 @dataclass(frozen=True)
@@ -33,6 +37,13 @@ class Harness:
     scopes: tuple[Scope, ...]
 
 
+def _validate_stack(stack: str) -> Stack:
+    if stack not in STACKS:
+        raise AutomationError(f"unknown skill stack {stack!r}; choose matt or pstack")
+    return stack
+
+
+# Kept public for callers and tests that inspect the three harness destinations.
 HARNESSES: tuple[Harness, ...] = (
     Harness("Pi", Path(".agents/skills"), ("common",)),
     Harness("Claude Code", Path(".claude/skills"), ("common", "claude")),
@@ -58,7 +69,7 @@ class _Plan:
 
 
 def _skill_dirs(root: Path, scope: Scope) -> dict[str, Path]:
-    """Directories directly inside root/skills/<scope>, keyed by name. Missing scope -> empty."""
+    """Directories directly inside root/skills/<scope>, keyed by name."""
     scope_dir = root / SCOPE_DIRS[scope]
     if not scope_dir.is_dir():
         return {}
@@ -129,12 +140,20 @@ def _check_discovery(discovery: Path, skills_root: Path) -> None:
         )
 
 
-def _plan(root: Path, home: Path) -> _Plan:
+def _plan(root: Path, home: Path, stack: str) -> _Plan:
     """Decide what every harness needs, across all of them, without writing anything."""
+    selected_stack = _validate_stack(stack)
+    selected_dir = root / SCOPE_DIRS[selected_stack]
+    if not selected_dir.is_dir():
+        raise AutomationError(f"selected skill stack {stack!r} does not exist: {selected_dir}")
     skills_root = (root / "skills").resolve()
+    harnesses = tuple(
+        Harness(harness.name, harness.directory, (*harness.scopes, selected_stack))
+        for harness in HARNESSES
+    )
     plan = _Plan()
 
-    for harness in HARNESSES:
+    for harness in harnesses:
         discovery = home / harness.directory
         _check_discovery(discovery, skills_root)
         desired = _desired_links(root, home, harness)
@@ -179,7 +198,7 @@ def _execute(plan: _Plan) -> Deployment:
     return Deployment(linked=linked, pruned=pruned, unchanged=plan.unchanged)
 
 
-def deploy_skills(root: Path, home: Path) -> Deployment:
+def deploy_skills(root: Path, home: Path, stack: str = "matt") -> Deployment:
     """Converge every harness discovery directory to one directory symlink per skill.
 
     Creates missing links, re-points managed links whose target moved, prunes managed
@@ -188,7 +207,7 @@ def deploy_skills(root: Path, home: Path) -> Deployment:
     is not a managed symlink, raises AutomationError listing every conflict before
     writing anything, so a run that hits one conflict leaves every harness untouched.
     """
-    plan = _plan(root, home)
+    plan = _plan(root, home, stack)
 
     if plan.conflicts:
         lines = [
