@@ -10,15 +10,7 @@ user-invocable: false
 
 Use `gh-axi` for every GitHub operation. Never substitute raw `gh`, browser automation, or direct GitHub API calls.
 
-At task start, run `gh-axi --version` and compare it with the version in [`references/commands.md`](references/commands.md). For a matching version, use the relevant documented group section. For a mismatch, or when needed syntax is absent, run live specific help (`gh-axi <group> --help`) and follow that output.
-
-The installed CLI is the source of truth. The reference is a static help snapshot maintained manually when needed, not an exhaustive machine-readable schema. Take flags from the matching command section or live help:
-
-```bash
-gh-axi --version
-gh-axi --help
-gh-axi <command> --help
-```
+Run the needed command directly. The installed CLI is the source of truth; use its error guidance or live help to resolve unfamiliar syntax. The static [`references/commands.md`](references/commands.md) is an optional lookup, not a startup step.
 
 ## Focused examples
 
@@ -28,9 +20,14 @@ Use exact subcommand sections for flags:
 - Create: `gh-axi pr create --title "Fix login" --body-file body.md`
 - Edit: `gh-axi pr edit 42 --title "Fix login" --body-file body.md`
 - Diff: `gh-axi pr diff 42 --full`
-- Checks: `gh-axi pr checks 42 --failed`
 
 `--fields` is supported by list commands such as `pr list`, not `pr diff`. For local file lists, use `git diff --name-only` (and `git diff --cached --name-only` for staged changes), not PR diff flags.
+
+## Publication only
+
+Own the description and authorized Git/GitHub publication. The caller owns testing, lint, formatting, type checks, scans, code review, and CI. Use supplied evidence as evidence; otherwise report validation as not provided. Do not execute validation commands, query check status, poll reviews, or wait for CI. If repository policy requires a pre-push gate and the caller has not supplied its result, return that blocker to the caller rather than running the gate.
+
+Completion is the requested draft, or a successful PR create/update with its URL. Publication success is not evidence of code correctness or passing checks.
 
 ## Task contract
 
@@ -49,12 +46,12 @@ Publish modes require an explicit user request to create or update a PR. A mode 
 
 1. Refresh remote state; inspect branch, status, and live PR metadata. Resolve base from task or repository default.
 2. Establish scope from mode and optional paths. In `local`, include already-staged changes within scope. Preserve unrelated index and working-tree changes. For partially staged files, inspect both diffs; include only authorized hunks. Stop if unrelated staged changes cannot be safely separated from the intended commit.
-3. For authorized local commits, stage intended changes, read cached diff, run `git diff --cached --check`, and derive commit message from cached diff. Recheck branch before committing.
-4. Draft body from the complete intended PR diff using the `visual-pr` template and `show-me` visual guidance. Record available validation evidence separately in the operational handoff.
-5. For publish modes, push with Git and create/update through `gh-axi`. For `draft`, return body without mutation.
-6. Read back published title, body, base, head, and checks. Complete only when publication matches intended scope; report pending or absent CI accurately.
+3. For authorized local commits, stage intended changes, read cached diff, and derive the commit message from that diff. Recheck the branch before committing. This scope inspection protects the commit; it is not a validation run.
+4. Draft the title and body from the complete intended PR diff using the template named in the agent prompt. Keep supplied validation evidence in the operational handoff.
+5. For publish modes, push with Git and create/update through `gh-axi`, using explicit base and head when creating. For `draft`, return the body without mutation.
+6. Return the PR URL from the successful command. For an update whose command omits the URL, use the URL already resolved in step 1. Publication ends the task; follow-up review and check monitoring belong to the caller.
 
-Return operational bookkeeping separately from PR body: URL, branch, commit, checks, and any excluded local changes needed for handoff.
+Return operational bookkeeping separately from the PR body: URL, branch, commit, supplied validation evidence, and any excluded local changes needed for handoff.
 
 ## Boundaries
 
