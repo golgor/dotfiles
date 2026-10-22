@@ -98,7 +98,8 @@ The global mise config is tracked: `.config/mise/config.toml` → `~/.config/mis
 
 - This repo's `mise.toml` has **no** `[tools]` table. A `[tools]` table in any `mise.toml` is directory-scoped and overrides the global version under that directory; a pinned `atuin` there once shadowed the global `latest`, could not talk to the newer daemon, and stalled every prompt for ~8 s. The repo's tasks run after bootstrap has finished, so the global `uv` is the one they use.
 - `mise use -g`, `mise settings set`, and Omarchy migrations write through the symlink (verified), so they land as a repo diff. Treat that diff like any other edit: commit it or revert it, and keep the file `latest`-only.
-- Versions move only on `mise up` / `mup` or `mise install`; the two machines may have different installed versions under the same `latest`, which is fine.
+- Versions of tools declared here move only on `mise up` / `mup` or `mise install`; the two machines may have different installed versions under the same `latest`, which is fine.
+- Omarchy's `omarchy-settings` package declares its default tools (`claude`, `codex`, `gh`, `oh-my-pi`, `opencode`, `pi`, …) in `/etc/mise/conf.d/omarchy-tools.toml` as lazy, self-updating installs, and a migration removed our duplicate `latest` entries. Do not re-add them: a user entry outranks Omarchy's and disables lazy install and auto-update. `node` and `upgrade.auto_prune = false` are kept here deliberately.
 - Omarchy pre-creates `~/.config/mise/config.toml`, so on a new machine this entry needs `mise bootstrap dotfiles add ~/.config/mise/config.toml` and a reconcile, not `--force`.
 
 ## Track config, never runtime state
