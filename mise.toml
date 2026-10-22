@@ -1,6 +1,3 @@
-# Dotfiles managed by mise. See AGENTS.md for the working model, README.md for humans.
-# Docs: https://mise.jdx.dev/dotfiles.html
-
 # No [tools] here: a project [tools] table would override the global version
 # inside ~/.dotfiles. All tools, including the uv that runs the tasks below,
 # come from the tracked global config at .config/mise/config.toml. The tasks
@@ -12,11 +9,8 @@
 "aur:google-cloud-cli" = "latest"
 "aur:google-cloud-cli-component-gke-gcloud-auth-plugin" = "latest"
 "aur:cloud-sql-proxy-bin" = "latest"
-# Hyprland monitor profile manager + daemon.
 "aur:hyprmoncfg-bin" = "latest"
-# DBX desktop: owns the connections and the MCP policy that dbx-mcp-server reads.
 "aur:dbx-bin" = "latest"
-# fnox prerequisites.
 "pacman:rbw" = "latest"
 # rbw silent-unlock via keyring: rbw-pinentry-keyring reads the master password
 # from the GNOME keyring; libsecret provides secret-tool.
@@ -26,13 +20,6 @@
 # not detected. Ships in the omarchy pacman repo. See docs/axi/chrome-devtools-axi.md.
 "pacman:google-chrome" = "latest"
 
-# systemd user oneshot that unlocks the rbw vault at login, before the first
-# terminal's fnox hook resolves secrets. Without it the first shell after a cold
-# boot races a still-cold rbw-agent and fnox silently drops the secrets that lose
-# the unlock (e.g. unset $SLACK_AXI_TOKEN). mise writes the unit file, enables it
-# (wanted_by) and starts it (start), so `mise bootstrap` sets it up on any machine
-# with no manual `systemctl --user enable`. Unlock is silent because the
-# passwordless login keyring is already open. See docs/rbw-fnox-research.md.
 [bootstrap.linux.systemd.units.rbw-unlock]
 description = "Unlock the rbw (Bitwarden) vault at login"
 exec_start = "/usr/bin/rbw unlock"
@@ -54,7 +41,6 @@ enabled = true
 [bootstrap.services.mise-history]
 builtin = "history-watch"
 
-# Python-backed tasks; see automation/pyproject.toml. Bash-native ones live as files under .mise/tasks/.
 [tasks.deploy-skills]
 description = "Project skill directory symlinks into Pi, Claude Code, and Codex"
 run = "uv run --project automation --no-dev skills deploy"
@@ -91,7 +77,6 @@ dotfiles.default_mode = "symlink"
 # moves each comment with the key below it, so group comments sit on a group's
 # first key.
 
-# Directories mise does not fully own: link each file, leave neighbours untouched.
 "~/.bash_completions.d" = { source = ".bash_completions.d", mode = "symlink-each" }
 # Whole-file symlinks. Source is inferred as ~/.dotfiles/<home-relative-path>.
 "~/.bashrc" = { mode = "symlink" }
@@ -104,8 +89,6 @@ dotfiles.default_mode = "symlink"
 # daemon reused across sessions, so a .bashrc export would miss any daemon
 # started outside an interactive shell. See the file for the full reasoning.
 "~/.config/environment.d/lavish-axi.conf" = { mode = "symlink" }
-# fnox secret manifest + daemon config; machine-agnostic since the age cache
-# was dropped (see docs/rbw-fnox-research.md), so it is tracked like any config.
 "~/.config/fnox/config.toml" = { mode = "symlink" }
 "~/.config/git/config" = { mode = "symlink" }
 "~/.config/herdr/config.toml" = { mode = "symlink" }
@@ -145,8 +128,6 @@ dotfiles.default_mode = "symlink"
 "~/.config/starship.toml" = { mode = "symlink" }
 "~/.config/zed/keymap.json" = { mode = "symlink" }
 "~/.config/zed/settings.json" = { mode = "symlink" }
-# Delayed Slack launcher, invoked host-gated from hypr/autostart.lua on
-# golgor-framework. Waits for network + an external monitor before starting Slack.
 "~/.local/bin/slack-delayed-start" = { mode = "symlink" }
 
 # Pi and OMP agent files: one source each, linked into both harnesses' own
@@ -164,7 +145,6 @@ dotfiles.default_mode = "symlink"
 "~/.omp/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
 
 "~/.pi/agent/APPEND_SYSTEM.md" = { source = ".pi/agent/APPEND_SYSTEM.md", mode = "symlink" }
-# Custom Pi subagents and their private skill capsules are versioned here.
 "~/.pi/agent/agents" = { source = ".pi/agent/agents", mode = "symlink" }
 "~/.pi/agent/capsules" = { source = ".pi/agent/capsules", mode = "symlink" }
 # pi-subagents config (toolActivation etc.); distinct from settings.json's
@@ -173,7 +153,6 @@ dotfiles.default_mode = "symlink"
 "~/.pi/agent/mcp.json" = { source = ".pi/agent/mcp.json", mode = "symlink" }
 "~/.pi/agent/prompts/agent-review.md" = { source = ".pi/agent/prompts/agent-review.md", mode = "symlink" }
 "~/.pi/agent/prompts/kb-review.md" = { source = ".pi/agent/prompts/kb-review.md", mode = "symlink" }
-# Named @-completion shortcuts read by the pi-extensions `references` extension.
 "~/.pi/agent/references.json" = { mode = "symlink" }
 # Pi rewrites settings.json in place (writeFileSync, lock beside the link), so
 # /settings changes land as repo diffs; lastChangelogVersion is stripped by the
