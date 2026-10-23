@@ -1,7 +1,7 @@
 # Backend Production Database (PostgreSQL)
 
 Connection: **`Backend Production`**  
-Engine: PostgreSQL 15+ (Google Cloud SQL)  
+Engine: PostgreSQL 14.22 (Google Cloud SQL primary, instance `toolsense-3`; no read replica). TimeZone = UTC  
 Database: **`backend`**  
 Schema: **`public`**
 
@@ -19,15 +19,16 @@ Schema: **`public`**
 Holds configuration profiles and assignments for Phoenix devices (R4/R5 hardware).
 
 - `dynamicconfig_dynamicconfiguration`: Stored configuration profiles. Key columns: `id (PK)`, `config_name`, `config_data` (`jsonb`). **The highest `id` for a given `config_name` is always the active configuration version.**
-- `dynamicconfig_assettypemapping`: Maps machine model `asset_type_id` to `config_name`.
-- `dynamicconfig_modulemapping`: Maps specific device `imei` to `config_name`, with `override_config` (`boolean`).
+  ~244 rows; `config_name` is not indexed, which is fine at this size.
+- `dynamicconfig_assettypemapping`: Maps machine model `asset_type_id` to `config_name`. ~14 rows. **The PK is `asset_type_id`; there is no `id` column.** Also has `asset_type_name`.
+- `dynamicconfig_modulemapping`: Maps specific device `imei` to `config_name`, with `override_config` (`boolean`). ~38 k rows, `imei` is UNIQUE.
 
 #### Configuration Resolution Hierarchy
 1. **Asset Type Mapping (`dynamicconfig_assettypemapping`):** The standard/baseline configuration. If a module's asset has an `asset_type_id` in Frontend MySQL, it receives this configuration by default. An IMEI does **not** need a row in `dynamicconfig_modulemapping` to have a valid active configuration!
 2. **Module Override (`dynamicconfig_modulemapping`):** If an IMEI has an entry with `override_config = true`, its module mapping overrides the asset type configuration.
 
 ### 2. Over-The-Air Firmware (`ota_*`)
-- **`ota_publishedversion`:** The catalog of available published firmware versions. **This is the ONLY active OTA table in this database.**
+- **`ota_publishedversion`:** The catalog of available published firmware versions. **This is the ONLY active OTA table in this database.** ~66 rows. Columns: `id`, `firmware_version` (UNIQUE), `comment`, `published` (boolean), `created_at`, `modified_at`. There are no `version`, `device_id` or `variant_id` columns.
 - **STALE TABLES:** `ota_imeicurrent` and `ota_imeidesired` are **stale and no longer used**. Do not query them for device firmware state. Check firmware versions via `telemetry.mqtt` (ver column) or `IoT Production` (`iot_fota`).
 
 ## Invariants & Gotchas
@@ -95,9 +96,9 @@ Query the active OTA published catalog:
 ```sql
 SELECT
   id,
-  version,
-  device_id,
-  variant_id,
+  firmware_version,
+  published,
+  comment,
   created_at
 FROM ota_publishedversion
 ORDER BY id DESC

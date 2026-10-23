@@ -22,10 +22,11 @@ Before querying, match the entity or question to its database connection and ope
 | Hardware modules, active asset mappings, IMEIs | `Frontend Production` | `api` | [references/frontend-mysql.md](references/frontend-mysql.md) |
 | Latest asset telemetry state (single row) | `Frontend Production` | `api` (`LatestAssetData`) | [references/frontend-mysql.md](references/frontend-mysql.md) |
 | Raw sensor messages & telemetry history | `Frontend Production` | `telemetry` (`mqtt`) | [references/frontend-mysql.md](references/frontend-mysql.md) |
+| IMEIs (modules) added in a period | `Frontend Production` | `api` (`Module.created`, not indexed) | [references/frontend-mysql.md](references/frontend-mysql.md) |
 | Phoenix dynamic config, parameters, overrides | `Backend Production` | `backend.public` | [references/backend-postgres.md](references/backend-postgres.md) |
 | Phoenix OTA published firmware catalog | `Backend Production` | `backend.public` (`ota_publishedversion`) | [references/backend-postgres.md](references/backend-postgres.md) |
 | SIM cards, ICCID-to-IMEI mapping, carrier state | `IoT Production` | `iot_sim_governance` | [references/iot-postgres.md](references/iot-postgres.md) |
-| Firmware releases, tenant eligibility, FOTA | `IoT Production` | `iot_fota` | [references/iot-postgres.md](references/iot-postgres.md) |
+| Firmware releases, tenant eligibility, FOTA (catalog currently empty) | `IoT Production` | `iot_fota` | [references/iot-postgres.md](references/iot-postgres.md) |
 | Non-Phoenix device configurations & sync tasks | `IoT Production` | `iot_configurations` | [references/iot-postgres.md](references/iot-postgres.md) |
 
 ## Standard Query Lifecycle
@@ -45,13 +46,14 @@ Read the specific reference file in `references/` for verified indexes, table si
 ### 3. Inspect Plan (`EXPLAIN`)
 On non-catalog tables, run `EXPLAIN` on the proposed query.
 - Verify the query hits the intended index (check `key` in MySQL or `Index Scan` in Postgres).
-- **Abort immediately** if the plan executes a sequential scan on a large table (`telemetry.mqtt`, `AssetData`, `Translation`).
+- **Abort immediately** if the plan executes a sequential scan on a large table (`telemetry.mqtt`, `AssetData`, `Translation`, `Asset`; in IoT, `snapshots_simsnapshot` and the `provider_*_simstate` tables).
+- A full scan of a small table is acceptable when the reference says so, for example `api.Module` (~321 k rows) or `` api.`Group` `` (~72.5 k rows).
 - **Never run `EXPLAIN ANALYZE`** on large tables (it executes the query).
 
 ### 4. Bounded Execution
 - Always include an explicit indexed filter (`WHERE ...`).
 - Always specify an explicit `LIMIT` (default 50, maximum 100).
-- If filtering by time on telemetry, bound both lower and upper bounds (`datetime >= NOW() - INTERVAL 7 DAY`).
+- If filtering by time on telemetry, bound both lower and upper bounds (`datetime >= NOW() - INTERVAL 7 DAY`). `telemetry.mqtt.datetime` is the server insert time; device time is `ts` in `data` and `LatestAssetData.moduleTimestamp`.
 - **DBX Tool `max_rows`:** DBX defaults to returning at most 100 rows. Always pass `max_rows` matching the query `LIMIT`, and report if the output reached the row limit.
 
 ### 5. Format Output
